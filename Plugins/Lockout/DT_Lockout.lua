@@ -1,3 +1,60 @@
+-- ============================================================
+-- WowTracker Plugin Wrapper — Lockout v1.9.0
+-- ============================================================
+local addonName, addonTable = ...
+local _lkWrap = CreateFrame("Frame")
+_lkWrap:RegisterEvent("ADDON_LOADED")
+_lkWrap:SetScript("OnEvent", function(self, event, name)
+    if name ~= "WowTracker" then return end
+    self:UnregisterAllEvents()
+    if not WowTracker then return end
+    WowTracker:RegisterPlugin({
+        id       = "lockout",
+        name     = "Lockout",
+        version  = "1.9.0",
+        category = "Tracking",
+        icon     = "🔒",
+        enabled  = true,
+        scan = function(charKey, charData, db)
+            charData.lockouts = charData.lockouts or {}
+            local num = GetNumSavedInstances and GetNumSavedInstances() or 0
+            for i = 1, num do
+                local n,_,reset,diff,_,_,_,_,_,maxBoss,_,defeatedBosses = GetSavedInstanceInfo(i)
+                if n then
+                    charData.lockouts[n] = { diff=diff, reset=reset, bosses=defeatedBosses, maxBosses=maxBoss }
+                end
+            end
+        end,
+        buildUI = function(cf)
+            -- Build lockout display from WowTrackerDB
+            local db = WowTrackerDB
+            if not db then return end
+            local key = (UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+            local char = db.characters and db.characters[key]
+            local lockouts = char and char.lockouts or {}
+            local title = cf:CreateFontString(nil,"OVERLAY"); title:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
+            title:SetPoint("TOPLEFT",14,-10); title:SetText("|cffccaa00Weekly Lockouts — "..key.."|r")
+            local y = -38
+            local count = 0
+            for name, data in pairs(lockouts) do
+                count = count + 1
+                local row = cf:CreateFontString(nil,"OVERLAY"); row:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+                row:SetPoint("TOPLEFT",20,y)
+                local timeLeft = data.reset and (data.reset - GetServerTime()) or 0
+                local h = math.floor(timeLeft/3600)
+                row:SetText(string.format("|cff00dfff%s|r  |cff666666Diff:%d  Bosses:%d/%d  Reset: %dh|r",
+                    name, data.diff or 0, data.bosses or 0, data.maxBosses or 0, h))
+                y = y - 20
+            end
+            if count == 0 then
+                local none = cf:CreateFontString(nil,"OVERLAY"); none:SetFont("Fonts\\2002.ttf",12,"OUTLINE")
+                none:SetPoint("CENTER"); none:SetText("|cff888888Geen actieve lockouts|r")
+            end
+        end,
+        onEnable=function() end, onDisable=function() end,
+    })
+end)
+-- ============================================================
 -- =====================================================
 -- DelveTracker Plugin: Lockout v1.9.0
 -- Shows: M+ key/best + Raid Lockouts + Professions

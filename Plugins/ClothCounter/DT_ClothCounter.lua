@@ -1,3 +1,102 @@
+-- ============================================================
+-- WowTracker Plugin Wrapper — ClothCounter v2.x
+-- ============================================================
+local addonName, addonTable = ...
+local _ccWrap = CreateFrame("Frame")
+_ccWrap:RegisterEvent("ADDON_LOADED")
+_ccWrap:SetScript("OnEvent", function(self, event, name)
+    if name ~= "WowTracker" then return end
+    self:UnregisterAllEvents()
+    if not WowTracker then return end
+    WowTracker:RegisterPlugin({
+        id       = "cloth_counter",
+        name     = "Cloth Counter",
+        version  = "2.0",
+        category = "Warband",
+        icon     = "📦",
+        enabled  = true,
+        events   = {"BAG_UPDATE_DELAYED"},
+        scan = function(charKey, charData, db)
+            -- Cloth item IDs (Midnight)
+            local CLOTH = {
+                [2592]   = "Wool Cloth",
+                [4306]   = "Silk Cloth",
+                [14047]  = "Runecloth",
+                [53010]  = "Embersilk Cloth",
+                [72992]  = "Windwool Cloth",
+                [111557] = "Sumptuous Fur",
+                [124437] = "Shal'dorei Silk",
+                [151020] = "Lightweave Cloth",
+                [159882] = "Tidespray Linen",
+                [178785] = "Shadowlace",
+                [187993] = "Shrouded Cloth",
+                [193053] = "Infurious Scales", -- TWW transitional
+                [1228060]= "Sunfire Silk Bolt", -- Midnight
+                [1227926]= "Arcanoweave Bolt",  -- Midnight
+            }
+            charData.cloth = charData.cloth or {}
+            for itemID, _ in pairs(CLOTH) do
+                local count = 0
+                for bag = 0, 4 do
+                    for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                        local info = C_Container.GetContainerItemInfo(bag, slot)
+                        if info and info.itemID == itemID then
+                            count = count + (info.stackCount or 1)
+                        end
+                    end
+                end
+                charData.cloth[itemID] = count > 0 and count or nil
+            end
+        end,
+        buildUI = function(cf)
+            local db = WowTrackerDB; if not db then return end
+            local CLOTH_NAMES = {
+                [1228060]="Sunfire Silk Bolt",[1227926]="Arcanoweave Bolt",
+                [159882]="Tidespray Linen",[178785]="Shadowlace",[187993]="Shrouded Cloth",
+                [193053]="Infurious Scales",
+            }
+            local title = cf:CreateFontString(nil,"OVERLAY"); title:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
+            title:SetPoint("TOPLEFT",14,-8); title:SetText("|cffccaa00📦 Cloth Counter — Warband Overzicht|r")
+            local scroll = CreateFrame("ScrollFrame",nil,cf,"UIPanelScrollFrameTemplate")
+            scroll:SetPoint("TOPLEFT",10,-36); scroll:SetPoint("BOTTOMRIGHT",-28,-4)
+            local content = CreateFrame("Frame",nil,scroll); content:SetSize(500,1); scroll:SetScrollChild(content)
+            local y = 0
+            local grandTotal = {}
+            -- Per character row
+            local chars = {}
+            for k in pairs(db.characters or {}) do table.insert(chars,k) end; table.sort(chars)
+            for _, ckey in ipairs(chars) do
+                local cdata = db.characters[ckey]
+                local cloth = cdata and cdata.cloth
+                if cloth then
+                    local cname = ckey:match("([^-]+)") or ckey
+                    local hdr = content:CreateFontString(nil,"OVERLAY"); hdr:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+                    hdr:SetPoint("TOPLEFT",0,y); hdr:SetText("|cff00dfff"..cname.."|r"); y=y-18
+                    for iid, cnt in pairs(cloth) do
+                        if cnt and cnt > 0 then
+                            grandTotal[iid] = (grandTotal[iid] or 0) + cnt
+                            local row = content:CreateFontString(nil,"OVERLAY"); row:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
+                            row:SetPoint("TOPLEFT",12,y)
+                            row:SetText(string.format("  %s: |cff44ff44%d|r", CLOTH_NAMES[iid] or ("Item "..iid), cnt)); y=y-16
+                        end
+                    end
+                    y=y-4
+                end
+            end
+            -- Grand total
+            local tot = content:CreateFontString(nil,"OVERLAY"); tot:SetFont("Fonts\\2002.ttf",12,"OUTLINE")
+            tot:SetPoint("TOPLEFT",0,y-4); tot:SetText("|cffccaa00━━ Warband Totaal ━━|r"); y=y-20
+            for iid, cnt in pairs(grandTotal) do
+                local tr = content:CreateFontString(nil,"OVERLAY"); tr:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+                tr:SetPoint("TOPLEFT",8,y)
+                tr:SetText(string.format("  %s: |cffbf00ff%d|r", CLOTH_NAMES[iid] or ("Item "..iid), cnt)); y=y-18
+            end
+            content:SetHeight(math.abs(y)+20)
+        end,
+        onEnable=function() end, onDisable=function() end,
+    })
+end)
+-- ============================================================
 -- =========================================================================
 -- DT_ClothWidget v14.5.1 — WARBAND EDITION
 -- World of Warcraft: Midnight 12.0.5 / build 67314

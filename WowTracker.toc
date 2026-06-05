@@ -1,50 +1,17 @@
 ## Interface: 120005
 ## Title: |cffbf00ffWow|r|cff00dfffTracker|r |cffccaa00Slayer Alliance Edition|r
-## Notes: Complete WoW addon suite — Tracking, HUD, Warband & Utility plugins
+## Notes: Complete WoW addon suite — Tracking, HUD, Warband & Utility | v1.0.0
 ## Author: DieOuwe
-## Version: 1.0.0-dev
+## Version: 1.0.0
 ## SavedVariables: WowTrackerDB
-## IconTexture: Interface\AddOns\WowTracker\Media\MijnIcoon
+## SavedVariablesPerCharacter: WowTrackerDBChar
+## IconTexture: Interface\AddOns\WowTracker\Media\Icons\WowTracker_Icon_64
 ## X-Website: https://dieouwe.nl
+## X-CurseForge: https://www.curseforge.com/wow/addons/delvetracker-slayer-alliance-edition
 ## X-Guild: Slayer Alliance
 ## X-Realm: Sporeggar-EU
 ## X-Discord: https://discord.gg/y8Pu5qsEbQ
-## X-Category: Tracking, HUD, Warband, Utility
+## X-GitHub: https://github.com/Die0uwe/WowTracker
 
-# Core Engine
-Core\WowTracker.lua
-
-# WowTracker.xml (frame definities)
+# Load via XML manifest (correct load order guaranteed)
 WowTracker.xml
-
-# Plugins — Tracking
-Plugins\Registry\DT_Registry.lua
-Plugins\Lockout\DT_Lockout.lua
-Plugins\ContentManager\DT_ContentManager.lua
-
-# Plugins — Warband
-Plugins\Charmory\DT_Charmory.lua
-Plugins\ClothCounter\DT_ClothCounter.lua
-
-# Plugins — HUD
-Plugins\PreyTracker\DT_preytracker.lua
-Plugins\PreyTracker\DT_prey_ui.lua
-Plugins\Overlay\DT_Overlay.lua
-
-# Plugins — Utility
-Plugins\CombatAnnouncer\DT_CombatAnnouncer.lua
-Plugins\SystemTools\DT_SystemTools.lua
-Plugins\TooltipExtra\DT_TooltipExtra.lua
-Plugins\QuickSet\DT_QuickSet.lua
-Plugins\SkinNRare\DT_SkinNRare.lua
-Plugins\CustomAFK\DT_CustomAFK.lua
-Plugins\Exchangebot\DT_exchangebot.lua
-Plugins\UserInfo\DT_userinfo.lua
-
-# Plugins — Events
-Plugins\Events\DT_events.lua
-Plugins\Events\DT_events_ui.lua
-
-# Plugins — System
-Plugins\HelpGuide\DT_HelpGuide.lua
-Plugins\Debugger\DT_Debugger.lua
