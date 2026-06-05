@@ -1,0 +1,30 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <Script file="DelveTracker.lua"/>
+
+    <Script file="Plugins\DT_events.lua"/>
+    <Script file="Plugins\DT_preytracker.lua"/>
+
+    <!-- Nieuwe UI Modules -->
+    <Script file="Plugins\DT_events_ui.lua"/>
+    <Script file="Plugins\DT_prey_ui.lua"/>
+
+    <Script file="Plugins\DT_userinfo.lua"/>
+    <Script file="Plugins\DT_QuickSet.lua"/>
+    <Script file="Plugins\DT_TooltipExtra.lua"/>
+    <Script file="Plugins\DT_SystemTools.lua"/>
+    <Script file="Plugins\DT_HelpGuide.lua"/>
+    <Script file="Plugins\DT_CombatAnnouncer.lua"/>
+    <Script file="Plugins\DT_Charmory.lua"/>
+    <Script file="Plugins\DT_Registry.lua"/>
+    <Script file="Plugins\DT_Lockout.lua"/>
+    <Script file="Plugins\DT_exchangebot.lua"/>
+    <Script file="Plugins\DT_Media.lua"/>
+    <Script file="Plugins\DT_SkinNRare.lua"/>
+    <Script file="Plugins\DT_ClothCounter.lua"/>
+
+    <Script file="Plugins\afk\DT_CustomAFK.lua"/>
+    <Script file="Plugins\afk\DT_ContentManager.lua"/>
+    <Script file="Plugins\afk\DT_Overlay.lua"/>
+
+    <Script file="Plugins\DT_Debugger.lua"/>
+</Ui>

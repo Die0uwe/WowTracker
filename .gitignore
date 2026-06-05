@@ -1,0 +1,31 @@
+# WowTracker — .gitignore
+
+# WoW SavedVariables (nooit pushen)
+*.lua.bak
+WTF/
+SavedVariables/
+
+# Binary assets — aparte workflow
+*.tga
+*.blp
+*.m2
+*.ogg
+*.mp3
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp
+*~
+
+# Tijdelijke notities (niet voor repo)
+Nieuw_-_Tekstdocument.txt
+*.tmp
+FIXES_*.txt
+
+# Logs
+*.log
