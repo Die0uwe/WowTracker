@@ -95,7 +95,8 @@ TickerLine:SetColorTexture(0.45,0.10,0.70,0.8)
 
 local TickerClock = UI:CreateFontString(nil,"OVERLAY")
 TickerClock:SetFont(C_2002,10,"OUTLINE")
-TickerClock:SetPoint("RIGHT",UI,"RIGHT",-8,-(TICKER_H/2))
+-- Verankerd aan de ticker achtergrond, niet aan UI hoogte midden
+TickerClock:SetPoint("RIGHT",TickerBG,"RIGHT",-6,0)
 TickerClock:SetTextColor(0.80,0.65,1.0,1)
 
 local TickerClip = CreateFrame("Button",nil,UI)
