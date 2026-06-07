@@ -71,8 +71,9 @@ if DelveTracker then
 
     Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -1)
     Armory.bgShield:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Shield.tga")
-    Armory.bgShield:SetSize(315, 412); Armory.bgShield:SetPoint("TOP", Armory, "TOP", 0, -25)
-    Armory.bgShield:SetAlpha(0.55)  -- transparanter zodat gear slots/tekst leesbaar blijft
+    Armory.bgShield:SetSize(280, 380)
+    Armory.bgShield:SetPoint("TOP", Armory, "TOP", 0, -50)
+    Armory.bgShield:SetAlpha(0.65)  -- zichtbaar maar gear/tekst leesbaar
 
     Armory.closeBtn = CreateFrame("Button", nil, Armory, "UIPanelCloseButton")
     Armory.closeBtn:SetPoint("TOPRIGHT", Armory, "TOPRIGHT", -2, -2)
