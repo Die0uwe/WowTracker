@@ -547,8 +547,9 @@ Tab1.dieouwe:SetSize(80,138)  -- proportioneel kleiner
 Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.75)
--- Horizontaal spiegelen: TexCoord (1→0 in plaats van 0→1)
-Tab1.dieouwe:SetTexCoord(1,0,0,0, 1,1,0,1)  -- gespiegeld zodat hij naar links (binnen) wijst
+-- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
+-- Origineel kijkt rechts → gespiegeld kijkt naar links (naar binnen)
+Tab1.dieouwe:SetTexCoord(1,0,0,1)
 
 -- Logo watermark links midden — subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
@@ -1710,6 +1711,17 @@ UpdateCharacterList = function()
             r2.sp=r2.sp or r2:CreateFontString(nil,"OVERLAY")
             r2.sp:SetFont(C_2002,9,""); r2.sp:SetPoint("LEFT",r2.cIcon,"RIGHT",6,-6)
             r2.sp:SetText(SA_GREY..(data2.spec or "??").." · iLvl "..(data2.ilvl or 0).."|r")
+            -- Delve progress (zelfde als kolom 1: 0/2 0/4 0/8)
+            r2.prgr=r2.prgr or r2:CreateFontString(nil,"OVERLAY")
+            r2.prgr:SetFont(C_2002,9,"OUTLINE")
+            r2.prgr:SetPoint("BOTTOMLEFT",r2.cIcon,"RIGHT",6,4)
+            local st2=""
+            if data2.delves then
+                for _,v in ipairs(data2.delves) do
+                    st2=st2..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
+                end
+            end
+            r2.prgr:SetText(st2~="" and st2 or SA_GREY.."—|r")
             r2.gld=r2.gld or r2:CreateFontString(nil,"OVERLAY")
             r2.gld:SetFont(C_2002,10,"OUTLINE"); r2.gld:SetPoint("RIGHT",-6,0)
             r2.gld:SetText(SA_GOLD..math.floor((data2.money or 0)/10000).."g|r")
@@ -1720,7 +1732,14 @@ UpdateCharacterList = function()
                 self:SetBackdropBorderColor(0.50,0.15,0.80,1)
                 GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
                 GameTooltip:SetText(SA_GOLD..sn2)
-                GameTooltip:AddLine(SA_GREY..(d2.spec or "??").." · iLvl "..(d2.ilvl or 0).."|r")
+                GameTooltip:AddLine(SA_GREY..(d2.class or "?").." · "..(d2.spec or "??").." · iLvl "..(d2.ilvl or 0).."|r")
+                if d2.delves then
+                    local ds=""
+                    for _,v in ipairs(d2.delves) do
+                        ds=ds..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
+                    end
+                    if ds~="" then GameTooltip:AddLine(ds) end
+                end
                 GameTooltip:AddLine(SA_GOLD..math.floor((d2.money or 0)/10000).."g|r")
                 GameTooltip:Show()
             end)
@@ -1963,50 +1982,6 @@ MakeOptBtn("⚠  Wipe Character DB",eb3,function()
 end)
 
 -- ─────────────────────────────────────────────────────────────────────────
--- ACTIE KNOPPEN: Reload UI | Wipe DB | Del Char
--- NAAST Extra opties (rechter kolom van het admin panel)
--- ─────────────────────────────────────────────────────────────────────────
-local function MakeActionBtn(lbl,col,x,anchorFrame,fn)
-    local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
-    b:SetSize(120,26)
-    b:SetPoint("TOPLEFT",anchorFrame,"TOPRIGHT",x,0)
-    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    b:SetBackdropColor(col[1],col[2],col[3],0.9)
-    b:SetBackdropBorderColor(col[1]+0.2,col[2]+0.1,col[3]+0.1,1)
-    local t=b:CreateFontString(nil,"OVERLAY")
-    t:SetFont(C_2002,10,"OUTLINE")
-    t:SetPoint("CENTER")
-    t:SetText(lbl)
-    b:SetScript("OnClick",fn)
-    b:SetScript("OnEnter",function(s)
-        s:SetBackdropBorderColor(1,0.9,0.2,1)
-    end)
-    b:SetScript("OnLeave",function(s)
-        s:SetBackdropBorderColor(col[1]+0.2,col[2]+0.1,col[3]+0.1,1)
-    end)
-    return b
-end
-
--- Reload UI
-local abReload=MakeActionBtn("|cffffffff⟳  Reload UI|r",{0.08,0.12,0.20},12,opt.extraHdr,
-    function() ReloadUI() end)
--- Wipe DB
-local abWipe=MakeActionBtn("|cffff6644⚠  Wipe DB|r",{0.20,0.05,0.05},0,abReload,
-    function()
-        if DelveTrackerDB then
-            DelveTrackerDB.characters={}
-            print(SA_PURPLE.."[WowTracker]|r "..SA_GREY.."Character DB gewist.|r")
-        end
-    end)
--- Del Char (huidig karakter)
-MakeActionBtn("|cffccaa00✕  Del Char|r",{0.15,0.10,0.02},0,abWipe,
-    function()
-        local key=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-        if DelveTrackerDB and DelveTrackerDB.characters then
-            DelveTrackerDB.characters[key]=nil
-            print(SA_PURPLE.."[WowTracker]|r "..SA_GREY..key.." verwijderd.|r")
-        end
-    end)
 
 -- [stale afkBtn verwijderd]
 
