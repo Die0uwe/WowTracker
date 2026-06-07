@@ -331,24 +331,21 @@ local function ShowTab(id)
     elseif id==3 then
         Tab3:Show()
         Tab3.PluginArea:Show()
-        -- Alleen QuickSet koppelen — NIET alle plugins aanroepen
-        -- (andere plugins reageren op "Tab3" door hun eigen frame te tonen)
-        local qf = _G["DT_QuickSetFrame"]
-        if qf then
-            qf:SetParent(Tab3.PluginArea)
-            qf:ClearAllPoints()
-            qf:SetAllPoints(Tab3.PluginArea)
-            qf:Show()
+        -- QuickSet bouwt op 400px breed — geef een wrapper van 400px
+        -- Zodat het links staat en de rest van 760px vrij is voor extra info
+        if not Tab3.quickWrap then
+            Tab3.quickWrap = CreateFrame("Frame",nil,Tab3.PluginArea)
+            Tab3.quickWrap:SetSize(420,560)
+            Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",4,-4)
         end
-        -- Alleen QuickSet plugin aanroepen
         local qpF = DelveTracker.Plugins["QuickSet"]
         if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
-            pcall(qpF,"Tab3",Tab3.PluginArea)
+            pcall(qpF,"Tab3",Tab3.quickWrap)
         end
 
     elseif id==4 then
-        -- ROSTER — inline karakter lijst identiek aan Tab2 Delves
         Tab4:Show()
+        ScanDelves()  -- zorg dat data vers is
         WT_UpdateRoster()
 
     elseif id==5 then
@@ -357,8 +354,8 @@ local function ShowTab(id)
         WT_ShowArmory()
 
     elseif id==6 then
-        -- CURRENCY — inline currency overzicht alle karakters
         Tab6:Show()
+        ScanDelves()  -- zorg dat data vers is
         WT_UpdateCurrency()
     end
 
@@ -530,6 +527,7 @@ Tab4.scroll:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",-22,4)
 Tab4.scroll.content=CreateFrame("Frame",nil,Tab4.scroll)
 Tab4.scroll.content:SetSize(UI_W-40,1)
 Tab4.scroll:SetScrollChild(Tab4.scroll.content)
+Tab4.scroll.content.rows={}  -- initialiseer rows tabel
 
 -- ── TAB 5: ARMORY/CHARMORY ────────────────────────────────────────────────
 Tab5.PluginArea=CreateFrame("Frame","DT_ArmoryArea",Tab5)
@@ -552,6 +550,7 @@ Tab6.scroll:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",-22,4)
 Tab6.scroll.content=CreateFrame("Frame",nil,Tab6.scroll)
 Tab6.scroll.content:SetSize(UI_W-40,1)
 Tab6.scroll:SetScrollChild(Tab6.scroll.content)
+Tab6.scroll.content.crows={}  -- initialiseer currency rows
 
 -- ============================================================================
 -- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
@@ -1103,54 +1102,50 @@ local category=Settings.RegisterCanvasLayoutCategory(opt,opt.name)
 Settings.RegisterAddOnCategory(category)
 UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
 
--- ── HEADER ────────────────────────────────────────────────────────────────
--- Logo links
+-- ── HEADER (vaste posities — geen anchor chain) ──────────────────────────
 opt.logo=opt:CreateTexture(nil,"ARTWORK")
-opt.logo:SetSize(42,42)
+opt.logo:SetSize(40,40)
 opt.logo:SetPoint("TOPLEFT",16,-16)
 opt.logo:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
 
--- Titel
 opt.tit=opt:CreateFontString(nil,"OVERLAY")
-opt.tit:SetFont(C_2002,16,"OUTLINE")
-opt.tit:SetPoint("TOPLEFT",opt.logo,"TOPRIGHT",10,-2)
-opt.tit:SetText(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v2.7.5|r")
+opt.tit:SetFont(C_2002,15,"OUTLINE")
+opt.tit:SetPoint("TOPLEFT",62,-18)
+opt.tit:SetText(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v2.7.8|r")
 
 opt.sub=opt:CreateFontString(nil,"OVERLAY")
-opt.sub:SetFont(C_2002,10,"")
-opt.sub:SetPoint("TOPLEFT",opt.tit,"BOTTOMLEFT",0,-4)
-opt.sub:SetText(SA_GREY.."Slayer Alliance Edition · Midnight 12.0.5.67314|r")
+opt.sub:SetFont(C_2002,9,"")
+opt.sub:SetPoint("TOPLEFT",62,-38)
+opt.sub:SetText(SA_GREY.."Slayer Alliance · Midnight 12.0.5.67314|r")
 
--- DieOuwe mannetje rechts in header
 opt.charImg=opt:CreateTexture(nil,"ARTWORK")
-opt.charImg:SetSize(70,120)
-opt.charImg:SetPoint("TOPRIGHT",-16,-6)
+opt.charImg:SetSize(60,105)
+opt.charImg:SetPoint("TOPRIGHT",-14,-4)
 opt.charImg:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
-opt.charImg:SetAlpha(0.88)
+opt.charImg:SetAlpha(0.85)
 
--- Scheidingslijn onder header
+-- Lijn Y=60
 opt.hdrLine=opt:CreateTexture(nil,"OVERLAY")
 opt.hdrLine:SetHeight(1)
-opt.hdrLine:SetPoint("TOPLEFT",16,-72)
-opt.hdrLine:SetPoint("TOPRIGHT",-16,-72)
+opt.hdrLine:SetPoint("TOPLEFT",8,-60)
+opt.hdrLine:SetPoint("TOPRIGHT",-8,-60)
 opt.hdrLine:SetColorTexture(0.35,0.10,0.55,0.7)
 
--- ── SECTIE 1: UI SCHAAL ───────────────────────────────────────────────────
+-- ── UI SCHAAL Y=70 ────────────────────────────────────────────────────────
 opt.scaleHdr=opt:CreateFontString(nil,"OVERLAY")
 opt.scaleHdr:SetFont(C_2002,10,"OUTLINE")
-opt.scaleHdr:SetPoint("TOPLEFT",16,-84)
+opt.scaleHdr:SetPoint("TOPLEFT",8,-70)
 opt.scaleHdr:SetText(SA_PURPLE.."UI SCHAAL|r")
 
--- Helper: maak slider geankerd op vorig element
-local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,anchorFrame,anchorY)
+local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,y)
     local l=parent:CreateFontString(nil,"OVERLAY")
     l:SetFont(C_2002,10,"")
-    l:SetPoint("TOPLEFT",anchorFrame,"BOTTOMLEFT",0,anchorY)
+    l:SetPoint("TOPLEFT",8,y)
     l:SetText(SA_GREY..lbl.."|r")
 
     local s=CreateFrame("Slider","DT_Slider_"..dbKey,parent)
-    s:SetSize(280,14)
-    s:SetPoint("TOPLEFT",l,"BOTTOMLEFT",0,-4)
+    s:SetSize(260,14)
+    s:SetPoint("TOPLEFT",8,y-14)
     s:SetOrientation("HORIZONTAL")
     s:SetMinMaxValues(minV,maxV)
     s:SetValueStep(step)
@@ -1160,7 +1155,7 @@ local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,anchorFrame,anchorY
     bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
 
     local vt=s:CreateFontString(nil,"OVERLAY")
-    vt:SetFont(C_2002,9,"")
+    vt:SetFont(C_2002,10,"")
     vt:SetPoint("LEFT",s,"RIGHT",6,0)
     vt:SetTextColor(0.8,0.6,1,1)
 
@@ -1172,33 +1167,29 @@ local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,anchorFrame,anchorY
         vt:SetText(string.format("%.2f",v))
         fn(v)
     end)
-    return s  -- return slider zodat volgende element erop kan ankeren
 end
 
-local sl1=MakeSlider(opt,"Main window",0.5,2.0,0.05,"scale",
-    function(v) UI:SetScale(v) end,
-    opt.scaleHdr,-4)
+MakeSlider(opt,"Main window scale",0.5,2.0,0.05,"scale",
+    function(v) UI:SetScale(v) end,-82)
+MakeSlider(opt,"Murloc button scale",0.5,2.0,0.05,"mScale",
+    function(v) if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end end,-114)
 
-local sl2=MakeSlider(opt,"Murloc button",0.5,2.0,0.05,"mScale",
-    function(v) if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end end,
-    sl1,-8)
-
--- Scheidingslijn
+-- Lijn Y=145
 opt.scaleLine=opt:CreateTexture(nil,"OVERLAY")
 opt.scaleLine:SetHeight(1)
-opt.scaleLine:SetPoint("TOPLEFT",sl2,"BOTTOMLEFT",0,-12)
-opt.scaleLine:SetWidth(560)
+opt.scaleLine:SetPoint("TOPLEFT",8,-145)
+opt.scaleLine:SetPoint("TOPRIGHT",-8,-145)
 opt.scaleLine:SetColorTexture(0.20,0.05,0.35,0.5)
 
--- ── SECTIE 2: PLUGINS ─────────────────────────────────────────────────────
+-- ── PLUGINS Y=155 ─────────────────────────────────────────────────────────
 opt.plbl=opt:CreateFontString(nil,"OVERLAY")
 opt.plbl:SetFont(C_2002,10,"OUTLINE")
-opt.plbl:SetPoint("TOPLEFT",opt.scaleLine,"BOTTOMLEFT",0,-10)
-opt.plbl:SetText(SA_PURPLE.."PLUGINS|r  "..SA_GREY.."toggle = direct effect · UserInfo altijd bovenaan|r")
+opt.plbl:SetPoint("TOPLEFT",8,-155)
+opt.plbl:SetText(SA_PURPLE.."PLUGINS|r  "..SA_GREY.."(toggle = direct effect)|r")
 
 opt.pScroll=CreateFrame("ScrollFrame","DT_PluginScroll",opt,"UIPanelScrollFrameTemplate")
-opt.pScroll:SetSize(520,260)
-opt.pScroll:SetPoint("TOPLEFT",opt.plbl,"BOTTOMLEFT",0,-6)
+opt.pScroll:SetSize(550,310)
+opt.pScroll:SetPoint("TOPLEFT",8,-170)
 local pContent=CreateFrame("Frame",nil,opt.pScroll)
 pContent:SetSize(500,1); opt.pScroll:SetScrollChild(pContent); pContent.rows={}
 
@@ -1272,23 +1263,23 @@ local function UpdatePluginList()
 end
 opt:SetScript("OnShow",UpdatePluginList)
 
--- Scheidingslijn na plugin lijst
+-- Lijn Y=490 (170 start + 310 hoogte + 10 gap)
 opt.plugLine=opt:CreateTexture(nil,"OVERLAY")
 opt.plugLine:SetHeight(1)
-opt.plugLine:SetPoint("TOPLEFT",opt.pScroll,"BOTTOMLEFT",0,-10)
-opt.plugLine:SetWidth(560)
+opt.plugLine:SetPoint("TOPLEFT",8,-490)
+opt.plugLine:SetPoint("TOPRIGHT",-8,-490)
 opt.plugLine:SetColorTexture(0.20,0.05,0.35,0.5)
 
--- ── SECTIE 3: EXTRA OPTIES ─────────────────────────────────────────────────
+-- ── EXTRA OPTIES Y=500 ────────────────────────────────────────────────────
 opt.extraHdr=opt:CreateFontString(nil,"OVERLAY")
 opt.extraHdr:SetFont(C_2002,10,"OUTLINE")
-opt.extraHdr:SetPoint("TOPLEFT",opt.plugLine,"BOTTOMLEFT",0,-10)
+opt.extraHdr:SetPoint("TOPLEFT",8,-500)
 opt.extraHdr:SetText(SA_PURPLE.."EXTRA OPTIES|r")
 
-local function MakeOptBtn(parent,lbl,anchorFrame,anchorY,fn)
-    local b=CreateFrame("Button",nil,parent,"BackdropTemplate")
-    b:SetSize(260,24)
-    b:SetPoint("TOPLEFT",anchorFrame,"BOTTOMLEFT",0,anchorY)
+local function MakeOptBtn(lbl,y,fn)
+    local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
+    b:SetSize(280,24)
+    b:SetPoint("TOPLEFT",8,y)
     b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
     b:SetBackdropColor(0.08,0.04,0.12,0.9)
     b:SetBackdropBorderColor(0.25,0.07,0.40,1)
@@ -1299,23 +1290,22 @@ local function MakeOptBtn(parent,lbl,anchorFrame,anchorY,fn)
     b:SetScript("OnClick",fn)
     b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.55,0.15,0.85,1) end)
     b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.25,0.07,0.40,1) end)
-    return b
 end
 
-local eb1=MakeOptBtn(opt,"⚙  Combat Announcer (/cset)",opt.extraHdr,-6,function()
+MakeOptBtn("⚙  Combat Announcer (/cset)",-518,function()
     if SlashCmdList["CSET"] then SlashCmdList["CSET"]("")
     elseif SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("") end
 end)
-local eb2=MakeOptBtn(opt,"⊞  AFK Screen layout (/dtgrid)",eb1,-4,function()
+MakeOptBtn("⊞  AFK Screen layout (/dtgrid)",-546,function()
     if SlashCmdList["DTGRID"] then SlashCmdList["DTGRID"]("") end
 end)
-local eb3=MakeOptBtn(opt,"▶  Preview AFK scherm (/dtafk)",eb2,-4,function()
+MakeOptBtn("▶  Preview AFK scherm (/dtafk)",-574,function()
     if SlashCmdList["DTAFK"] then SlashCmdList["DTAFK"]("") end
 end)
-MakeOptBtn(opt,"⚠  Wipe Character DB (reset alle data)",eb3,-4,function()
+MakeOptBtn("⚠  Wipe Character DB",-602,function()
     if DelveTrackerDB then
         DelveTrackerDB.characters={}
-        print(SA_PURPLE.."[WowTracker]|r "..SA_GREY.."Character DB gewist. /reload om opnieuw te scannen.|r")
+        print(SA_PURPLE.."[WowTracker]|r DB gewist.|r")
     end
 end)
 
