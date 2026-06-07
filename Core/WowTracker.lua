@@ -799,6 +799,76 @@ WT_UpdateGuildOnline = function()
     Tab1.onlineScroll.content:SetHeight(#online * ROW_H + 4)
 end
 
+-- ============================================================================
+-- WT_UpdateCurrency — Tab6: currency overzicht alle karakters
+-- ============================================================================
+local CURRENCY_IDS = {
+    {id=3028, name="Restored Coffer Keys",  col="|cff00ccff"},
+    {id=3310, name="Coffer Key Shards",     col="|cffffee00"},
+    {id=3376, name="Shard of Dundun",       col="|cff44cc66"},
+    {id=3378, name="Dawnlight Manaflux",    col="|cffa335ee"},
+}
+
+WT_UpdateCurrency = function()
+    if not (Tab6.scroll and Tab6.scroll.content) then return end
+    for _,row in pairs(Tab6.scroll.content.crows or {}) do row:Hide() end
+    Tab6.scroll.content.crows = Tab6.scroll.content.crows or {}
+    local sorted={}
+    for k in pairs(DelveTrackerDB.characters or {}) do table.insert(sorted,k) end
+    table.sort(sorted)
+    if not Tab6.scroll.content.headerBuilt then
+        Tab6.scroll.content.headerBuilt=true
+        local hdr=Tab6.scroll.content:CreateFontString(nil,"OVERLAY")
+        hdr:SetFont(C_2002,10,"OUTLINE")
+        hdr:SetPoint("TOPLEFT",4,-4)
+        hdr:SetText(
+            SA_GREY..string.format("%-22s","Karakter").."|r  "..
+            "|cff00ccff"..string.format("%-8s","Keys").."|r  "..
+            "|cffffee00"..string.format("%-8s","Shards").."|r  "..
+            "|cff44cc66"..string.format("%-8s","Dundun").."|r  "..
+            "|cffa335ee"..string.format("%-8s","Manaflux").."|r"
+        )
+    end
+    local ROW_H=24; local ROW_W=UI_W-46
+    for i,key in ipairs(sorted) do
+        local data=DelveTrackerDB.characters[key]
+        local cur=data.currencies or {}
+        local shortName=key:match("([^-]+)") or key
+        local r=Tab6.scroll.content.crows[i]
+        if not r then
+            r=CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
+            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+        end
+        r:SetSize(ROW_W,ROW_H)
+        r:SetPoint("TOPLEFT",0,-18-(i-1)*(ROW_H+2))
+        r:SetBackdropColor(0.08,0.04,0.12,(i%2==0) and 0.5 or 0.8)
+        r:SetBackdropBorderColor(0.18,0.05,0.28,0.5)
+        r:Show()
+        r.txt=r.txt or r:CreateFontString(nil,"OVERLAY")
+        r.txt:SetFont(C_2002,11,"OUTLINE")
+        r.txt:SetPoint("LEFT",6,0)
+        local k3028=cur[3028] or 0; local k3310=cur[3310] or 0
+        local k3376=cur[3376] or 0; local k3378=cur[3378] or 0
+        local cc=RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        local charCol=string.format("|cff%02x%02x%02x",
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255))
+        r.txt:SetText(
+            charCol..string.format("%-20s",shortName).."|r  "..
+            "|cff00ccff"..string.format("%-6d",k3028).."|r  "..
+            "|cffffee00"..string.format("%-6d",k3310).."|r  "..
+            (k3376>0 and "|cff44cc66" or "|cffff5555")..string.format("%-6d",k3376).."|r  "..
+            (k3378>0 and "|cffa335ee" or "|cff887799")..string.format("%-6d",k3378).."|r"
+        )
+        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
+        r.gld:SetFont(C_2002,10,"OUTLINE")
+        r.gld:SetPoint("RIGHT",-8,0)
+        r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+        Tab6.scroll.content.crows[i]=r
+    end
+    Tab6.scroll.content:SetHeight(18+#sorted*(ROW_H+2)+10)
+end
+
+
 -- ── GUILD ROSTER UPDATE EVENT ─────────────────────────────────────────────
 -- GUILD_ROSTER_UPDATE vuurt nadat GuildRoster() data opgehaald heeft
 local guildEventFrame = CreateFrame("Frame")
