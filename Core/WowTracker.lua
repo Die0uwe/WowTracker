@@ -314,6 +314,9 @@ local ScanDelves
 local function ShowTab(id)
     UI:Show(); activeTabID=id
     Tab1:Hide(); Tab2:Hide(); Tab3:Hide(); Tab4:Hide(); Tab5:Hide(); Tab6:Hide()
+    -- Verberg armory frame als Tab5 verlaten wordt
+    local armFrame = _G["DT_ArmoryFrame"]
+    if armFrame and Tab5.armoryEmbedded then armFrame:Hide() end
 
     if id==1 then
         Tab1:Show()
@@ -338,14 +341,19 @@ local function ShowTab(id)
         Tab3.PluginArea:Show()
         -- QuickSet bouwt op 400px breed — geef een wrapper van 400px
         -- Zodat het links staat en de rest van 760px vrij is voor extra info
+        -- QuickSet verwacht container van 400x335px (zie CONT_W/HDR_H/TAB_H constanten)
+        -- Geef hem exact dat — tabs en content passen dan correct
         if not Tab3.quickWrap then
             Tab3.quickWrap = CreateFrame("Frame",nil,Tab3.PluginArea)
-            Tab3.quickWrap:SetSize(420,560)
-            Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",4,-4)
+            Tab3.quickWrap:SetSize(400,335)
+            Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",2,-2)
         end
-        local qpF = DelveTracker.Plugins["QuickSet"]
-        if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
-            pcall(qpF,"Tab3",Tab3.quickWrap)
+        -- Reset _dtBuilt zodat QuickSet opnieuw bouwt als nodig
+        if Tab3.quickWrap._dtBuilt == nil then
+            local qpF = DelveTracker.Plugins["QuickSet"]
+            if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
+                pcall(qpF,"Tab3",Tab3.quickWrap)
+            end
         end
 
     elseif id==4 then
@@ -667,45 +675,39 @@ end
 -- WT_ShowArmory — Tab5: open Charmory voor huidig karakter
 -- ============================================================================
 WT_ShowArmory = function()
-    -- Toon hint in de tab
-    if not Tab5.shown then
-        Tab5.shown=true
-        Tab5.hint=Tab5.hint or Tab5:CreateFontString(nil,"OVERLAY")
-        Tab5.hint:SetFont(C_2002,12,"")
-        Tab5.hint:SetPoint("TOP",Tab5,"TOP",0,-20)
-        Tab5.hint:SetText(SA_PURPLE.."Armory|r  "..SA_GREY.."— huidig karakter|r")
-
-        Tab5.subhint=Tab5.subhint or Tab5:CreateFontString(nil,"OVERLAY")
-        Tab5.subhint:SetFont(C_2002,10,"")
-        Tab5.subhint:SetPoint("TOP",Tab5.hint,"BOTTOM",0,-8)
-        Tab5.subhint:SetText(SA_GREY.."Charmory opent naast het hoofdscherm|r")
-
-        Tab5.openBtn=Tab5.openBtn or CreateFrame("Button",nil,Tab5,"BackdropTemplate")
-        Tab5.openBtn:SetSize(200,28)
-        Tab5.openBtn:SetPoint("TOP",Tab5.subhint,"BOTTOM",0,-12)
-        Tab5.openBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        Tab5.openBtn:SetBackdropColor(0.10,0.04,0.18,1)
-        Tab5.openBtn:SetBackdropBorderColor(0.50,0.15,0.80,1)
-        local t=Tab5.openBtn:CreateFontString(nil,"OVERLAY")
-        t:SetFont(C_2002,11,"OUTLINE")
-        t:SetPoint("CENTER")
-        t:SetText(SA_PURPLE.."Open Armory|r")
-        Tab5.openBtn:SetScript("OnClick",function()
-            local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-            local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
-            if data and DT_Armory_ShowCharacter then
-                data.name=UnitName("player"); DT_Armory_ShowCharacter(data)
-            elseif _G["DT_ArmoryFrame"] then
-                _G["DT_ArmoryFrame"]:Show()
-            end
-        end)
-    end
-
-    -- Automatisch openen voor huidig karakter
-    local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-    local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
-    if data and DT_Armory_ShowCharacter then
-        data.name=UnitName("player"); DT_Armory_ShowCharacter(data)
+    -- Embed DT_ArmoryFrame in Tab5 ipv ernaast openen
+    local armFrame = _G["DT_ArmoryFrame"]
+    if armFrame then
+        -- Reparent naar Tab5 zodat het IN de interface zit
+        if not Tab5.armoryEmbedded then
+            Tab5.armoryEmbedded = true
+            armFrame:SetParent(Tab5)
+            armFrame:ClearAllPoints()
+            armFrame:SetPoint("TOPLEFT",Tab5,"TOPLEFT",2,-2)
+            armFrame:SetPoint("BOTTOMRIGHT",Tab5,"BOTTOMRIGHT",-2,2)
+            -- Verwijder de close knop want Tab5 IS de container
+            if armFrame.CloseButton then armFrame.CloseButton:Hide() end
+            -- Maak het frame niet movable — Tab5 is de container
+            armFrame:SetMovable(false)
+            armFrame:EnableMouse(false)
+            armFrame:SetFrameStrata("MEDIUM")
+        end
+        armFrame:Show()
+        -- Laad huidig karakter data
+        local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+        local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
+        if data and DT_Armory_ShowCharacter then
+            data.name=UnitName("player")
+            pcall(DT_Armory_ShowCharacter,data)
+        end
+    else
+        -- Fallback: armory nog niet geladen, toon laad tekst
+        if not Tab5.loadTxt then
+            Tab5.loadTxt=Tab5:CreateFontString(nil,"OVERLAY")
+            Tab5.loadTxt:SetFont(C_2002,12,"")
+            Tab5.loadTxt:SetPoint("CENTER")
+            Tab5.loadTxt:SetText(SA_GREY.."Armory laadt...\n/charmory of /cdb om te openen|r")
+        end
     end
 end
 

@@ -1280,7 +1280,6 @@ _dtInt_Cloth:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("ClothCounter", function() end)
-    local enabled = DelveTrackerDB and DelveTrackerDB.PluginStates["ClothCounter"] ~= false
-    if F then if enabled then F:Show() else F:Hide() end end
-    -- NOTE: geen OnShow hook op admin panel — plugin staat los van settings
+    -- Plugin registratie alleen — niet automatisch tonen bij login
+    -- Gebruiker opent via slash command of murloc menu
 end)

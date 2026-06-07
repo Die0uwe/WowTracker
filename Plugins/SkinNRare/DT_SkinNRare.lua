@@ -1042,7 +1042,6 @@ _dtInt_SNR:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("SkinNRare", function() end)
-    local enabled = DelveTrackerDB and DelveTrackerDB.PluginStates["SkinNRare"] ~= false
-    if frame then if enabled then frame:Show() else frame:Hide() end end
-    -- NOTE: geen OnShow hook op admin panel — plugin staat los van settings
+    -- Plugin registratie alleen — niet automatisch tonen bij login
+    -- Gebruiker opent via slash command of murloc menu
 end)
