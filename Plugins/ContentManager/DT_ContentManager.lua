@@ -140,7 +140,7 @@ local function RefreshSlot(id)
         local ilvl = math.floor(select(2, GetAverageItemLevel()))
         local fIcon = "|TInterface\\Icons\\pvpcurrency-honor-"..string.lower(factionGroup or "neutral")..":28:28:0:0|t"
         local cIcon = "|TInterface\\TargetingFrame\\UI-Classes-Circles:28:28:0:0:256:256:" .. (CLASS_ICON_TCOORDS[classFile][1]*256) .. ":" .. (CLASS_ICON_TCOORDS[classFile][2]*256) .. ":" .. (CLASS_ICON_TCOORDS[classFile][3]*256) .. ":" .. (CLASS_ICON_TCOORDS[classFile][4]*256) .. "|t"
-        slot.txt:SetFont("Fonts\\FRIZQT__.TTF", 22, "OUTLINE")
+        slot.txt:SetFont("Fonts\\2002.ttf", 22, "OUTLINE")
         slot.txt:SetText(fIcon .. " |cffffd100" .. nameWithTitle .. "|r " .. cIcon .. "\n|cffaaaaaa" .. race .. " " .. class .. "|r\n|cffffffffLevel: " .. UnitLevel("player") .. "  -  " .. ilvl .. " Item Level|r")
         return
     end
@@ -155,7 +155,7 @@ local function RefreshSlot(id)
         if not slot.itemButtons then slot.itemButtons = {} end
 
         if opt.name == "Recent Loot" then
-            slot.txt:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
+            slot.txt:SetFont("Fonts\\2002.ttf", 18, "OUTLINE")
             local fullText = "|cffccaa00Recent Loot|r\n\n"
             for i=1, 12 do
                 if not slot.itemButtons[i] then
@@ -175,7 +175,7 @@ local function RefreshSlot(id)
             end
             slot.txt:SetText(fullText)
         else
-            slot.txt:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
+            slot.txt:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
             if slot.itemButtons then for _, b in pairs(slot.itemButtons) do b:Hide() end end
             local chatContent = #DT_CustomAFK_Settings.guildHistory > 0 and table.concat(DT_CustomAFK_Settings.guildHistory, "\n") or "No messages"
             slot.txt:SetText("|cffccaa00Guild Chat|r\n\n" .. chatContent)

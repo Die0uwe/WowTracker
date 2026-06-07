@@ -64,7 +64,7 @@ if DelveTracker then
     TextFrame:SetSize(400, 60)
     TextFrame:SetFrameLevel(shield:GetFrameLevel() + 10) 
     local CA_Text = TextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-    CA_Text:SetFont("Fonts\\FRIZQT__.TTF", 32, "OUTLINE")
+    CA_Text:SetFont("Fonts\\2002.ttf", 32, "OUTLINE")
     CA_Text:SetPoint("CENTER", TextFrame, "CENTER")
     TextFrame:SetAlpha(0)
 

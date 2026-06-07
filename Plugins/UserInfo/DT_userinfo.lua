@@ -787,7 +787,7 @@ local function BuildRankTrack(parent, x, y, count, rewards)
         })
         -- [UPG-8] node font size scales with node width
         n.fs = n:CreateFontString(nil, "OVERLAY")
-        n.fs:SetFont("Fonts\\FRIZQT__.TTF", nW > 26 and 10 or 8, "OUTLINE")
+        n.fs:SetFont("Fonts\\2002.ttf", nW > 26 and 10 or 8, "OUTLINE")
         n.fs:SetPoint("CENTER", n, "CENTER", 0, 1)
         n.fs:SetText(tostring(i))
 
@@ -854,7 +854,7 @@ end
 -- FS: [UPG-3] GameFontHighlightSmall → GameFontHighlight for legibility
 local function FS(parent, yOff, width, xOff)
     local f = parent:CreateFontString(nil, "OVERLAY")
-    f:SetFont("Fonts\\FRIZQT__.TTF", 13, "")
+    f:SetFont("Fonts\\2002.ttf", 13, "")
     f:SetTextColor(1, 1, 1, 1)
     f:SetPoint("TOPLEFT", parent, "TOPLEFT", xOff or PAD, yOff)
     f:SetWidth(width or (parent:GetWidth() - PAD * 2))
@@ -865,7 +865,7 @@ end
 -- SFS: small sub-header font string (section labels, axis captions)
 local function SFS(parent, yOff, xOff)
     local f = parent:CreateFontString(nil, "OVERLAY")
-    f:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+    f:SetFont("Fonts\\2002.ttf", 9, "")
     f:SetPoint("TOPLEFT", parent, "TOPLEFT", xOff or PAD, yOff)
     f:SetWidth(parent:GetWidth() - PAD * 2)
     f:SetJustifyH("LEFT")
@@ -917,7 +917,7 @@ local function MakeCurrencyRow(parent, y, id, label, r, g, b)
     end
 
     local lbl = parent:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont("Fonts\\FRIZQT__.TTF", 10, "")
+    lbl:SetFont("Fonts\\2002.ttf", 10, "")
     lbl:SetPoint("TOPLEFT", parent, "TOPLEFT", xOff + iconSz + 5, y)
     lbl:SetHeight(rowH)
     lbl:SetTextColor(0.29, 0.42, 0.6, 1)
@@ -925,7 +925,7 @@ local function MakeCurrencyRow(parent, y, id, label, r, g, b)
     lbl:SetWidth(parent:GetWidth() - xOff - iconSz - 5 - 50)
 
     local val = parent:CreateFontString(nil, "OVERLAY")
-    val:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
+    val:SetFont("Fonts\\2002.ttf", 11, "OUTLINE")
     val:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -PAD, y)
     val:SetHeight(rowH)
     val:SetJustifyH("RIGHT")
@@ -1163,7 +1163,7 @@ do
         local rt = ROW_TYPES[ri]
 
         local lbl = pWeekly:CreateFontString(nil, "OVERLAY")
-        lbl:SetFont("Fonts\\FRIZQT__.TTF", 9, "OUTLINE")
+        lbl:SetFont("Fonts\\2002.ttf", 9, "OUTLINE")
         lbl:SetPoint("TOPLEFT", pWeekly, "TOPLEFT", PAD, ry)
         lbl:SetSize(LBYW, CH); lbl:SetJustifyH("LEFT"); lbl:SetJustifyV("TOP")
         lbl:SetTextColor(rt.r, rt.g, rt.b, 0.75); lbl:SetText(rt.label)
@@ -1182,18 +1182,18 @@ do
             vc:SetBackdropBorderColor(rt.lockR, rt.lockG, rt.lockB, 0.5)
 
             local snFS = vc:CreateFontString(nil, "OVERLAY")
-            snFS:SetFont("Fonts\\FRIZQT__.TTF", 7, "")
+            snFS:SetFont("Fonts\\2002.ttf", 7, "")
             snFS:SetPoint("BOTTOMRIGHT", vc, "BOTTOMRIGHT", -3, 2)
             snFS:SetTextColor(0.25, 0.30, 0.42, 1); snFS:SetText(tostring(si))
 
             local mainFS = vc:CreateFontString(nil, "OVERLAY")
-            mainFS:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
+            mainFS:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
             mainFS:SetPoint("TOP", vc, "TOP", 0, -3)
             mainFS:SetWidth(CW - 6); mainFS:SetJustifyH("CENTER")
             mainFS:SetText(Dim("--"))
 
             local subFS = vc:CreateFontString(nil, "OVERLAY")
-            subFS:SetFont("Fonts\\FRIZQT__.TTF", 8, "")
+            subFS:SetFont("Fonts\\2002.ttf", 8, "")
             subFS:SetPoint("BOTTOMLEFT", vc, "BOTTOMLEFT", 3, 2)
             subFS:SetWidth(CW - 14); subFS:SetJustifyH("LEFT")
             subFS:SetText(Dim("locked")); subFS:SetTextColor(0.22, 0.28, 0.40, 1)
@@ -1291,14 +1291,14 @@ do
     _G81.spFS:SetText("|cff4a6a9a(Loading spec...)|r")
     for i = 1, 4 do
         local p = sp:CreateFontString(nil, "OVERLAY")
-        p:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+        p:SetFont("Fonts\\2002.ttf", 10, "OUTLINE")
         p:SetPoint("LEFT", sp, "LEFT", 230 + (i-1)*76, 0)
         p:SetWidth(74); p:SetJustifyH("LEFT")
         p:SetTextColor(0.29, 0.42, 0.6, 1)
         _G81.prioPills[i] = p
     end
     local note = sp:CreateFontString(nil, "OVERLAY")
-    note:SetFont("Fonts\\FRIZQT__.TTF", 8, "")
+    note:SetFont("Fonts\\2002.ttf", 8, "")
     note:SetPoint("RIGHT", sp, "RIGHT", -8, 0)
     note:SetTextColor(0.2, 0.3, 0.5, 1)
     note:SetText("Sim at Raidbots for precise weights")
@@ -1420,7 +1420,7 @@ do
 
     -- Single FontString for all slot rows (multi-line, reliable)
     _G81.recLabel = rp:CreateFontString(nil, "OVERLAY")
-    _G81.recLabel:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+    _G81.recLabel:SetFont("Fonts\\2002.ttf", 9, "")
     _G81.recLabel:SetPoint("TOPLEFT",  rp, "TOPLEFT",  10, -(14 + 20))
     _G81.recLabel:SetPoint("TOPRIGHT", rp, "TOPRIGHT", -6, -(14 + 20))
     _G81.recLabel:SetJustifyH("LEFT")
@@ -1430,19 +1430,19 @@ do
 
     -- Gem row FontStrings
     _G81.REC.gem1 = rp:CreateFontString(nil, "OVERLAY")
-    _G81.REC.gem1:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+    _G81.REC.gem1:SetFont("Fonts\\2002.ttf", 9, "")
     _G81.REC.gem1:SetPoint("BOTTOMLEFT", rp, "BOTTOMLEFT", 10, 36)
     _G81.REC.gem1:SetWidth(recW - 16)
     _G81.REC.gem1:SetJustifyH("LEFT")
 
     _G81.REC.gem2 = rp:CreateFontString(nil, "OVERLAY")
-    _G81.REC.gem2:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+    _G81.REC.gem2:SetFont("Fonts\\2002.ttf", 9, "")
     _G81.REC.gem2:SetPoint("BOTTOMLEFT", rp, "BOTTOMLEFT", 10, 20)
     _G81.REC.gem2:SetWidth(recW - 16)
     _G81.REC.gem2:SetJustifyH("LEFT")
 
     _G81.REC.disc = rp:CreateFontString(nil, "OVERLAY")
-    _G81.REC.disc:SetFont("Fonts\\FRIZQT__.TTF", 8, "")
+    _G81.REC.disc:SetFont("Fonts\\2002.ttf", 8, "")
     _G81.REC.disc:SetPoint("BOTTOMLEFT", rp, "BOTTOMLEFT", 10, 6)
     _G81.REC.disc:SetWidth(recW - 16)
     _G81.REC.disc:SetJustifyH("LEFT")
@@ -1478,11 +1478,11 @@ for row = 0, 1 do
         stex:SetAllPoints()
 
         local ilvlFS = btn:CreateFontString(nil, "OVERLAY")
-        ilvlFS:SetFont("Fonts\\FRIZQT__.TTF", 10, "OUTLINE")
+        ilvlFS:SetFont("Fonts\\2002.ttf", 10, "OUTLINE")
         ilvlFS:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", -2, 2)
 
         local nameFS = gearPanel:CreateFontString(nil, "OVERLAY")
-        nameFS:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+        nameFS:SetFont("Fonts\\2002.ttf", 9, "")
         nameFS:SetPoint("TOP", btn, "BOTTOM", 0, -2)
         nameFS:SetText(Dim(slotName))
         nameFS:SetWidth(SLOT_SIZE + 4)
@@ -1615,7 +1615,7 @@ do  -- PvP layout block (auto-releases internal locals on exit)
                 num = pvpLifetime:CreateFontString(nil, "OVERLAY"),
                 lbl = pvpLifetime:CreateFontString(nil, "OVERLAY"),
             }
-            LT[i].num:SetFont("Fonts\\FRIZQT__.TTF", 18, "OUTLINE")
+            LT[i].num:SetFont("Fonts\\2002.ttf", 18, "OUTLINE")
             LT[i].num:SetPoint("TOPLEFT", pvpLifetime, "TOPLEFT",
                 x + 6, -(PAD + ROW_H + 4))
             LT[i].num:SetWidth(lW - 10)
@@ -1624,7 +1624,7 @@ do  -- PvP layout block (auto-releases internal locals on exit)
             local rb = tonumber("0x" .. cols[i]:sub(5,6)) / 255
             LT[i].num:SetTextColor(rr, rg, rb, 1)
 
-            LT[i].lbl:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+            LT[i].lbl:SetFont("Fonts\\2002.ttf", 9, "")
             LT[i].lbl:SetPoint("BOTTOMLEFT", pvpLifetime, "TOPLEFT",
                 x + 6, -(PAD + ROW_H + 62))
             LT[i].lbl:SetWidth(lW - 10)
@@ -1858,7 +1858,7 @@ local repLines = {}
 local repW = FW - 8 - wbAccW - PGAP - 12 - SCROLLBAR_W
 for i = 1, 12 do
     local rl = wbRepContent:CreateFontString(nil, "OVERLAY")
-    rl:SetFont("Fonts\\FRIZQT__.TTF", 13, "")
+    rl:SetFont("Fonts\\2002.ttf", 13, "")
     rl:SetPoint("TOPLEFT", wbRepContent, "TOPLEFT", 4, -(i-1)*18)
     rl:SetWidth(repW)
     rl:SetJustifyH("LEFT")
@@ -1930,7 +1930,7 @@ local function MakeSeasonPanelWithIcon(parent, y, h,
     t:SetText(CC(titleColor, titleText))
 
     local rankFS = p:CreateFontString(nil, "OVERLAY")
-    rankFS:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    rankFS:SetFont("Fonts\\2002.ttf", 12, "OUTLINE")
     rankFS:SetPoint("TOPRIGHT", p, "TOPRIGHT", -PAD, -PAD + 3)
     rankFS:SetTextColor(1, 1, 1, 0.5)
 
@@ -2011,7 +2011,7 @@ for i = 1, 4 do
     hc:SetBackdropColor(0.02, 0.03, 0.07, 1)
     hc:SetBackdropBorderColor(0.06, 0.10, 0.20, 0.8)
     hc.numFS = hc:CreateFontString(nil, "OVERLAY")
-    hc.numFS:SetFont("Fonts\\FRIZQT__.TTF", 11, "OUTLINE")
+    hc.numFS:SetFont("Fonts\\2002.ttf", 11, "OUTLINE")
     hc.numFS:SetPoint("CENTER", hc, "CENTER", 0, 0)
     hc.numFS:SetText(Dim(tostring(i)))
     huntCircles[i] = hc
@@ -2053,11 +2053,11 @@ for i = 1, 5 do
     tb:SetBackdropColor(0.02, 0.03, 0.07, 1)
     tb:SetBackdropBorderColor(0.06, 0.10, 0.20, 0.8)
     tb.tierFS   = tb:CreateFontString(nil, "OVERLAY")
-    tb.tierFS:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+    tb.tierFS:SetFont("Fonts\\2002.ttf", 12, "OUTLINE")
     tb.tierFS:SetPoint("TOP",    tb, "TOP",    0, -4)
     tb.tierFS:SetText(Dim("T" .. i))
     tb.statusFS = tb:CreateFontString(nil, "OVERLAY")
-    tb.statusFS:SetFont("Fonts\\FRIZQT__.TTF", 8, "")
+    tb.statusFS:SetFont("Fonts\\2002.ttf", 8, "")
     tb.statusFS:SetPoint("BOTTOM", tb, "BOTTOM", 0, 3)
     tb.statusFS:SetText(Dim("—"))
     tierBoxes[i] = tb
@@ -2127,7 +2127,7 @@ do
     local SCALE_STEP = 0.05
 
     local scaleLabel = frame:CreateFontString(nil, "OVERLAY")
-    scaleLabel:SetFont("Fonts\\FRIZQT__.TTF", 11, "")
+    scaleLabel:SetFont("Fonts\\2002.ttf", 11, "")
     scaleLabel:SetTextColor(0.55, 0.75, 1, 1)
     scaleLabel:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 80, 12)
     scaleLabel:SetWidth(52)
@@ -2174,7 +2174,7 @@ StyleBtn(vaultBtn)
 
 -- [UPG-4] Footer text slightly larger
 local footerFS = frame:CreateFontString(nil, "OVERLAY")
-footerFS:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+footerFS:SetFont("Fonts\\2002.ttf", 9, "")
 footerFS:SetPoint("CENTER", footerBG, "CENTER", 0, 0)
 footerFS:SetTextColor(0.29, 0.42, 0.6, 1)
 

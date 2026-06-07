@@ -1,41 +1,100 @@
 <!-- ============================================================ -->
-<!-- WowTracker — Addon Load Manifest                            -->
-<!-- Retail 12.0.5 / Build 67314 (Midnight) / Interface: 120005 -->
-<!-- Load order: Core FIRST, Debugger LAST (always)             -->
+<!-- WowTracker — Addon Load Manifest v2.7.0                     -->
+<!-- Retail 12.0.5 / Build 67314 (Midnight) / Interface: 120005  -->
+<!-- Load order: Core FIRST, Debugger LAST (always)              -->
+<!-- DelveTracker → WowTracker rename · 2026-06-07               -->
 <!-- ============================================================ -->
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 
-    <!-- CORE ENGINE (must load first — defines WowTracker global) -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CORE ENGINE                                            -->
+    <!-- Definieert DelveTracker global + plugin API           -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Core\WowTracker.lua"/>
 
-    <!-- TRACKING PLUGINS -->
-    <Script file="Plugins\Registry\DT_Registry.lua"/>
-    <Script file="Plugins\Lockout\DT_Lockout.lua"/>
-    <Script file="Plugins\ContentManager\DT_ContentManager.lua"/>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- EVENTS                                                -->
+    <!-- Eerst laden — addonTable.DT_events gebruikt door HUD  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\Events\DT_events.lua"/>
+    <Script file="Plugins\Events\DT_events_ui.lua"/>
 
-    <!-- WARBAND PLUGINS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- PREY TRACKER HUD                                      -->
+    <!-- Logic voor UI laden — compass + vignette scanner      -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\PreyTracker\DT_preytracker.lua"/>
+    <Script file="Plugins\PreyTracker\DT_prey_ui.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- KARAKTER & ARMORY                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\UserInfo\DT_userinfo.lua"/>
     <Script file="Plugins\Charmory\DT_Charmory.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- BOUNTY / DELVE TRACKER                                -->
+    <!-- Nemesis · Bountiful · Normal tabs + Valeera header    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\QuickSet\DT_QuickSet.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- REGISTRY (XL karakter index · /crew)                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\Registry\DT_Registry.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- LOCKOUT & CURRENCY SCANNER                            -->
+    <!-- /dtlockout · /dtprof                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\Lockout\DT_Lockout.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- EXCHANGE BOT (/cbot · /cureset)                       -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\Exchangebot\DT_exchangebot.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SKIN & RARE TRACKER (/snr · /mt · /snrpop)            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\SkinNRare\DT_SkinNRare.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CLOTH COUNTER (/cbud · /cloth)                        -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\ClothCounter\DT_ClothCounter.lua"/>
 
-    <!-- HUD PLUGINS (logic files first, then UI files) -->
-    <Script file="Plugins\Events\DT_events.lua"/>
-    <Script file="Plugins\PreyTracker\DT_preytracker.lua"/>
-    <Script file="Plugins\Events\DT_events_ui.lua"/>
-    <Script file="Plugins\PreyTracker\DT_prey_ui.lua"/>
-    <Script file="Plugins\Overlay\DT_Overlay.lua"/>
-
-    <!-- UTILITY PLUGINS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- COMBAT & UI TOOLS                                     -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\CombatAnnouncer\DT_CombatAnnouncer.lua"/>
-    <Script file="Plugins\SystemTools\DT_SystemTools.lua"/>
     <Script file="Plugins\TooltipExtra\DT_TooltipExtra.lua"/>
-    <Script file="Plugins\QuickSet\DT_QuickSet.lua"/>
-    <Script file="Plugins\SkinNRare\DT_SkinNRare.lua"/>
-    <Script file="Plugins\CustomAFK\DT_CustomAFK.lua"/>
-    <Script file="Plugins\Exchangebot\DT_exchangebot.lua"/>
-    <Script file="Plugins\UserInfo\DT_userinfo.lua"/>
+    <Script file="Plugins\SystemTools\DT_SystemTools.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MEDIA MANAGER                                         -->
+    <!-- Zone images · delve achtergronden · DT_Tile frames    -->
+    <!-- Laad na QuickSet zodat tiles al bestaan               -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\Media\DT_Media.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- HELP GUIDE (/dthelp) — na alle plugins                -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\HelpGuide\DT_HelpGuide.lua"/>
 
-    <!-- DEBUGGER — always last -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- AFK SCREEN                                            -->
+    <!-- Volgorde: frame → content → overlay                   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\CustomAFK\DT_CustomAFK.lua"/>
+    <Script file="Plugins\ContentManager\DT_ContentManager.lua"/>
+    <Script file="Plugins\Overlay\DT_Overlay.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- DEBUGGER — altijd als allerlaatste laden              -->
+    <!-- /dtdebug                                              -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\Debugger\DT_Debugger.lua"/>
 
 </Ui>

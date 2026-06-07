@@ -870,7 +870,7 @@ local function BuildGrid(container)
 
         -- Count text: outlined, sits on top of the icon corner badge
         box.countTxt = box:CreateFontString(nil, "OVERLAY", nil, 2)
-        box.countTxt:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+        box.countTxt:SetFont("Fonts\\2002.ttf", 12, "OUTLINE")
         box.countTxt:SetPoint("CENTER", box.countBg, "CENTER", 0, 0)
         box.countTxt:SetJustifyH("CENTER")
         box.countTxt:SetText("|cffffffff?|r")

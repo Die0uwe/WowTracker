@@ -5,7 +5,7 @@
 if DelveTracker then
     DelveTracker:RegisterPlugin("HelpGuide", function() end)
 
-    local opt = DelveTrackerOptions
+    local opt = _G["DelveTrackerOptions"]
     if not opt then return end
 
     -- Color codes for scannability

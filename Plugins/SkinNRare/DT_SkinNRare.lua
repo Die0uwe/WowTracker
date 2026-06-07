@@ -1032,3 +1032,21 @@ UpdateRareData()
 -------------------------------------------------
 
 print("|cFFC79CFFMajestic Tracker v7 — MBT coords + type=item fix + PreClick guard (12.0.5).|r")
+
+-- ============================================================================
+-- DELVETRACKER PLUGIN REGISTRATIE — SkinNRare
+-- ============================================================================
+local _dtInt_SNR = CreateFrame("Frame")
+_dtInt_SNR:RegisterEvent("PLAYER_LOGIN")
+_dtInt_SNR:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
+    DelveTracker:RegisterPlugin("SkinNRare", function() end)
+    local enabled = DelveTrackerDB and DelveTrackerDB.PluginStates["SkinNRare"] ~= false
+    if frame then if enabled then frame:Show() else frame:Hide() end end
+    local opt = _G["DelveTrackerOptions"]
+    if opt then opt:HookScript("OnShow", function()
+        local en = DelveTrackerDB and DelveTrackerDB.PluginStates["SkinNRare"] ~= false
+        if frame then if en then frame:Show() else frame:Hide() end end
+    end) end
+end)

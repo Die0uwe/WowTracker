@@ -57,7 +57,7 @@ local function StartAFK()
     
     FadeIn()
     
-    -- Monitor for manual AFK (/afk)
+    -- Monitor voor handmatige AFK (/afk)
     f:SetScript("OnUpdate", function(self, elapsed)
         if (GetTime() > (f.startTime or 0) + 1.2) then
             local curX, curY = GetCursorPosition()
@@ -90,7 +90,7 @@ f:SetScript("OnEvent", function(self, event, unit)
     end
 end)
 
--- Also stop on any keypress (safety net for manual AFK)
+-- Stop ook bij elke toetsaanslag (voor de zekerheid bij handmatig AFK)
 f:SetScript("OnKeyDown", function(_, key)
     if f:IsShown() and not f.InGridMode and (GetTime() > (f.startTime or 0) + 1) then
         FadeOut()

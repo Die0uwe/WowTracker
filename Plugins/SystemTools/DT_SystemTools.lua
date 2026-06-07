@@ -5,8 +5,17 @@
 if DelveTracker then
     DelveTracker:RegisterPlugin("SystemTools", function() end)
 
-    local opt = DelveTrackerOptions
-    if not opt then return end
+    local opt = _G["DelveTrackerOptions"]
+    if not opt then
+        -- DelveTrackerOptions nog niet beschikbaar op load-time; wacht op PLAYER_LOGIN
+        local _stWait = CreateFrame("Frame")
+        _stWait:RegisterEvent("PLAYER_LOGIN")
+        _stWait:SetScript("OnEvent", function(self)
+            self:UnregisterAllEvents()
+            opt = _G["DelveTrackerOptions"]
+        end)
+        if not opt then return end
+    end
 
     -- 1. The Rail Container
     local rail = CreateFrame("ScrollFrame", "DT_SystemRail", opt, "UIPanelScrollFrameTemplate")

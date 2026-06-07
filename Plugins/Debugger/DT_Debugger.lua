@@ -230,7 +230,7 @@ for i = 1, MAX_VISIBLE do
     fs:SetPoint("TOPLEFT", 4, -(i-1) * LOG_LINE_H)
     fs:SetWidth(PANEL_W - 50)
     fs:SetJustifyH("LEFT")
-    fs:SetFont("Fonts\\FRIZQT__.TTF", 10)
+    fs:SetFont("Fonts\\2002.ttf", 10)
     LOG_LINES[i] = fs
 end
 
@@ -304,7 +304,7 @@ local dbText = dbFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"
 dbText:SetPoint("TOPLEFT", 10, -8)
 dbText:SetWidth(PANEL_W - 20)
 dbText:SetJustifyH("LEFT")
-dbText:SetFont("Fonts\\FRIZQT__.TTF", 11)
+dbText:SetFont("Fonts\\2002.ttf", 11)
 
 function DBG._RefreshDB()
     local s = GetDBStats()
@@ -347,7 +347,7 @@ local memText = memFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmal
 memText:SetPoint("TOPLEFT", 10, -8)
 memText:SetWidth(PANEL_W - 20)
 memText:SetJustifyH("LEFT")
-memText:SetFont("Fonts\\FRIZQT__.TTF", 11)
+memText:SetFont("Fonts\\2002.ttf", 11)
 
 local _memHistory = {}
 local _memTimer = nil
@@ -580,4 +580,21 @@ C_Timer.After(1.0, function()
     local kb = GetMemoryKB()
     DBG.Log("SYS", "Memory", string.format("Baseline: %.1f KB", kb))
     table.insert(_memHistory, 1, string.format("[%s]  %.1f KB  (baseline)", date("%H:%M:%S"), kb))
+end)
+
+
+-- ============================================================================
+-- DELVETRACKER PLUGIN REGISTRATIE — Debugger
+-- ============================================================================
+local _dtInt_DBG = CreateFrame("Frame")
+_dtInt_DBG:RegisterEvent("PLAYER_LOGIN")
+_dtInt_DBG:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
+    DelveTracker:RegisterPlugin("Debugger", function() end)
+    local opt = _G["DelveTrackerOptions"]
+    if opt then opt:HookScript("OnShow", function()
+        local en = DelveTrackerDB and DelveTrackerDB.PluginStates["Debugger"] ~= false
+        if DBG_frame then if en then DBG_frame:Show() else DBG_frame:Hide() end end
+    end) end
 end)

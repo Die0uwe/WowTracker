@@ -1,102 +1,3 @@
--- ============================================================
--- WowTracker Plugin Wrapper — ClothCounter v2.x
--- ============================================================
-local addonName, addonTable = ...
-local _ccWrap = CreateFrame("Frame")
-_ccWrap:RegisterEvent("ADDON_LOADED")
-_ccWrap:SetScript("OnEvent", function(self, event, name)
-    if name ~= "WowTracker" then return end
-    self:UnregisterAllEvents()
-    if not WowTracker then return end
-    WowTracker:RegisterPlugin({
-        id       = "cloth_counter",
-        name     = "Cloth Counter",
-        version  = "2.0",
-        category = "Warband",
-        icon     = "📦",
-        enabled  = true,
-        events   = {"BAG_UPDATE_DELAYED"},
-        scan = function(charKey, charData, db)
-            -- Cloth item IDs (Midnight)
-            local CLOTH = {
-                [2592]   = "Wool Cloth",
-                [4306]   = "Silk Cloth",
-                [14047]  = "Runecloth",
-                [53010]  = "Embersilk Cloth",
-                [72992]  = "Windwool Cloth",
-                [111557] = "Sumptuous Fur",
-                [124437] = "Shal'dorei Silk",
-                [151020] = "Lightweave Cloth",
-                [159882] = "Tidespray Linen",
-                [178785] = "Shadowlace",
-                [187993] = "Shrouded Cloth",
-                [193053] = "Infurious Scales", -- TWW transitional
-                [1228060]= "Sunfire Silk Bolt", -- Midnight
-                [1227926]= "Arcanoweave Bolt",  -- Midnight
-            }
-            charData.cloth = charData.cloth or {}
-            for itemID, _ in pairs(CLOTH) do
-                local count = 0
-                for bag = 0, 4 do
-                    for slot = 1, C_Container.GetContainerNumSlots(bag) do
-                        local info = C_Container.GetContainerItemInfo(bag, slot)
-                        if info and info.itemID == itemID then
-                            count = count + (info.stackCount or 1)
-                        end
-                    end
-                end
-                charData.cloth[itemID] = count > 0 and count or nil
-            end
-        end,
-        buildUI = function(cf)
-            local db = WowTrackerDB; if not db then return end
-            local CLOTH_NAMES = {
-                [1228060]="Sunfire Silk Bolt",[1227926]="Arcanoweave Bolt",
-                [159882]="Tidespray Linen",[178785]="Shadowlace",[187993]="Shrouded Cloth",
-                [193053]="Infurious Scales",
-            }
-            local title = cf:CreateFontString(nil,"OVERLAY"); title:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
-            title:SetPoint("TOPLEFT",14,-8); title:SetText("|cffccaa00📦 Cloth Counter — Warband Overzicht|r")
-            local scroll = CreateFrame("ScrollFrame",nil,cf,"UIPanelScrollFrameTemplate")
-            scroll:SetPoint("TOPLEFT",10,-36); scroll:SetPoint("BOTTOMRIGHT",-28,-4)
-            local content = CreateFrame("Frame",nil,scroll); content:SetSize(500,1); scroll:SetScrollChild(content)
-            local y = 0
-            local grandTotal = {}
-            -- Per character row
-            local chars = {}
-            for k in pairs(db.characters or {}) do table.insert(chars,k) end; table.sort(chars)
-            for _, ckey in ipairs(chars) do
-                local cdata = db.characters[ckey]
-                local cloth = cdata and cdata.cloth
-                if cloth then
-                    local cname = ckey:match("([^-]+)") or ckey
-                    local hdr = content:CreateFontString(nil,"OVERLAY"); hdr:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-                    hdr:SetPoint("TOPLEFT",0,y); hdr:SetText("|cff00dfff"..cname.."|r"); y=y-18
-                    for iid, cnt in pairs(cloth) do
-                        if cnt and cnt > 0 then
-                            grandTotal[iid] = (grandTotal[iid] or 0) + cnt
-                            local row = content:CreateFontString(nil,"OVERLAY"); row:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
-                            row:SetPoint("TOPLEFT",12,y)
-                            row:SetText(string.format("  %s: |cff44ff44%d|r", CLOTH_NAMES[iid] or ("Item "..iid), cnt)); y=y-16
-                        end
-                    end
-                    y=y-4
-                end
-            end
-            -- Grand total
-            local tot = content:CreateFontString(nil,"OVERLAY"); tot:SetFont("Fonts\\2002.ttf",12,"OUTLINE")
-            tot:SetPoint("TOPLEFT",0,y-4); tot:SetText("|cffccaa00━━ Warband Totaal ━━|r"); y=y-20
-            for iid, cnt in pairs(grandTotal) do
-                local tr = content:CreateFontString(nil,"OVERLAY"); tr:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-                tr:SetPoint("TOPLEFT",8,y)
-                tr:SetText(string.format("  %s: |cffbf00ff%d|r", CLOTH_NAMES[iid] or ("Item "..iid), cnt)); y=y-18
-            end
-            content:SetHeight(math.abs(y)+20)
-        end,
-        onEnable=function() end, onDisable=function() end,
-    })
-end)
--- ============================================================
 -- =========================================================================
 -- DT_ClothWidget v14.5.1 — WARBAND EDITION
 -- World of Warcraft: Midnight 12.0.5 / build 67314
@@ -306,7 +207,7 @@ local function MakeHeaderStripe(parent,h)
 end
 local function MakeTitle(parent,text,x,y,size)
     local t=parent:CreateFontString(nil,"OVERLAY")
-    t:SetFont("Fonts\\FRIZQT__.TTF",size or 12,"OUTLINE")
+    t:SetFont("Fonts\\2002.ttf",size or 12,"OUTLINE")
     t:SetPoint("TOPLEFT",x or 12,y or -12); t:SetText(text)
     t:SetShadowOffset(1,-1); t:SetShadowColor(0,0,0,1); return t
 end
@@ -318,7 +219,7 @@ local function StyleButton(btn,text)
     btn:SetBackdropBorderColor(0.45,0.22,0.75,0.9)
     btn:SetText(text or "")
     local fs=btn:GetFontString()
-    if fs then fs:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE"); fs:SetTextColor(0.85,0.72,1,1) end
+    if fs then fs:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); fs:SetTextColor(0.85,0.72,1,1) end
     btn:SetScript("OnEnter",function(s)
         s:SetBackdropColor(0.20,0.08,0.32,1); s:SetBackdropBorderColor(0.80,0.50,1.0,1) end)
     btn:SetScript("OnLeave",function(s)
@@ -333,7 +234,7 @@ local function MakeCloseBtn(parent,onClose)
     btn:SetBackdropColor(0.22,0.04,0.04,1); btn:SetBackdropBorderColor(0.65,0.18,0.18,1)
     btn:SetText("X")
     local fs=btn:GetFontString()
-    if fs then fs:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE"); fs:SetTextColor(1,0.50,0.50,1) end
+    if fs then fs:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); fs:SetTextColor(1,0.50,0.50,1) end
     btn:SetScript("OnEnter",function(s)
         s:SetBackdropColor(0.50,0.08,0.08,1); s:SetBackdropBorderColor(1,0.30,0.30,1) end)
     btn:SetScript("OnLeave",function(s)
@@ -359,7 +260,7 @@ local function CreateProgressBar(parent,w,h)
     shine:SetPoint("TOPLEFT",1,-1); shine:SetPoint("TOPRIGHT",-1,-1)
     shine:SetHeight(math.max(2,math.floor((h-2)/2))); shine:SetColorTexture(1,1,1,0.07)
     local lbl=con:CreateFontString(nil,"OVERLAY")
-    lbl:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE"); lbl:SetPoint("CENTER",0,0)
+    lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); lbl:SetPoint("CENTER",0,0)
     lbl:SetTextColor(1,1,1,1); con.label=lbl
     function con:SetCooldown(rem,dur,name)
         if rem and rem>0 then
@@ -416,7 +317,7 @@ F.compactBtn:SetBackdropColor(0.12,0.05,0.22,1)
 F.compactBtn:SetBackdropBorderColor(0.45,0.22,0.75,0.8)
 F.compactBtn:SetText("◎")
 local cfs=F.compactBtn:GetFontString()
-if cfs then cfs:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE"); cfs:SetTextColor(0.70,0.55,1,1) end
+if cfs then cfs:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); cfs:SetTextColor(0.70,0.55,1,1) end
 F.compactBtn:SetScript("OnEnter",function(s)
     s:SetBackdropColor(0.22,0.08,0.38,1); s:SetBackdropBorderColor(0.80,0.50,1.0,1)
     GameTooltip:SetOwner(s,"ANCHOR_BOTTOM"); GameTooltip:ClearLines()
@@ -469,16 +370,16 @@ for i,f in ipairs(CLOTH_DATA) do
     b.icon=b:CreateTexture(nil,"ARTWORK"); b.icon:SetSize(52,52)
     b.icon:SetPoint("TOPLEFT",5,-5); b.icon:SetTexCoord(0.08,0.92,0.08,0.92)
     b.nameTxt=b:CreateFontString(nil,"OVERLAY")
-    b.nameTxt:SetFont("Fonts\\FRIZQT__.TTF",9,"OUTLINE")
+    b.nameTxt:SetFont("Fonts\\2002.ttf",9,"OUTLINE")
     b.nameTxt:SetPoint("TOPLEFT",b.icon,"TOPRIGHT",6,-3)
     b.nameTxt:SetTextColor(col[1],col[2],col[3],0.90); b.nameTxt:SetText(f.name)
     b.txt=b:CreateFontString(nil,"OVERLAY","GameFontNormalHugeOutline")
     b.txt:SetPoint("TOPLEFT",b.icon,"TOPRIGHT",6,-14); b.txt:SetTextColor(1,1,1,1)
     b.cph=b:CreateFontString(nil,"OVERLAY")
-    b.cph:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE")
+    b.cph:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
     b.cph:SetPoint("TOPLEFT",b.txt,"BOTTOMLEFT",0,-2); b.cph:SetTextColor(0.65,0.65,0.88,1)
     b.wbTxt=b:CreateFontString(nil,"OVERLAY")
-    b.wbTxt:SetFont("Fonts\\FRIZQT__.TTF",9,"OUTLINE")
+    b.wbTxt:SetFont("Fonts\\2002.ttf",9,"OUTLINE")
     b.wbTxt:SetPoint("BOTTOMLEFT",5,4)
     b.wbTxt:SetTextColor(col[1]*0.7,col[2]*0.6,col[3]*0.9,0.80)
     b:SetScript("OnEnter",function(s)
@@ -515,7 +416,7 @@ for i,f in ipairs(CLOTH_DATA) do
 end
 
 F.tTime=F:CreateFontString(nil,"OVERLAY")
-F.tTime:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE")
+F.tTime:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
 F.tTime:SetPoint("BOTTOM",0,7); F.tTime:SetTextColor(0.68,0.58,0.90,1)
 local botLine=F:CreateTexture(nil,"ARTWORK")
 botLine:SetPoint("BOTTOMLEFT",2,22); botLine:SetPoint("BOTTOMRIGHT",-2,22)
@@ -552,7 +453,7 @@ local function MakeScaleBtn(text, xOffset)
     b:SetBackdropBorderColor(0.38,0.18,0.65,0.8)
     b:SetText(text)
     local fs=b:GetFontString()
-    if fs then fs:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE"); fs:SetTextColor(0.75,0.60,1,1) end
+    if fs then fs:SetFont("Fonts\\2002.ttf",11,"OUTLINE"); fs:SetTextColor(0.75,0.60,1,1) end
     b:SetScript("OnEnter",function(s)
         s:SetBackdropColor(0.20,0.08,0.32,1)
         s:SetBackdropBorderColor(0.70,0.40,1.0,1)
@@ -578,7 +479,7 @@ F.scalePlus:SetScript("OnClick", function() ApplyScale( 0.1) end)
 
 -- Scale label centred between the two buttons
 F.scaleLbl = F:CreateFontString(nil,"OVERLAY")
-F.scaleLbl:SetFont("Fonts\\FRIZQT__.TTF",8,"OUTLINE")
+F.scaleLbl:SetFont("Fonts\\2002.ttf",8,"OUTLINE")
 F.scaleLbl:SetPoint("BOTTOMLEFT", F, "BOTTOMLEFT", 28, 7)
 F.scaleLbl:SetTextColor(0.55,0.45,0.80,1)
 
@@ -644,7 +545,7 @@ local function MakeAScaleBtn(text, xOff)
     b:SetBackdropColor(0.10,0.04,0.18,1); b:SetBackdropBorderColor(0.38,0.18,0.65,0.8)
     b:SetText(text)
     local fs=b:GetFontString()
-    if fs then fs:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE"); fs:SetTextColor(0.75,0.60,1,1) end
+    if fs then fs:SetFont("Fonts\\2002.ttf",11,"OUTLINE"); fs:SetTextColor(0.75,0.60,1,1) end
     b:SetScript("OnEnter",function(s)
         s:SetBackdropColor(0.20,0.08,0.32,1); s:SetBackdropBorderColor(0.70,0.40,1.0,1)
         GameTooltip:SetOwner(s,"ANCHOR_BOTTOM"); GameTooltip:ClearLines()
@@ -663,7 +564,7 @@ end
 Archive.aScalePlus  = MakeAScaleBtn("+", -46)
 Archive.aScaleMinus = MakeAScaleBtn("-", -92)
 Archive.aScaleLbl   = Archive:CreateFontString(nil,"OVERLAY")
-Archive.aScaleLbl:SetFont("Fonts\\FRIZQT__.TTF",8,"OUTLINE")
+Archive.aScaleLbl:SetFont("Fonts\\2002.ttf",8,"OUTLINE")
 Archive.aScaleLbl:SetPoint("TOPRIGHT",Archive,"TOPRIGHT",-67,-12)
 Archive.aScaleLbl:SetTextColor(0.55,0.45,0.80,1)
 local function RefreshArchiveScaleLbl()
@@ -712,7 +613,7 @@ Archive.tailorHeader:SetBackdropColor(0.07,0.03,0.14,0.95)
 Archive.tailorHeader:SetBackdropBorderColor(0.35,0.16,0.60,0.55)
 
 local thTitle=Archive.tailorHeader:CreateFontString(nil,"OVERLAY")
-thTitle:SetFont("Fonts\\FRIZQT__.TTF",13,"OUTLINE")
+thTitle:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
 thTitle:SetPoint("LEFT",10,0)
 thTitle:SetText("|cffb58cff| TAILOR COOLDOWNS|r")
 
@@ -777,7 +678,7 @@ Archive.openTailorBtn:SetScript("OnLeave",function() GameTooltip:Hide() end)
 
 -- Sub-hint under button
 local thSub=Archive.tailorHeader:CreateFontString(nil,"OVERLAY")
-thSub:SetFont("Fonts\\FRIZQT__.TTF",8,"OUTLINE")
+thSub:SetFont("Fonts\\2002.ttf",8,"OUTLINE")
 thSub:SetPoint("BOTTOMLEFT",10,4)
 thSub:SetTextColor(0.40,0.35,0.58,1)
 thSub:SetText("Click Scan Cooldowns after opening Professions, or use /cbud scan. Open Tailoring opens the profession window.")
@@ -818,12 +719,12 @@ local function BuildHistoryTab()
     Archive.tailorOuter:Hide(); Archive.scroll:Show()
     if not ClothWarbandDB or not ClothWarbandDB.runs or #ClothWarbandDB.runs==0 then
         local e=Archive.content:CreateFontString(nil,"OVERLAY")
-        e:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE"); e:SetPoint("CENTER")
+        e:SetFont("Fonts\\2002.ttf",11,"OUTLINE"); e:SetPoint("CENTER")
         e:SetText("|cff665577No runs saved yet — go farm!|r")
         Archive.content:SetHeight(40); return
     end
     local ch=Archive.content:CreateFontString(nil,"OVERLAY")
-    ch:SetFont("Fonts\\FRIZQT__.TTF",8,"OUTLINE"); ch:SetPoint("TOPLEFT",8,-5)
+    ch:SetFont("Fonts\\2002.ttf",8,"OUTLINE"); ch:SetPoint("TOPLEFT",8,-5)
     ch:SetTextColor(0.50,0.42,0.72,1)
     ch:SetText(string.format("%-26s  %-16s  %-10s  %-10s  %-10s  %-10s  %-7s  Alt",
         "Zone","Date","Duration",CLOTH_DATA[1].name,CLOTH_DATA[2].name,CLOTH_DATA[3].name,"Total"))
@@ -845,7 +746,7 @@ local function BuildHistoryTab()
         zt:SetPoint("TOPLEFT",8,-5); zt:SetText("|cffcc99ff"..(run.zone or "?").."|r")
         zt:SetWidth(190); zt:SetJustifyH("LEFT")
         local st=row:CreateFontString(nil,"OVERLAY")
-        st:SetFont("Fonts\\FRIZQT__.TTF",7,"OUTLINE"); st:SetPoint("BOTTOMLEFT",8,5)
+        st:SetFont("Fonts\\2002.ttf",7,"OUTLINE"); st:SetPoint("BOTTOMLEFT",8,5)
         st:SetTextColor(0.45,0.40,0.65,1)
         st:SetText((run.date or "?").."  ["..
             (run.duration and FormatTime(run.duration) or "?").."]  @"..GetShortName(run.char))
@@ -854,7 +755,7 @@ local function BuildHistoryTab()
             local d=run.data and run.data[f.name]
             local cnt=d and (type(d)=="table" and (d.total or 0) or d) or 0
             rTot=rTot+cnt
-            local ct=row:CreateFontString(nil,"OVERLAY"); ct:SetFont("Fonts\\FRIZQT__.TTF",12,"OUTLINE")
+            local ct=row:CreateFontString(nil,"OVERLAY"); ct:SetFont("Fonts\\2002.ttf",12,"OUTLINE")
             ct:SetPoint("LEFT",cx,3)
             ct:SetText(string.format("|T%d:16:16|t |cffffff00%d|r",GetSafeIcon(f.id),cnt))
             ct:SetWidth(132); cx=cx+132
@@ -865,7 +766,7 @@ local function BuildHistoryTab()
         badge:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
             edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
         badge:SetBackdropColor(0.14,0.05,0.26,1); badge:SetBackdropBorderColor(0.45,0.22,0.75,0.80)
-        local bt=badge:CreateFontString(nil,"OVERLAY"); bt:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE")
+        local bt=badge:CreateFontString(nil,"OVERLAY"); bt:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
         bt:SetPoint("CENTER"); bt:SetText("|cffffff00"..rTot.."|r")
         local runTotal=rTot
         row:SetScript("OnEnter",function(s)
@@ -907,7 +808,7 @@ local function BuildTotalsTab()
         ClothWarbandDB.totals[f.name] = ClothWarbandDB.totals[f.name] or 0
     end
     local hdr=Archive.content:CreateFontString(nil,"OVERLAY")
-    hdr:SetFont("Fonts\\FRIZQT__.TTF",12,"OUTLINE"); hdr:SetPoint("TOPLEFT",8,-10)
+    hdr:SetFont("Fonts\\2002.ttf",12,"OUTLINE"); hdr:SetPoint("TOPLEFT",8,-10)
     hdr:SetText("|cffb58cff| WARBAND TOTALS|r")
     local y=-40
     for ci,f in ipairs(CLOTH_DATA) do
@@ -927,11 +828,11 @@ local function BuildTotalsTab()
         local ico=box:CreateTexture(nil,"ARTWORK"); ico:SetSize(50,50)
         ico:SetPoint("LEFT",8,0); ico:SetTexCoord(0.08,0.92,0.08,0.92)
         ico:SetTexture(GetSafeIcon(f.id))
-        local nT=box:CreateFontString(nil,"OVERLAY"); nT:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE")
+        local nT=box:CreateFontString(nil,"OVERLAY"); nT:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
         nT:SetPoint("TOPLEFT",66,-8); nT:SetTextColor(col[1],col[2],col[3],1); nT:SetText(f.name)
         local gT=box:CreateFontString(nil,"OVERLAY","GameFontNormalHugeOutline")
         gT:SetPoint("TOPLEFT",66,-22); gT:SetText("|cffffff00"..grand.."|r")
-        local aT=box:CreateFontString(nil,"OVERLAY"); aT:SetFont("Fonts\\FRIZQT__.TTF",8,"OUTLINE")
+        local aT=box:CreateFontString(nil,"OVERLAY"); aT:SetFont("Fonts\\2002.ttf",8,"OUTLINE")
         aT:SetPoint("BOTTOMLEFT",66,6); aT:SetTextColor(0.58,0.55,0.78,1)
         aT:SetText(string.format("~%d/run  (%d runs)",avg,numRuns))
         -- BUG FIX: Totals boxes had no tooltip. Add Silver/Gold warband breakdown.
@@ -983,7 +884,7 @@ local function BuildTotalsTab()
     div:SetHeight(1); div:SetColorTexture(0.20,0.45,0.90,0.55)
     y=y-10
     local cHdr=Archive.content:CreateFontString(nil,"OVERLAY")
-    cHdr:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE"); cHdr:SetPoint("TOPLEFT",8,y)
+    cHdr:SetFont("Fonts\\2002.ttf",11,"OUTLINE"); cHdr:SetPoint("TOPLEFT",8,y)
     cHdr:SetText("|cffb58cff| PER CHARACTER|r"); y=y-28
     local charStats={}; local charOrder={}
     for _,run in ipairs(ClothWarbandDB.runs or {}) do
@@ -1006,7 +907,7 @@ local function BuildTotalsTab()
     end
     if #charOrder==0 then
         local e=Archive.content:CreateFontString(nil,"OVERLAY")
-        e:SetFont("Fonts\\FRIZQT__.TTF",10,"OUTLINE"); e:SetPoint("TOPLEFT",8,y)
+        e:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); e:SetPoint("TOPLEFT",8,y)
         e:SetText("|cff554466No per-character data found.|r"); y=y-24
     end
     for _,charKey in ipairs(charOrder) do
@@ -1020,22 +921,22 @@ local function BuildTotalsTab()
         cBox:SetBackdropColor(isMe and .10 or .06,isMe and .04 or .02,isMe and .18 or .11,.90)
         cBox:SetBackdropBorderColor(isMe and .50 or .30,isMe and .25 or .14,
             isMe and .85 or .52,isMe and .80 or .45)
-        local cnT=cBox:CreateFontString(nil,"OVERLAY"); cnT:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE")
+        local cnT=cBox:CreateFontString(nil,"OVERLAY"); cnT:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
         cnT:SetPoint("LEFT",10,6)
         cnT:SetText((isMe and "|cff00ee88" or "|cff88ccff")..sN.."|r"); cnT:SetWidth(140)
-        local crT=cBox:CreateFontString(nil,"OVERLAY"); crT:SetFont("Fonts\\FRIZQT__.TTF",7,"OUTLINE")
+        local crT=cBox:CreateFontString(nil,"OVERLAY"); crT:SetFont("Fonts\\2002.ttf",7,"OUTLINE")
         crT:SetPoint("BOTTOMLEFT",10,6); crT:SetText("|cff554466"..cs.runs.." run(s)|r")
         local cx=158
         for _,f in ipairs(CLOTH_DATA) do
             local fd=cs.data[f.name] or {total=0,t2=0,t3=0}
             local cnt=type(fd)=="table" and (fd.total or 0) or (fd or 0)
             cTot=cTot+cnt
-            local ctT=cBox:CreateFontString(nil,"OVERLAY"); ctT:SetFont("Fonts\\FRIZQT__.TTF",13,"OUTLINE")
+            local ctT=cBox:CreateFontString(nil,"OVERLAY"); ctT:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
             ctT:SetPoint("LEFT",cx,5)
             ctT:SetText(string.format("|T%d:18:18|t |cffffff00%d|r",GetSafeIcon(f.id),cnt))
             cx=cx+176
         end
-        local sT=cBox:CreateFontString(nil,"OVERLAY"); sT:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE")
+        local sT=cBox:CreateFontString(nil,"OVERLAY"); sT:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
         sT:SetPoint("RIGHT",-10,0); sT:SetText("|cffaa66ff"..cTot.."|r")
         -- Drop source tooltip per character
         cBox:EnableMouse(true)
@@ -1125,11 +1026,11 @@ local function BuildTailorTab()
             box:SetBackdropColor(0.05,0.02,0.10,0.88)
             box:SetBackdropBorderColor(0.30,0.14,0.52,0.55)
         end
-        local nT=box:CreateFontString(nil,"OVERLAY"); nT:SetFont("Fonts\\FRIZQT__.TTF",13,"OUTLINE")
+        local nT=box:CreateFontString(nil,"OVERLAY"); nT:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
         nT:SetPoint("TOPLEFT",T_LABEL_X,-10)
         nT:SetText((isActive and "|cff00ee88" or "|cff88ccff")..charName.."|r"..
             (isActive and "  |cff33cc66[Active]|r" or ""))
-        local tT=box:CreateFontString(nil,"OVERLAY"); tT:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE")
+        local tT=box:CreateFontString(nil,"OVERLAY"); tT:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
         tT:SetPoint("TOPRIGHT",-T_LABEL_X,-13)
         tT:SetText(hasTailoring and "|cff00ee88Tailoring|r" or "|cffff6644No Tailoring|r")
         local rule=box:CreateTexture(nil,"ARTWORK")
@@ -1152,7 +1053,7 @@ local function BuildTailorTab()
                 ico:SetPoint("TOPLEFT", box, "TOPLEFT", icoX, icoY)
                 ico:SetTexture(cdIcon); ico:SetTexCoord(0.08,0.92,0.08,0.92)
                 -- Label anchored to RIGHT of icon — always on same line
-                local lbl=box:CreateFontString(nil,"OVERLAY"); lbl:SetFont("Fonts\\FRIZQT__.TTF",11,"OUTLINE")
+                local lbl=box:CreateFontString(nil,"OVERLAY"); lbl:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
                 lbl:SetPoint("LEFT", ico, "RIGHT", 8, 0)
                 lbl:SetTextColor(col[1],col[2],col[3],1.0)
                 lbl:SetText(cd.name); lbl:SetWidth(200)
@@ -1192,7 +1093,7 @@ local function BuildTailorTab()
         end
         if hasOthers then
             local oH=tc:CreateFontString(nil,"OVERLAY")
-            oH:SetFont("Fonts\\FRIZQT__.TTF",13,"OUTLINE"); oH:SetPoint("TOPLEFT",0,y)
+            oH:SetFont("Fonts\\2002.ttf",13,"OUTLINE"); oH:SetPoint("TOPLEFT",0,y)
             oH:SetText("|cffb58cff| OTHER CHARACTERS|r  |cff554466(data from previous sessions)|r")
             y=y-26
             for ck,charData in pairs(ClothWarbandDB.chars) do
@@ -1369,3 +1270,21 @@ SlashCmdList["CBUD"]=function(msg)
 end
 
 print(string.format("|cffb58cffClothWidget v%s|r loaded — type |cffddbbff/cbud|r to open",VERSION))
+
+-- ============================================================================
+-- DELVETRACKER PLUGIN REGISTRATIE — ClothCounter
+-- ============================================================================
+local _dtInt_Cloth = CreateFrame("Frame")
+_dtInt_Cloth:RegisterEvent("PLAYER_LOGIN")
+_dtInt_Cloth:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
+    DelveTracker:RegisterPlugin("ClothCounter", function() end)
+    local enabled = DelveTrackerDB and DelveTrackerDB.PluginStates["ClothCounter"] ~= false
+    if F then if enabled then F:Show() else F:Hide() end end
+    local opt = _G["DelveTrackerOptions"]
+    if opt then opt:HookScript("OnShow", function()
+        local en = DelveTrackerDB and DelveTrackerDB.PluginStates["ClothCounter"] ~= false
+        if F then if en then F:Show() else F:Hide() end end
+    end) end
+end)
