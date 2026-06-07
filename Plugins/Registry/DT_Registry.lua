@@ -240,9 +240,11 @@ if DelveTracker then
     C_Timer.After(1, function()
         if DelveTrackerFrame then
             local bookBtn = CreateFrame("Button", "DT_RegistryOpenBtn", DelveTrackerFrame, "BackdropTemplate")
-            bookBtn:SetSize(22, 22); bookBtn:SetPoint("TOPRIGHT", DelveTrackerFrame, "TOPRIGHT", -5, -35)
+            bookBtn:SetSize(22, 22)
+            bookBtn:SetPoint("TOPRIGHT", DelveTrackerFrame, "TOPRIGHT", -28, -22)
             bookBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
-            bookBtn:SetBackdropColor(0.1, 0.1, 0.1, 1); bookBtn:SetBackdropBorderColor(0.3, 0.1, 0.5, 0.8)
+            bookBtn:SetBackdropColor(0.08,0.04,0.14,0.95)
+            bookBtn:SetBackdropBorderColor(0.45,0.12,0.70,0.9)
             bookBtn.t = bookBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); bookBtn.t:SetPoint("CENTER"); bookBtn.t:SetText("|cffa335eeB|r")
             bookBtn:SetScript("OnClick", function() if Registry:IsShown() then Registry:Hide() else Registry:Show() end end)
         end

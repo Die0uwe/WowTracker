@@ -167,3 +167,24 @@ C_Timer.After(3.0, function()
     local mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
     if mapID then ScanAbundance(mapID) end
 end)
+
+-- ============================================================================
+-- KENNISBANK REFERENTIE (data-grinder archief voor oudedoos)
+-- ============================================================================
+-- CLASS ICONS (12.x):
+--   Texture: "Interface\WorldStateFrame\Icons-Classes"
+--   Coords via: CLASS_ICON_TCOORDS["DEATHKNIGHT"] etc.
+-- SPEC ICONS:
+--   GetSpecializationInfoByID(specID) → id,name,desc,iconID,role
+-- RACE ICONS:
+--   "Interface\Icons\Achievement_Character_{race}_{faction}"
+-- ABUNDANCE POI:
+--   C_AreaPoiInfo.GetAreaPOIForMap(mapID) → {poiID,...}
+--   C_AreaPoiInfo.GetAreaPOIInfo(poiID) → {atlasName,description,timeRemaining,...}
+--   Chip vendor: POI atlas "delve-abundance" of description:find("abundance")
+-- CURRENCY IDs (geverifieerd Midnight):
+--   3028 = Restored Coffer Keys
+--   3310 = Coffer Key Shards
+--   3376 = Shard of Dundun (Abundance beloning)
+--   3378 = Dawnlight Manaflux
+-- ============================================================================

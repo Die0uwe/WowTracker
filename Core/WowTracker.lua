@@ -412,22 +412,24 @@ local GUILD_RIGHT_W = 260
 local GUILD_LEFT_W  = UI_W - 2 - GUILD_RIGHT_W
 
 -- ── LINKER KOLOM ──────────────────────────────────────────────────────────
+-- Guild tab gecentreerd in de linker kolom
 Tab1.guildName=Tab1:CreateFontString(nil,"OVERLAY")
-Tab1.guildName:SetFont(C_2002,18,"OUTLINE")
+Tab1.guildName:SetFont(C_2002,20,"OUTLINE")
 Tab1.guildName:SetJustifyH("CENTER")
-Tab1.guildName:SetPoint("TOP",Tab1,"TOPLEFT",(GUILD_LEFT_W/2),-20)
+Tab1.guildName:SetPoint("TOP",Tab1,"TOPLEFT",GUILD_LEFT_W/2,-18)
+Tab1.guildName:SetWidth(GUILD_LEFT_W-20)
 Tab1.guildName:SetText(SA_GOLD.."Slayer Alliance|r")
 
 Tab1.motdLabel=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdLabel:SetFont(C_2002,9,"OUTLINE")
 Tab1.motdLabel:SetJustifyH("CENTER")
-Tab1.motdLabel:SetPoint("TOP",Tab1.guildName,"BOTTOM",0,-10)
-Tab1.motdLabel:SetText(SA_PURPLE.."Bericht van de dag:|r")
+Tab1.motdLabel:SetPoint("TOP",Tab1.guildName,"BOTTOM",0,-12)
+Tab1.motdLabel:SetText(SA_PURPLE.."─── Bericht van de dag ───|r")
 
 Tab1.motdText=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdText:SetFont(C_2002,11,"")
-Tab1.motdText:SetPoint("TOP",Tab1.motdLabel,"BOTTOM",0,-6)
-Tab1.motdText:SetWidth(GUILD_LEFT_W - 40)
+Tab1.motdText:SetPoint("TOP",Tab1.motdLabel,"BOTTOM",0,-8)
+Tab1.motdText:SetWidth(GUILD_LEFT_W-50)
 Tab1.motdText:SetJustifyH("CENTER")
 Tab1.motdText:SetWordWrap(true)
 Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
@@ -484,24 +486,91 @@ Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-40,1)
 Tab1.onlineScroll:SetScrollChild(Tab1.onlineScroll.content)
 Tab1.onlineScroll.content.rows={}
 
--- ── TAB 2: DELVES ─────────────────────────────────────────────────────────
+-- ── TAB 2: DELVES — 2 kolommen + zoek met suggesties ─────────────────────
 local searchBox=CreateFrame("EditBox","DT_SearchBox",Tab2,"SearchBoxTemplate")
 searchBox:SetSize(UI_W-60,24)
-searchBox:SetPoint("TOPLEFT",Tab2,"TOPLEFT",10,-8)
+searchBox:SetPoint("TOPLEFT",Tab2,"TOPLEFT",10,-6)
 searchBox:SetAutoFocus(false)
 
-local scroll=CreateFrame("ScrollFrame","DT_Scroll",Tab2,"UIPanelScrollFrameTemplate")
-scroll:SetPoint("TOPLEFT",Tab2,"TOPLEFT",1,-38)
-scroll:SetPoint("BOTTOMRIGHT",Tab2,"BOTTOMRIGHT",-22,4)
-scroll.content=CreateFrame("Frame",nil,scroll)
-scroll.content:SetSize(UI_W-40,1)
-scroll:SetScrollChild(scroll.content)
-scroll.content.rows={}
+-- Suggestie dropdown
+local DT_SuggestDrop=CreateFrame("Frame","DT_DelvesSuggest",Tab2,"BackdropTemplate")
+DT_SuggestDrop:SetFrameLevel(Tab2:GetFrameLevel()+20)
+DT_SuggestDrop:SetWidth(280)
+DT_SuggestDrop:SetPoint("TOPLEFT",searchBox,"BOTTOMLEFT",0,-1)
+DT_SuggestDrop:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+DT_SuggestDrop:SetBackdropColor(0.06,0.03,0.10,0.98)
+DT_SuggestDrop:SetBackdropBorderColor(0.45,0.12,0.70,1)
+DT_SuggestDrop:Hide()
+DT_SuggestDrop.btns={}
+
+local function RefreshSuggest(filter)
+    for _,b in ipairs(DT_SuggestDrop.btns) do b:Hide() end
+    if not filter or filter=="" then DT_SuggestDrop:Hide(); return end
+    local matches={}
+    for k in pairs(DelveTrackerDB.characters or {}) do
+        local short=k:match("([^-]+)") or k
+        if short:lower():find(filter:lower(),1,true) then
+            table.insert(matches,{key=k,short=short})
+        end
+    end
+    if #matches==0 then DT_SuggestDrop:Hide(); return end
+    table.sort(matches,function(a,b) return a.short<b.short end)
+    local BH=22; local cnt=math.min(#matches,8)
+    for i=1,cnt do
+        local m=matches[i]
+        if not DT_SuggestDrop.btns[i] then
+            local sb=CreateFrame("Button",nil,DT_SuggestDrop)
+            sb:SetHeight(BH)
+            sb:SetPoint("TOPLEFT",1,-(BH*(i-1)+1))
+            sb:SetPoint("TOPRIGHT",-1,-(BH*(i-1)+1))
+            sb.t=sb:CreateFontString(nil,"OVERLAY")
+            sb.t:SetFont(C_2002,11,"")
+            sb.t:SetPoint("LEFT",6,0)
+            sb:SetScript("OnClick",function(self)
+                searchBox:SetText(self._short)
+                DT_SuggestDrop:Hide()
+                if UpdateCharacterList then UpdateCharacterList() end
+            end)
+            table.insert(DT_SuggestDrop.btns,sb)
+        end
+        local sb=DT_SuggestDrop.btns[i]
+        local data=DelveTrackerDB.characters[m.key] or {}
+        local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        sb.t:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s|r",
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
+            m.short, data.class or "??"))
+        sb._short=m.short; sb:Show()
+    end
+    DT_SuggestDrop:SetHeight(cnt*BH+2); DT_SuggestDrop:Show()
+end
 
 searchBox:SetScript("OnTextChanged",function(self)
     SearchBoxTemplate_OnTextChanged(self)
+    RefreshSuggest(self:GetText())
     if UpdateCharacterList then UpdateCharacterList() end
 end)
+searchBox:SetScript("OnEditFocusLost",function()
+    C_Timer.After(0.15,function() DT_SuggestDrop:Hide() end)
+end)
+
+-- 2-KOLOMS layout — linker + rechter scroll
+local COL_W=math.floor((UI_W-50)/2)
+local scroll=CreateFrame("ScrollFrame","DT_Scroll",Tab2,"UIPanelScrollFrameTemplate")
+scroll:SetPoint("TOPLEFT",Tab2,"TOPLEFT",1,-34)
+scroll:SetPoint("BOTTOMLEFT",Tab2,"BOTTOMLEFT",1,4)
+scroll:SetWidth(COL_W+2)
+scroll.content=CreateFrame("Frame",nil,scroll)
+scroll.content:SetSize(COL_W,1)
+scroll:SetScrollChild(scroll.content)
+scroll.content.rows={}
+
+local scroll2=CreateFrame("ScrollFrame","DT_Scroll2",Tab2,"UIPanelScrollFrameTemplate")
+scroll2:SetPoint("TOPLEFT",Tab2,"TOPLEFT",COL_W+8,-34)
+scroll2:SetPoint("BOTTOMRIGHT",Tab2,"BOTTOMRIGHT",-22,4)
+scroll2.content=CreateFrame("Frame",nil,scroll2)
+scroll2.content:SetSize(COL_W,1)
+scroll2:SetScrollChild(scroll2.content)
+scroll2.content.rows={}
 
 -- ── TAB 3: BOUNTY — volle breedte ────────────────────────────────────────
 Tab3.PluginArea=CreateFrame("Frame","DT_BountyArea",Tab3)
@@ -648,6 +717,26 @@ WT_UpdateRoster = function()
             card.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
             card.cIcon:SetTexCoord(unpack(coords))
         end
+
+        -- Race icoon naast klasse icoon
+        card.rIcon=card.rIcon or card:CreateTexture(nil,"ARTWORK")
+        card.rIcon:SetSize(20,20)
+        card.rIcon:SetPoint("TOPLEFT",card.cIcon,"TOPRIGHT",2,0)
+        -- Race icon via SetPortraitToTexture patroon (12.x)
+        local raceKey=(data.race or ""):gsub("%s+",""):lower()
+        local fac=((data.faction or ""):lower()=="horde") and "horde" or "alliance"
+        card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..fac)
+        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+
+        -- Spec icoon rechtsboven (als spec ID beschikbaar)
+        card.sIcon=card.sIcon or card:CreateTexture(nil,"ARTWORK")
+        card.sIcon:SetSize(20,20)
+        card.sIcon:SetPoint("TOPRIGHT",-2,-2)
+        if data.specID then
+            local _,_,_,specIconID=GetSpecializationInfoByID(data.specID)
+            if specIconID then card.sIcon:SetTexture(specIconID) end
+        end
+        card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
 
         -- iLvl rechts groot
         card.ilvlTxt=card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
@@ -1352,7 +1441,53 @@ UpdateCharacterList = function()
         end)
         DT_Scroll.content.rows[i]=r
     end
-    DT_Scroll.content:SetHeight(#sorted*(ROW_H+3))
+    -- Verdeel over 2 kolommen
+    local half=math.ceil(#sorted/2)
+    DT_Scroll.content:SetHeight(half*(ROW_H+3))
+    -- Kolom 2 content opbouwen (DT_Scroll2 als aanwezig)
+    if _G["DT_Scroll2"] then
+        local s2=_G["DT_Scroll2"]
+        if not s2.content.rows then s2.content.rows={} end
+        for _,r in pairs(s2.content.rows) do r:Hide() end
+        local ri2=0
+        for j=half+1,#sorted do
+            ri2=ri2+1
+            local key2=sorted[j]
+            local data2=DelveTrackerDB.characters[key2]
+            local shortName2=key2:match("([^-]+)") or key2
+            local cc2=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data2.class or ""] or {r=0.8,g=0.8,b=0.8}
+            local r2=s2.content.rows[ri2]
+            if not r2 then
+                r2=CreateFrame("Button",nil,s2.content,"BackdropTemplate")
+                r2:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            end
+            local ROW_W2=s2.content:GetWidth() or COL_W
+            r2:SetSize(ROW_W2,ROW_H)
+            r2:SetPoint("TOPLEFT",0,-(ri2-1)*(ROW_H+3))
+            r2:SetBackdropColor(0.08,0.04,0.12,0.8)
+            r2:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
+            r2:Show()
+            -- Vul zelfde velden als kolom 1
+            r2.fLet=r2.fLet or r2:CreateFontString(nil,"OVERLAY")
+            r2.fLet:SetFont(C_2002,12,"OUTLINE"); r2.fLet:SetPoint("LEFT",6,0)
+            r2.fLet:SetText(data2.faction=="Horde" and "|cffff4444H|r" or "|cff4488ffA|r")
+            r2.cIcon=r2.cIcon or r2:CreateTexture(nil,"OVERLAY")
+            r2.cIcon:SetSize(30,30); r2.cIcon:SetPoint("LEFT",r2.fLet,"RIGHT",4,0)
+            local coords2=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data2.class or ""]
+            if coords2 then r2.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes"); r2.cIcon:SetTexCoord(unpack(coords2)) end
+            r2.nm=r2.nm or r2:CreateFontString(nil,"OVERLAY")
+            r2.nm:SetFont(C_2002,11,"OUTLINE"); r2.nm:SetPoint("LEFT",r2.cIcon,"RIGHT",6,6)
+            r2.nm:SetText(string.format("|cff%02x%02x%02x%s|r",math.floor(cc2.r*255),math.floor(cc2.g*255),math.floor(cc2.b*255),shortName2))
+            r2.sp=r2.sp or r2:CreateFontString(nil,"OVERLAY")
+            r2.sp:SetFont(C_2002,9,""); r2.sp:SetPoint("LEFT",r2.cIcon,"RIGHT",6,-6)
+            r2.sp:SetText(SA_GREY..(data2.spec or "??").." · iLvl "..(data2.ilvl or 0).."|r")
+            r2.gld=r2.gld or r2:CreateFontString(nil,"OVERLAY")
+            r2.gld:SetFont(C_2002,10,"OUTLINE"); r2.gld:SetPoint("RIGHT",-6,0)
+            r2.gld:SetText(SA_GOLD..math.floor((data2.money or 0)/10000).."g|r")
+            s2.content.rows[ri2]=r2
+        end
+        s2.content:SetHeight(ri2*(ROW_H+3))
+    end
 end
 
 -- ── ADMIN PANEL ───────────────────────────────────────────────────────────
