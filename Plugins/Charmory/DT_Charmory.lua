@@ -61,9 +61,10 @@ if DelveTracker then
     Armory:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
     Armory:SetBackdropColor(0, 0, 0, 0.9); Armory:SetBackdropBorderColor(0, 0, 0, 1)
 
-    Armory.bgShield = Armory:CreateTexture(nil, "ARTWORK")
+    Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -1)
     Armory.bgShield:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Shield.tga")
     Armory.bgShield:SetSize(315, 412); Armory.bgShield:SetPoint("TOP", Armory, "TOP", 0, -25)
+    Armory.bgShield:SetAlpha(0.55)  -- transparanter zodat gear slots/tekst leesbaar blijft
 
     Armory.closeBtn = CreateFrame("Button", nil, Armory, "UIPanelCloseButton")
     Armory.closeBtn:SetPoint("TOPRIGHT", Armory, "TOPRIGHT", -2, -2)

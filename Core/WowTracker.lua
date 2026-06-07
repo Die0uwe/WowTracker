@@ -568,84 +568,114 @@ Tab6.scroll.content.crows={}  -- initialiseer currency rows
 -- ============================================================================
 -- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
 -- ============================================================================
+-- Roster ProfessionBuddy-stijl: kaartjes per karakter
+local ROSTER_CARD_W = 170
+local ROSTER_CARD_H = 80
+local ROSTER_COLS   = 4  -- 4 naast elkaar bij 760px breed: 4*170 + 3*10 = 710px
+local ROSTER_GAP    = 10
+
 WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
+
+    -- Verberg oude kaartjes
+    for _,row in pairs(Tab4.scroll.content.rows or {}) do
+        if type(row)=="table" then for _,c in pairs(row) do if c.Hide then c:Hide() end end
+        elseif row.Hide then row:Hide() end
+    end
+    Tab4.scroll.content.rows = {}
+
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
         table.insert(sorted,k)
     end
     table.sort(sorted)
 
-    -- Verberg oude rijen
-    for _,row in pairs(Tab4.scroll.content.rows or {}) do row:Hide() end
-    Tab4.scroll.content.rows = Tab4.scroll.content.rows or {}
-
-    local ROW_H=56; local ROW_W=UI_W-46
     for i,key in ipairs(sorted) do
         local data=DelveTrackerDB.characters[key]
-        local r=Tab4.scroll.content.rows[i]
-        if not r then
-            r=CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        end
-        r:SetSize(ROW_W,ROW_H)
-        r:SetPoint("TOPLEFT",0,-(i-1)*(ROW_H+3))
-        r:SetBackdropColor(0.08,0.04,0.12,0.8)
-        r:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
-        r:Show()
+        local shortName=key:match("([^-]+)") or key
+        local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
 
-        -- Faction
-        r.fLet=r.fLet or r:CreateFontString(nil,"OVERLAY")
-        r.fLet:SetFont(C_2002,14,"OUTLINE")
-        r.fLet:SetPoint("LEFT",8,0)
-        r.fLet:SetText((data.faction=="Horde") and "|cffff4444H|r" or "|cff4488ffA|r")
+        -- Grid positie
+        local col = (i-1) % ROSTER_COLS
+        local row = math.floor((i-1) / ROSTER_COLS)
+        local xPos = col * (ROSTER_CARD_W + ROSTER_GAP)
+        local yPos = -(row * (ROSTER_CARD_H + ROSTER_GAP))
 
-        -- Klasse icon
-        r.cIcon=r.cIcon or r:CreateTexture(nil,"OVERLAY")
-        r.cIcon:SetSize(34,34); r.cIcon:SetPoint("LEFT",r.fLet,"RIGHT",8,0)
-        if data.class then
-            local coords=CLASS_ICON_TCOORDS[data.class]
-            if coords then
-                r.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
-                r.cIcon:SetTexCoord(unpack(coords))
-            end
+        local card = Tab4.scroll.content.rows[i]
+        if not card then
+            card = CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
+            card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         end
+        card:SetSize(ROSTER_CARD_W,ROSTER_CARD_H)
+        card:SetPoint("TOPLEFT",xPos,yPos)
+
+        -- Klasse kleur border
+        card:SetBackdropColor(
+            cc.r*0.08, cc.g*0.08, cc.b*0.08, 0.95)
+        card:SetBackdropBorderColor(cc.r*0.7,cc.g*0.7,cc.b*0.7,1)
+        card:Show()
+
+        -- Klasse icoon linksboven
+        card.cIcon=card.cIcon or card:CreateTexture(nil,"ARTWORK")
+        card.cIcon:SetSize(28,28)
+        card.cIcon:SetPoint("TOPLEFT",4,-4)
+        local coords=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+        if coords then
+            card.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+            card.cIcon:SetTexCoord(unpack(coords))
+        end
+
+        -- iLvl rechts groot
+        card.ilvlTxt=card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
+        card.ilvlTxt:SetFont(C_2002,20,"OUTLINE")
+        card.ilvlTxt:SetPoint("TOPRIGHT",-4,-4)
+        card.ilvlTxt:SetText("|cff00ff00"..(data.ilvl or 0).."|r")
 
         -- Naam
-        r.nm=r.nm or r:CreateFontString(nil,"OVERLAY")
-        r.nm:SetFont(C_2002,12,"OUTLINE")
-        r.nm:SetPoint("LEFT",r.cIcon,"RIGHT",10,8)
-        local shortName=key:match("([^-]+)") or key
-        r.nm:SetText(SA_GOLD..shortName.."|r")
+        card.nm=card.nm or card:CreateFontString(nil,"OVERLAY")
+        card.nm:SetFont(C_2002,12,"OUTLINE")
+        card.nm:SetPoint("TOPLEFT",36,-6)
+        card.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
+            shortName))
 
-        -- Spec + ilvl
-        r.sp=r.sp or r:CreateFontString(nil,"OVERLAY")
-        r.sp:SetFont(C_2002,9,"")
-        r.sp:SetPoint("LEFT",r.cIcon,"RIGHT",10,-6)
-        r.sp:SetText(SA_GREY..(data.spec or "??").." · iLvl "..(data.ilvl or 0).."|r")
+        -- Spec
+        card.sp=card.sp or card:CreateFontString(nil,"OVERLAY")
+        card.sp:SetFont(C_2002,9,"")
+        card.sp:SetPoint("TOPLEFT",36,-20)
+        card.sp:SetText(SA_GREY..(data.spec or "??").."|r")
 
         -- Delve progress
-        r.prgr=r.prgr or r:CreateFontString(nil,"OVERLAY")
-        r.prgr:SetFont(C_2002,10,"OUTLINE")
-        r.prgr:SetPoint("LEFT",r.cIcon,"RIGHT",10,-18)
+        card.prgr=card.prgr or card:CreateFontString(nil,"OVERLAY")
+        card.prgr:SetFont(C_2002,9,"OUTLINE")
+        card.prgr:SetPoint("BOTTOMLEFT",4,20)
         local st=""
         if data.delves then
             for _,v in ipairs(data.delves) do
-                st=st..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
+                st=st..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r "
             end
         end
-        r.prgr:SetText(st~="" and st or SA_GREY.."—|r")
+        card.prgr:SetText(st~="" and st or SA_GREY.."—|r")
 
-        -- Gold rechts
-        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
-        r.gld:SetFont(C_2002,11,"OUTLINE")
-        r.gld:SetPoint("RIGHT",-10,0)
-        r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+        -- Gold onderaan
+        card.gld=card.gld or card:CreateFontString(nil,"OVERLAY")
+        card.gld:SetFont(C_2002,10,"OUTLINE")
+        card.gld:SetPoint("BOTTOMRIGHT",-4,4)
+        card.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
 
-        -- Hover tooltip (zelfde als Tab2)
-        r:SetScript("OnEnter",function(self)
-            self:SetBackdropColor(0.14,0.07,0.22,1)
-            self:SetBackdropBorderColor(0.50,0.15,0.80,1)
+        -- Faction dot
+        card.fac=card.fac or card:CreateTexture(nil,"OVERLAY")
+        card.fac:SetSize(8,8)
+        card.fac:SetPoint("BOTTOMLEFT",4,6)
+        if data.faction=="Horde" then
+            card.fac:SetColorTexture(0.8,0.1,0.1,1)
+        else
+            card.fac:SetColorTexture(0.1,0.4,0.9,1)
+        end
+
+        -- Hover + click
+        card:SetScript("OnEnter",function(self)
+            self:SetBackdropBorderColor(1.0,0.85,0,1)
             GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
             GameTooltip:SetText(SA_GOLD..shortName)
             for pN,pF in pairs(DelveTracker.Plugins) do
@@ -655,25 +685,25 @@ WT_UpdateRoster = function()
             end
             GameTooltip:Show()
         end)
-        r:SetScript("OnLeave",function(self)
-            self:SetBackdropColor(0.08,0.04,0.12,0.8)
-            self:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
+        card:SetScript("OnLeave",function(self)
+            self:SetBackdropBorderColor(cc.r*0.7,cc.g*0.7,cc.b*0.7,1)
             GameTooltip:Hide()
         end)
-        -- Klik → open Charmory
-        r:SetScript("OnClick",function()
+        card:SetScript("OnClick",function()
             if DT_Armory_ShowCharacter then
                 data.name=shortName; DT_Armory_ShowCharacter(data); PlaySound(852)
             end
         end)
-        Tab4.scroll.content.rows[i]=r
+
+        Tab4.scroll.content.rows[i]=card
     end
-    Tab4.scroll.content:SetHeight(#sorted*(ROW_H+3))
+
+    local totalRows = math.ceil(#sorted / ROSTER_COLS)
+    Tab4.scroll.content:SetHeight(totalRows*(ROSTER_CARD_H+ROSTER_GAP)+ROSTER_GAP)
+    Tab4.scroll.content:SetWidth(ROSTER_COLS*(ROSTER_CARD_W+ROSTER_GAP)-ROSTER_GAP)
 end
 
--- ============================================================================
--- WT_ShowArmory — Tab5: open Charmory voor huidig karakter
--- ============================================================================
+
 WT_ShowArmory = function()
     local armFrame = _G["DT_ArmoryFrame"]
     if not armFrame then
@@ -816,63 +846,119 @@ local CURRENCY_IDS = {
     {id=3378, name="Dawnlight Manaflux",    col="|cffa335ee"},
 }
 
+-- Currency grid constanten
+local CUR_DEFS = {
+    {id=3028, label="Keys",     icon="Interface\\Icons\\inv_misc_key_03",         col="|cff00ccff"},
+    {id=3310, label="Shards",   icon="Interface\\Icons\\inv_misc_key_14",         col="|cffffee00"},
+    {id=3376, label="Dundun",   icon="Interface\\Icons\\inv_jewelcrafting_gem_31",col="|cff44cc66"},
+    {id=3378, label="Manaflux", icon="Interface\\Icons\\inv_misc_gem_amethyst_02",col="|cffa335ee"},
+}
+local CUR_CARD_W = 90
+local CUR_CARD_H = 60
+local CUR_CARD_GAP = 6
+local CUR_ROW_H = 34  -- karakter naamrij
+local CUR_ROW_GAP = 4
+
 WT_UpdateCurrency = function()
     if not (Tab6.scroll and Tab6.scroll.content) then return end
-    for _,row in pairs(Tab6.scroll.content.crows or {}) do row:Hide() end
-    Tab6.scroll.content.crows = Tab6.scroll.content.crows or {}
+
+    -- Verberg alle oude frames
+    for _,f in pairs(Tab6.scroll.content.crows or {}) do
+        if type(f)=="table" then for _,c in pairs(f) do if c.Hide then c:Hide() end end
+        elseif f.Hide then f:Hide() end
+    end
+    Tab6.scroll.content.crows = {}
+
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do table.insert(sorted,k) end
     table.sort(sorted)
-    if not Tab6.scroll.content.headerBuilt then
-        Tab6.scroll.content.headerBuilt=true
-        local hdr=Tab6.scroll.content:CreateFontString(nil,"OVERLAY")
-        hdr:SetFont(C_2002,10,"OUTLINE")
-        hdr:SetPoint("TOPLEFT",4,-4)
-        hdr:SetText(
-            SA_GREY..string.format("%-22s","Karakter").."|r  "..
-            "|cff00ccff"..string.format("%-8s","Keys").."|r  "..
-            "|cffffee00"..string.format("%-8s","Shards").."|r  "..
-            "|cff44cc66"..string.format("%-8s","Dundun").."|r  "..
-            "|cffa335ee"..string.format("%-8s","Manaflux").."|r"
-        )
+
+    -- Sectie header
+    if not Tab6.scroll.content.secHdr then
+        Tab6.scroll.content.secHdr=Tab6.scroll.content:CreateFontString(nil,"OVERLAY")
+        Tab6.scroll.content.secHdr:SetFont(C_2002,11,"OUTLINE")
+        Tab6.scroll.content.secHdr:SetPoint("TOPLEFT",6,-6)
+        Tab6.scroll.content.secHdr:SetText(SA_PURPLE.."Warband Currencies|r  "..SA_GREY.."(alle karakters)|r")
     end
-    local ROW_H=24; local ROW_W=UI_W-46
-    for i,key in ipairs(sorted) do
-        local data=DelveTrackerDB.characters[key]
-        local cur=data.currencies or {}
-        local shortName=key:match("([^-]+)") or key
-        local r=Tab6.scroll.content.crows[i]
-        if not r then
-            r=CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+
+    local yOff = -28  -- start onder header
+
+    for ci,key in ipairs(sorted) do
+        local data = DelveTrackerDB.characters[key]
+        local cur  = data.currencies or {}
+        local shortName = key:match("([^-]+)") or key
+        local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+
+        -- Karakter naam rij
+        local nameRow = Tab6.scroll.content.crows[ci] or CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
+        nameRow:SetSize(UI_W-46, CUR_ROW_H)
+        nameRow:SetPoint("TOPLEFT",0,yOff)
+        nameRow:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+        nameRow:SetBackdropColor(0.10,0.05,0.16,0.9)
+        nameRow:SetBackdropBorderColor(0.30,0.08,0.50,0.6)
+        nameRow:Show()
+
+        nameRow.nm = nameRow.nm or nameRow:CreateFontString(nil,"OVERLAY")
+        nameRow.nm:SetFont(C_2002,12,"OUTLINE")
+        nameRow.nm:SetPoint("LEFT",8,0)
+        nameRow.nm:SetText(string.format("|cff%02x%02x%02x%s|r  |cff887799%s · iLvl %d|r",
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
+            shortName, data.spec or "??", data.ilvl or 0))
+
+        nameRow.gld = nameRow.gld or nameRow:CreateFontString(nil,"OVERLAY")
+        nameRow.gld:SetFont(C_2002,11,"OUTLINE")
+        nameRow.gld:SetPoint("RIGHT",-8,0)
+        nameRow.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+
+        Tab6.scroll.content.crows[ci] = nameRow
+        yOff = yOff - CUR_ROW_H - 2
+
+        -- Currency grid kaarten (4 naast elkaar)
+        local cards = {}
+        for j,def in ipairs(CUR_DEFS) do
+            local val = cur[def.id] or 0
+            local xPos = (j-1)*(CUR_CARD_W+CUR_CARD_GAP)
+            local card = CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
+            card:SetSize(CUR_CARD_W,CUR_CARD_H)
+            card:SetPoint("TOPLEFT",xPos,yOff)
+            card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            card:SetBackdropColor(0.07,0.03,0.12,0.95)
+            card:SetBackdropBorderColor(
+                (val>0 and 0.35 or 0.15),
+                0.05,
+                (val>0 and 0.55 or 0.25),
+                (val>0 and 1.0 or 0.5)
+            )
+            card:Show()
+
+            -- Icoon
+            card.ico = card.ico or card:CreateTexture(nil,"ARTWORK")
+            card.ico:SetSize(24,24)
+            card.ico:SetPoint("TOPLEFT",4,-4)
+            card.ico:SetTexture(def.icon)
+            card.ico:SetTexCoord(0.08,0.92,0.08,0.92)
+
+            -- Label
+            card.lbl = card.lbl or card:CreateFontString(nil,"OVERLAY")
+            card.lbl:SetFont(C_2002,9,"")
+            card.lbl:SetPoint("TOPLEFT",32,-8)
+            card.lbl:SetText(def.col..def.label.."|r")
+
+            -- Waarde groot
+            card.val = card.val or card:CreateFontString(nil,"OVERLAY")
+            card.val:SetFont(C_2002,16,"OUTLINE")
+            card.val:SetPoint("BOTTOMLEFT",6,6)
+            local valCol = (val>0 and def.col or "|cff554466")
+            card.val:SetText(valCol..val.."|r")
+
+            table.insert(cards,card)
         end
-        r:SetSize(ROW_W,ROW_H)
-        r:SetPoint("TOPLEFT",0,-18-(i-1)*(ROW_H+2))
-        r:SetBackdropColor(0.08,0.04,0.12,(i%2==0) and 0.5 or 0.8)
-        r:SetBackdropBorderColor(0.18,0.05,0.28,0.5)
-        r:Show()
-        r.txt=r.txt or r:CreateFontString(nil,"OVERLAY")
-        r.txt:SetFont(C_2002,11,"OUTLINE")
-        r.txt:SetPoint("LEFT",6,0)
-        local k3028=cur[3028] or 0; local k3310=cur[3310] or 0
-        local k3376=cur[3376] or 0; local k3378=cur[3378] or 0
-        local cc=RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
-        local charCol=string.format("|cff%02x%02x%02x",
-            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255))
-        r.txt:SetText(
-            charCol..string.format("%-20s",shortName).."|r  "..
-            "|cff00ccff"..string.format("%-6d",k3028).."|r  "..
-            "|cffffee00"..string.format("%-6d",k3310).."|r  "..
-            (k3376>0 and "|cff44cc66" or "|cffff5555")..string.format("%-6d",k3376).."|r  "..
-            (k3378>0 and "|cffa335ee" or "|cff887799")..string.format("%-6d",k3378).."|r"
-        )
-        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
-        r.gld:SetFont(C_2002,10,"OUTLINE")
-        r.gld:SetPoint("RIGHT",-8,0)
-        r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
-        Tab6.scroll.content.crows[i]=r
+
+        Tab6.scroll.content.crows["cards_"..ci] = cards
+        yOff = yOff - CUR_CARD_H - CUR_ROW_GAP
     end
-    Tab6.scroll.content:SetHeight(18+#sorted*(ROW_H+2)+10)
+
+    Tab6.scroll.content:SetHeight(-yOff + 10)
 end
 
 
@@ -962,43 +1048,64 @@ MakeScaleBtn("-",-8,function()
     scaleValTxt:SetText(string.format("%.2f",n))
 end)
 
--- Snelknoppen linksonder: Cloth | Skin | Prey
+-- Snelknoppen links in footer — breed genoeg dat ze binnen 760px vallen
+-- Layout: [Cloth][Skin][Prey] links · [Debug] rechts naast schaal knoppen
+local BTN_W = 72
+local BTN_H = 22
+local BTN_Y = 8  -- van onderkant
+
 local function MakePluginBtn(lbl, col, xOff, fn)
     local b=CreateFrame("Button",nil,UI,"BackdropTemplate")
-    b:SetSize(60,20)
-    b:SetPoint("BOTTOMLEFT",UI,"BOTTOMLEFT",xOff,8)
+    b:SetSize(BTN_W,BTN_H)
+    b:SetPoint("BOTTOMLEFT",UI,"BOTTOMLEFT",xOff,BTN_Y)
     b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    b:SetBackdropColor(0.06,0.03,0.10,0.9)
-    b:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
+    b:SetBackdropColor(0.06,0.03,0.10,0.95)
+    b:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
     local t=b:CreateFontString(nil,"OVERLAY")
-    t:SetFont(C_2002,9,"OUTLINE")
+    t:SetFont(C_2002,10,"OUTLINE")
     t:SetPoint("CENTER")
     t:SetText(col..lbl.."|r")
     b:SetScript("OnClick",fn)
     b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
-    b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.30,0.08,0.50,0.8) end)
+    b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
     return b
 end
 
--- Links: Cloth, Skin, Prey
-MakePluginBtn("🧵 Cloth","|cff44aaff",530+6,function()
+-- Links: Cloth | Skin | Prey (4px gap ertussen)
+local GAP = 4
+MakePluginBtn("🧵 Cloth","|cff44aaff", 4, function()
     if SlashCmdList["CBUDGET"] then SlashCmdList["CBUDGET"]("")
     elseif SlashCmdList["CBUD"] then SlashCmdList["CBUD"]("") end
 end)
-MakePluginBtn("🐾 Skin","|cff44cc66",530+70,function()
+MakePluginBtn("🐾 Skin","|cff44cc66", 4+BTN_W+GAP, function()
     if SlashCmdList["MAJESTICTRACKER"] then SlashCmdList["MAJESTICTRACKER"]("")
     elseif SlashCmdList["SNR"] then SlashCmdList["SNR"]("") end
 end)
-MakePluginBtn("🎯 Prey","|cffff4444",530+134,function()
+MakePluginBtn("🎯 Prey+","|cffff6644", 4+(BTN_W+GAP)*2, function()
     if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
 end)
 
--- Rechts van Discord: Debug
-MakePluginBtn("🐛 Debug","|cff887799",530+198,function()
-    local f=_G["DT_DebugFrame"]
-    if f then if f:IsShown() then f:Hide() else f:Show() end
-    elseif SlashCmdList["DTDEBUG"] then SlashCmdList["DTDEBUG"]("") end
-end)
+-- Rechts: Debug naast de +/- schaal knoppen
+local function MakeDebugBtn()
+    local b=CreateFrame("Button",nil,UI,"BackdropTemplate")
+    b:SetSize(BTN_W,BTN_H)
+    b:SetPoint("BOTTOMRIGHT",UI,"BOTTOMRIGHT",-80,BTN_Y)
+    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    b:SetBackdropColor(0.06,0.03,0.10,0.95)
+    b:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
+    local t=b:CreateFontString(nil,"OVERLAY")
+    t:SetFont(C_2002,10,"OUTLINE")
+    t:SetPoint("CENTER")
+    t:SetText("|cff887799🐛 Debug|r")
+    b:SetScript("OnClick",function()
+        local f=_G["DT_DebugFrame"]
+        if f then if f:IsShown() then f:Hide() else f:Show() end
+        elseif SlashCmdList["DTDEBUG"] then SlashCmdList["DTDEBUG"]("") end
+    end)
+    b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
+    b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
+end
+MakeDebugBtn()
 
 -- ── DATA ──────────────────────────────────────────────────────────────────
 local function CheckWeeklyReset()
