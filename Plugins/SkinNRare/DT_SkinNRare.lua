@@ -1044,9 +1044,5 @@ _dtInt_SNR:SetScript("OnEvent", function(self)
     DelveTracker:RegisterPlugin("SkinNRare", function() end)
     local enabled = DelveTrackerDB and DelveTrackerDB.PluginStates["SkinNRare"] ~= false
     if frame then if enabled then frame:Show() else frame:Hide() end end
-    local opt = _G["DelveTrackerOptions"]
-    if opt then opt:HookScript("OnShow", function()
-        local en = DelveTrackerDB and DelveTrackerDB.PluginStates["SkinNRare"] ~= false
-        if frame then if en then frame:Show() else frame:Hide() end end
-    end) end
+    -- NOTE: geen OnShow hook op admin panel — plugin staat los van settings
 end)

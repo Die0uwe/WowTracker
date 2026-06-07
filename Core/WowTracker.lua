@@ -331,7 +331,8 @@ local function ShowTab(id)
     elseif id==3 then
         Tab3:Show()
         Tab3.PluginArea:Show()
-        -- Probeer QuickSet frame te koppelen
+        -- Alleen QuickSet koppelen — NIET alle plugins aanroepen
+        -- (andere plugins reageren op "Tab3" door hun eigen frame te tonen)
         local qf = _G["DT_QuickSetFrame"]
         if qf then
             qf:SetParent(Tab3.PluginArea)
@@ -339,11 +340,10 @@ local function ShowTab(id)
             qf:SetAllPoints(Tab3.PluginArea)
             qf:Show()
         end
-        -- Plugins aanroepen
-        for pN,pF in pairs(DelveTracker.Plugins) do
-            if DelveTrackerDB.PluginStates and DelveTrackerDB.PluginStates[pN]~=false then
-                pcall(pF,"Tab3",Tab3.PluginArea)
-            end
+        -- Alleen QuickSet plugin aanroepen
+        local qpF = DelveTracker.Plugins["QuickSet"]
+        if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
+            pcall(qpF,"Tab3",Tab3.PluginArea)
         end
 
     elseif id==4 then
@@ -425,21 +425,21 @@ Tab1.motdText:SetText(SA_GREY.."Laden...|r")
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.img:SetSize(140,140)
 Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",14,8)
-Tab1.img:SetTexture("Interface\\AddOns\DelveTracker\Media\kelsey.tga")
+Tab1.img:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\kelsey.tga")
 Tab1.img:SetAlpha(0.80)
 
 -- DieOuwe watermark achtergrond midden-links
 Tab1.dieouwe=Tab1:CreateTexture(nil,"BACKGROUND")
 Tab1.dieouwe:SetSize(160,260)
 Tab1.dieouwe:SetPoint("BOTTOM",Tab1,"BOTTOM",-(GUILD_RIGHT_W/2),-10)
-Tab1.dieouwe:SetTexture("Interface\\AddOns\DelveTracker\Media\Dieouwe.tga")
+Tab1.dieouwe:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.20)
 
 -- Logo watermark
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
 Tab1.logoWM:SetSize(100,100)
 Tab1.logoWM:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-GUILD_RIGHT_W-10,8)
-Tab1.logoWM:SetTexture("Interface\\AddOns\DelveTracker\Media\MijnIcoon.tga")
+Tab1.logoWM:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
 Tab1.logoWM:SetAlpha(0.10)
 
 -- ── RECHTER KOLOM: GUILD ONLINE LEDEN ─────────────────────────────────────
@@ -574,7 +574,7 @@ local function WT_UpdateRoster()
         local r=Tab4.scroll.content.rows[i]
         if not r then
             r=CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         end
         r:SetSize(ROW_W,ROW_H)
         r:SetPoint("TOPLEFT",0,-(i-1)*(ROW_H+3))
@@ -594,7 +594,7 @@ local function WT_UpdateRoster()
         if data.class then
             local coords=CLASS_ICON_TCOORDS[data.class]
             if coords then
-                r.cIcon:SetTexture("Interface\\WorldStateFrame\Icons-Classes")
+                r.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
                 r.cIcon:SetTexCoord(unpack(coords))
             end
         end
@@ -679,7 +679,7 @@ local function WT_ShowArmory()
         Tab5.openBtn=Tab5.openBtn or CreateFrame("Button",nil,Tab5,"BackdropTemplate")
         Tab5.openBtn:SetSize(200,28)
         Tab5.openBtn:SetPoint("TOP",Tab5.subhint,"BOTTOM",0,-12)
-        Tab5.openBtn:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+        Tab5.openBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         Tab5.openBtn:SetBackdropColor(0.10,0.04,0.18,1)
         Tab5.openBtn:SetBackdropBorderColor(0.50,0.15,0.80,1)
         local t=Tab5.openBtn:CreateFontString(nil,"OVERLAY")
@@ -750,7 +750,7 @@ local function WT_UpdateCurrency()
         local r=Tab6.scroll.content.crows[i]
         if not r then
             r=CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         end
         r:SetSize(ROW_W,ROW_H)
         r:SetPoint("TOPLEFT",0,-18-(i-1)*(ROW_H+2))
@@ -1028,7 +1028,13 @@ UpdateCharacterList = function()
         -- Klasse icon
         r.cIcon=r.cIcon or r:CreateTexture(nil,"OVERLAY")
         r.cIcon:SetSize(36,36); r.cIcon:SetPoint("LEFT",r.fLet,"RIGHT",8,0)
-        if data.class then r.cIcon:SetTexture("Interface\\Icons\\ClassIcon_"..data.class) end
+        if data.class then
+            local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class]
+            if coords then
+                r.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                r.cIcon:SetTexCoord(unpack(coords))
+            end
+        end
         -- Naam
         r.nm=r.nm or r:CreateFontString(nil,"OVERLAY")
         r.nm:SetFont(C_2002,12,"OUTLINE")
@@ -1102,7 +1108,7 @@ UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:G
 opt.logo=opt:CreateTexture(nil,"ARTWORK")
 opt.logo:SetSize(42,42)
 opt.logo:SetPoint("TOPLEFT",16,-16)
-opt.logo:SetTexture("Interface\\AddOns\DelveTracker\Media\MijnIcoon.tga")
+opt.logo:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
 
 -- Titel
 opt.tit=opt:CreateFontString(nil,"OVERLAY")
@@ -1119,7 +1125,7 @@ opt.sub:SetText(SA_GREY.."Slayer Alliance Edition · Midnight 12.0.5.67314|r")
 opt.charImg=opt:CreateTexture(nil,"ARTWORK")
 opt.charImg:SetSize(70,120)
 opt.charImg:SetPoint("TOPRIGHT",-16,-6)
-opt.charImg:SetTexture("Interface\\AddOns\DelveTracker\Media\Dieouwe.tga")
+opt.charImg:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
 opt.charImg:SetAlpha(0.88)
 
 -- Scheidingslijn onder header
@@ -1149,9 +1155,9 @@ local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,anchorFrame,anchorY
     s:SetMinMaxValues(minV,maxV)
     s:SetValueStep(step)
     s:SetObeyStepOnDrag(true)
-    s:SetThumbTexture("Interface\\Buttons\UI-SliderBar-Button-Horizontal")
+    s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
     local bg=s:CreateTexture(nil,"BACKGROUND")
-    bg:SetTexture("Interface\\Buttons\UI-SliderBar-Background"); bg:SetAllPoints()
+    bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
 
     local vt=s:CreateFontString(nil,"OVERLAY")
     vt:SetFont(C_2002,9,"")
@@ -1210,7 +1216,7 @@ local function UpdatePluginList()
         if not r then
             r=CreateFrame("Frame",nil,pContent,"BackdropTemplate")
             r:SetSize(498,28)
-            r:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         end
         r:SetPoint("TOPLEFT",0,(i-1)*-31)
         local pinned=(name=="UserInfo")
@@ -1247,7 +1253,7 @@ local function UpdatePluginList()
 
         r.btn=r.btn or CreateFrame("Button",nil,r,"BackdropTemplate")
         r.btn:SetSize(52,20); r.btn:SetPoint("RIGHT",-5,0)
-        r.btn:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+        r.btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY")
         r.btn.t:SetFont(C_2002,10,"OUTLINE"); r.btn.t:SetPoint("CENTER")
 
@@ -1283,7 +1289,7 @@ local function MakeOptBtn(parent,lbl,anchorFrame,anchorY,fn)
     local b=CreateFrame("Button",nil,parent,"BackdropTemplate")
     b:SetSize(260,24)
     b:SetPoint("TOPLEFT",anchorFrame,"BOTTOMLEFT",0,anchorY)
-    b:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
     b:SetBackdropColor(0.08,0.04,0.12,0.9)
     b:SetBackdropBorderColor(0.25,0.07,0.40,1)
     local t=b:CreateFontString(nil,"OVERLAY")
@@ -1317,7 +1323,7 @@ end)
 opt.afkBtn=CreateFrame("Button",nil,opt,"BackdropTemplate")
 opt.afkBtn:SetSize(200,24)
 opt.afkBtn:SetPoint("TOPLEFT",110,-638)
-opt.afkBtn:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
+opt.afkBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 opt.afkBtn:SetBackdropColor(0.08,0.04,0.12,0.9)
 opt.afkBtn:SetBackdropBorderColor(0.30,0.08,0.50,1)
 opt.afkBtn.t=opt.afkBtn:CreateFontString(nil,"OVERLAY")

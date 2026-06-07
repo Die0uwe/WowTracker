@@ -1282,9 +1282,5 @@ _dtInt_Cloth:SetScript("OnEvent", function(self)
     DelveTracker:RegisterPlugin("ClothCounter", function() end)
     local enabled = DelveTrackerDB and DelveTrackerDB.PluginStates["ClothCounter"] ~= false
     if F then if enabled then F:Show() else F:Hide() end end
-    local opt = _G["DelveTrackerOptions"]
-    if opt then opt:HookScript("OnShow", function()
-        local en = DelveTrackerDB and DelveTrackerDB.PluginStates["ClothCounter"] ~= false
-        if F then if en then F:Show() else F:Hide() end end
-    end) end
+    -- NOTE: geen OnShow hook op admin panel — plugin staat los van settings
 end)
