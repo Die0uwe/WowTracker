@@ -250,14 +250,24 @@ local function ShowTab(id)
 
     if id==1 then
         Tab1:Show()
+        -- GuildRoster() triggert GUILD_ROSTER_UPDATE event en laadt verse data
+        -- GetGuildRosterMOTD() geeft nil totdat dit gedaan is
         if IsInGuild() then
-            local gName=GetGuildInfo("player"); local motd=GetGuildRosterMOTD() or ""
+            GuildRoster()  -- refresh guild data
+            local gName = GetGuildInfo("player")
             Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r")
-            Tab1.motdText:SetText(SA_GREY..(motd~="" and motd or "Geen MOTD.").."|r")
+            -- MOTD: probeer direct, anders wacht op event
+            local motd = GetGuildRosterMOTD() or ""
+            if motd ~= "" then
+                Tab1.motdText:SetText(SA_GREY..motd.."|r")
+            else
+                Tab1.motdText:SetText(SA_GREY.."Laden...|r")
+            end
         else
             Tab1.guildName:SetText(SA_GREY.."Geen guild|r")
-            Tab1.motdText:SetText("")
+            Tab1.motdText:SetText(SA_GREY.."Je bent geen lid van een guild.|r")
         end
+        WT_UpdateGuildOnline()
 
     elseif id==2 then
         Tab2:Show()
@@ -321,44 +331,82 @@ TabLine:SetHeight(1)
 TabLine:SetColorTexture(0.25,0.07,0.40,0.8)
 
 -- ── TAB 1: GUILD ──────────────────────────────────────────────────────────
+-- Links: guild info + MOTD + Kelsey image
+-- Rechts: online leden lijst (260px breed)
+
+local GUILD_RIGHT_W = 260
+local GUILD_LEFT_W  = UI_W - 2 - GUILD_RIGHT_W
+
+-- ── LINKER KOLOM ──────────────────────────────────────────────────────────
 Tab1.guildName=Tab1:CreateFontString(nil,"OVERLAY")
-Tab1.guildName:SetFont(C_2002,18,"OUTLINE")
-Tab1.guildName:SetPoint("TOP",Tab1,"TOP",0,-20)
+Tab1.guildName:SetFont(C_2002,16,"OUTLINE")
+Tab1.guildName:SetPoint("TOPLEFT",Tab1,"TOPLEFT",14,-14)
 Tab1.guildName:SetText(SA_GOLD.."Slayer Alliance|r")
 
 Tab1.motdLabel=Tab1:CreateFontString(nil,"OVERLAY")
-Tab1.motdLabel:SetFont(C_2002,10,"OUTLINE")
-Tab1.motdLabel:SetPoint("TOP",Tab1.guildName,"BOTTOM",0,-12)
+Tab1.motdLabel:SetFont(C_2002,9,"OUTLINE")
+Tab1.motdLabel:SetPoint("TOPLEFT",Tab1.guildName,"BOTTOMLEFT",0,-8)
 Tab1.motdLabel:SetText(SA_PURPLE.."Bericht van de dag:|r")
 
 Tab1.motdText=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdText:SetFont(C_2002,11,"")
-Tab1.motdText:SetPoint("TOP",Tab1.motdLabel,"BOTTOM",0,-6)
-Tab1.motdText:SetWidth(UI_W-60)
-Tab1.motdText:SetJustifyH("CENTER")
+Tab1.motdText:SetPoint("TOPLEFT",Tab1.motdLabel,"BOTTOMLEFT",0,-4)
+Tab1.motdText:SetWidth(GUILD_LEFT_W - 28)
+Tab1.motdText:SetJustifyH("LEFT")
 Tab1.motdText:SetWordWrap(true)
 Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
+Tab1.motdText:SetText(SA_GREY.."Laden...|r")
 
--- DieOuwe mannetje links in guild tab als accent
-Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.dieouwe:SetSize(90,155)
-Tab1.dieouwe:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",8,8)
-Tab1.dieouwe:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
-Tab1.dieouwe:SetAlpha(0.55)
-
--- Kelsey image in het midden
+-- Kelsey image linksonder
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.img:SetSize(180,180)
-Tab1.img:SetPoint("TOP",Tab1.motdText,"BOTTOM",0,-20)
-Tab1.img:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\kelsey.tga")
-Tab1.img:SetAlpha(0.85)
+Tab1.img:SetSize(140,140)
+Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",14,8)
+Tab1.img:SetTexture("Interface\AddOns\DelveTracker\Media\kelsey.tga")
+Tab1.img:SetAlpha(0.80)
 
--- Logo watermark rechtsonder
+-- DieOuwe watermark achtergrond midden-links
+Tab1.dieouwe=Tab1:CreateTexture(nil,"BACKGROUND")
+Tab1.dieouwe:SetSize(160,260)
+Tab1.dieouwe:SetPoint("BOTTOM",Tab1,"BOTTOM",-(GUILD_RIGHT_W/2),-10)
+Tab1.dieouwe:SetTexture("Interface\AddOns\DelveTracker\Media\Dieouwe.tga")
+Tab1.dieouwe:SetAlpha(0.20)
+
+-- Logo watermark
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
-Tab1.logoWM:SetSize(120,120)
-Tab1.logoWM:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-8,8)
-Tab1.logoWM:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
-Tab1.logoWM:SetAlpha(0.12)
+Tab1.logoWM:SetSize(100,100)
+Tab1.logoWM:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-GUILD_RIGHT_W-10,8)
+Tab1.logoWM:SetTexture("Interface\AddOns\DelveTracker\Media\MijnIcoon.tga")
+Tab1.logoWM:SetAlpha(0.10)
+
+-- ── RECHTER KOLOM: GUILD ONLINE LEDEN ─────────────────────────────────────
+-- Verticale scheidingslijn
+Tab1.divLine=Tab1:CreateTexture(nil,"OVERLAY")
+Tab1.divLine:SetSize(1,600)
+Tab1.divLine:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-GUILD_RIGHT_W,0)
+Tab1.divLine:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-GUILD_RIGHT_W,0)
+Tab1.divLine:SetColorTexture(0.30,0.07,0.50,0.5)
+
+-- Header online panel
+Tab1.onlineHdr=Tab1:CreateFontString(nil,"OVERLAY")
+Tab1.onlineHdr:SetFont(C_2002,10,"OUTLINE")
+Tab1.onlineHdr:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-8,-8)
+Tab1.onlineHdr:SetText(SA_PURPLE.."Online|r")
+
+Tab1.onlineCount=Tab1:CreateFontString(nil,"OVERLAY")
+Tab1.onlineCount:SetFont(C_2002,10,"")
+Tab1.onlineCount:SetPoint("RIGHT",Tab1.onlineHdr,"LEFT",-4,0)
+Tab1.onlineCount:SetTextColor(0.6,0.4,0.9,1)
+Tab1.onlineCount:SetText("")
+
+-- Scroll frame voor online leden
+Tab1.onlineScroll=CreateFrame("ScrollFrame",nil,Tab1,"UIPanelScrollFrameTemplate")
+Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-20,-26)
+Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-20,8)
+Tab1.onlineScroll:SetWidth(GUILD_RIGHT_W-22)
+Tab1.onlineScroll.content=CreateFrame("Frame",nil,Tab1.onlineScroll)
+Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-40,1)
+Tab1.onlineScroll:SetScrollChild(Tab1.onlineScroll.content)
+Tab1.onlineScroll.content.rows={}
 
 -- ── TAB 2: DELVES ─────────────────────────────────────────────────────────
 local searchBox=CreateFrame("EditBox","DT_SearchBox",Tab2,"SearchBoxTemplate")
@@ -664,6 +712,89 @@ local function WT_UpdateCurrency()
     end
     Tab6.scroll.content:SetHeight(18+#sorted*(ROW_H+2)+10)
 end
+
+-- ============================================================================
+-- WT_UpdateGuildOnline — Tab1 rechts: online guild leden
+-- ============================================================================
+local function WT_UpdateGuildOnline()
+    if not (Tab1.onlineScroll and Tab1.onlineScroll.content) then return end
+
+    -- Verberg oude rijen
+    for _,row in pairs(Tab1.onlineScroll.content.rows or {}) do row:Hide() end
+
+    if not IsInGuild() then return end
+
+    -- Bouw lijst van online leden
+    local online = {}
+    local total  = GetNumGuildMembers()
+    for i=1,total do
+        local name,rank,_,level,class,zone,_,_,connected = GetGuildRosterInfo(i)
+        if connected and name then
+            local shortName = name:match("([^-]+)") or name
+            table.insert(online, {
+                name=shortName, rank=rank, level=level,
+                class=class or "WARRIOR", zone=zone or ""
+            })
+        end
+    end
+
+    -- Sorteer op naam
+    table.sort(online, function(a,b) return a.name < b.name end)
+
+    -- Update teller
+    Tab1.onlineCount:SetText(SA_GOLD..#online.."|r  "..SA_GREY.."online|r")
+
+    local ROW_H = 22
+    local ROW_W = Tab1.onlineScroll:GetWidth() - 4
+
+    for i,member in ipairs(online) do
+        local r = Tab1.onlineScroll.content.rows[i]
+        if not r then
+            r = CreateFrame("Frame",nil,Tab1.onlineScroll.content)
+        end
+        r:SetSize(ROW_W, ROW_H)
+        r:SetPoint("TOPLEFT",0,-(i-1)*ROW_H)
+        r:Show()
+
+        -- Status dot
+        r.dot = r.dot or r:CreateTexture(nil,"OVERLAY")
+        r.dot:SetSize(6,6)
+        r.dot:SetPoint("LEFT",2,0)
+        r.dot:SetColorTexture(0.20,0.90,0.40,1)  -- groen = online
+
+        -- Naam in klasse kleur
+        r.nm = r.nm or r:CreateFontString(nil,"OVERLAY")
+        r.nm:SetFont(C_2002,11,"")
+        r.nm:SetPoint("LEFT",12,0)
+        local cc = RAID_CLASS_COLORS[member.class] or {r=0.8,g=0.8,b=0.8}
+        r.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
+            member.name))
+
+        -- Level rechts
+        r.lvl = r.lvl or r:CreateFontString(nil,"OVERLAY")
+        r.lvl:SetFont(C_2002,9,"")
+        r.lvl:SetPoint("RIGHT",0,0)
+        r.lvl:SetText(SA_GREY..(member.level or "").."|r")
+
+        Tab1.onlineScroll.content.rows[i] = r
+    end
+    Tab1.onlineScroll.content:SetHeight(#online * ROW_H + 4)
+end
+
+-- ── GUILD ROSTER UPDATE EVENT ─────────────────────────────────────────────
+-- GUILD_ROSTER_UPDATE vuurt nadat GuildRoster() data opgehaald heeft
+local guildEventFrame = CreateFrame("Frame")
+guildEventFrame:RegisterEvent("GUILD_ROSTER_UPDATE")
+guildEventFrame:SetScript("OnEvent", function()
+    if not Tab1:IsShown() then return end
+    -- MOTD nu beschikbaar
+    local motd = GetGuildRosterMOTD() or ""
+    if Tab1.motdText then
+        Tab1.motdText:SetText(motd ~= "" and (SA_GREY..motd.."|r") or SA_GREY.."Geen MOTD ingesteld.|r")
+    end
+    WT_UpdateGuildOnline()
+end)
 
 -- ── FOOTER ────────────────────────────────────────────────────────────────
 local FtrBG=UI:CreateTexture(nil,"BACKGROUND")
@@ -1049,7 +1180,7 @@ MBtn:SetClampedToScreen(true)
 -- Achtergrond ring (donker paars)
 MBtn.ring=MBtn:CreateTexture(nil,"BACKGROUND")
 MBtn.ring:SetAllPoints()
-MBtn.ring:SetColorTexture(0.20,0.05,0.35,0.85)
+MBtn.ring:SetColorTexture(0,0,0,0)  -- volledig transparant
 -- Logo texture
 MBtn.tex=MBtn:CreateTexture(nil,"ARTWORK")
 MBtn.tex:SetAllPoints()
