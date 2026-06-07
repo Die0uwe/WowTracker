@@ -273,44 +273,19 @@ local function ShowTab(id)
         end
 
     elseif id==4 then
-        -- Roster: Registry XL in tab (inline versie)
+        -- ROSTER — inline karakter lijst identiek aan Tab2 Delves
         Tab4:Show()
-        -- Trigger Registry plugin om content te vullen in Tab4.PluginArea
-        local pF = DelveTracker.Plugins["Registry"]
-        if pF and DelveTrackerDB.PluginStates["Registry"]~=false then
-            pcall(pF,"Tab4",Tab4.PluginArea)
-        else
-            -- Fallback: open standalone Registry
-            if _G["DT_RegistryFrame"] then _G["DT_RegistryFrame"]:Show() end
-        end
+        WT_UpdateRoster()
 
     elseif id==5 then
-        -- Armory/Charmory: huidig karakter
+        -- ARMORY — open Charmory popup voor huidig karakter
         Tab5:Show()
-        local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-        local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
-        local pF=DelveTracker.Plugins["Charmory"] or DelveTracker.Plugins["UserInfo"]
-        if pF and data then
-            data.name=UnitName("player")
-            pcall(pF,"Tab5",Tab5.PluginArea,data)
-        else
-            -- Fallback tekst
-            if not Tab5.hint then
-                Tab5.hint=Tab5:CreateFontString(nil,"OVERLAY")
-                Tab5.hint:SetFont(C_2002,13,"OUTLINE")
-                Tab5.hint:SetPoint("CENTER")
-                Tab5.hint:SetText(SA_GREY.."Armory laadt...\nGebruik /charmory of /userinfo|r")
-            end
-            Tab5.hint:Show()
-        end
+        WT_ShowArmory()
 
     elseif id==6 then
-        -- Currency: Registry currency tab inline
+        -- CURRENCY — inline currency overzicht alle karakters
         Tab6:Show()
-        local pF=DelveTracker.Plugins["Registry"]
-        if pF and DelveTrackerDB.PluginStates["Registry"]~=false then
-            pcall(pF,"Currency",Tab6.PluginArea)
-        end
+        WT_UpdateCurrency()
     end
 
     for _,b in ipairs(tabBtns) do StyleTabBtn(b,b._id==id) end
@@ -451,6 +426,244 @@ Tab6.scroll:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",-22,4)
 Tab6.scroll.content=CreateFrame("Frame",nil,Tab6.scroll)
 Tab6.scroll.content:SetSize(UI_W-40,1)
 Tab6.scroll:SetScrollChild(Tab6.scroll.content)
+
+-- ============================================================================
+-- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
+-- ============================================================================
+local function WT_UpdateRoster()
+    if not (Tab4.scroll and Tab4.scroll.content) then return end
+    local sorted={}
+    for k in pairs(DelveTrackerDB.characters or {}) do
+        table.insert(sorted,k)
+    end
+    table.sort(sorted)
+
+    -- Verberg oude rijen
+    for _,row in pairs(Tab4.scroll.content.rows or {}) do row:Hide() end
+    Tab4.scroll.content.rows = Tab4.scroll.content.rows or {}
+
+    local ROW_H=56; local ROW_W=UI_W-46
+    for i,key in ipairs(sorted) do
+        local data=DelveTrackerDB.characters[key]
+        local r=Tab4.scroll.content.rows[i]
+        if not r then
+            r=CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
+            r:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+        end
+        r:SetSize(ROW_W,ROW_H)
+        r:SetPoint("TOPLEFT",0,-(i-1)*(ROW_H+3))
+        r:SetBackdropColor(0.08,0.04,0.12,0.8)
+        r:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
+        r:Show()
+
+        -- Faction
+        r.fLet=r.fLet or r:CreateFontString(nil,"OVERLAY")
+        r.fLet:SetFont(C_2002,14,"OUTLINE")
+        r.fLet:SetPoint("LEFT",8,0)
+        r.fLet:SetText((data.faction=="Horde") and "|cffff4444H|r" or "|cff4488ffA|r")
+
+        -- Klasse icon
+        r.cIcon=r.cIcon or r:CreateTexture(nil,"OVERLAY")
+        r.cIcon:SetSize(34,34); r.cIcon:SetPoint("LEFT",r.fLet,"RIGHT",8,0)
+        if data.class then
+            local coords=CLASS_ICON_TCOORDS[data.class]
+            if coords then
+                r.cIcon:SetTexture("Interface\WorldStateFrame\Icons-Classes")
+                r.cIcon:SetTexCoord(unpack(coords))
+            end
+        end
+
+        -- Naam
+        r.nm=r.nm or r:CreateFontString(nil,"OVERLAY")
+        r.nm:SetFont(C_2002,12,"OUTLINE")
+        r.nm:SetPoint("LEFT",r.cIcon,"RIGHT",10,8)
+        local shortName=key:match("([^-]+)") or key
+        r.nm:SetText(SA_GOLD..shortName.."|r")
+
+        -- Spec + ilvl
+        r.sp=r.sp or r:CreateFontString(nil,"OVERLAY")
+        r.sp:SetFont(C_2002,9,"")
+        r.sp:SetPoint("LEFT",r.cIcon,"RIGHT",10,-6)
+        r.sp:SetText(SA_GREY..(data.spec or "??").." · iLvl "..(data.ilvl or 0).."|r")
+
+        -- Delve progress
+        r.prgr=r.prgr or r:CreateFontString(nil,"OVERLAY")
+        r.prgr:SetFont(C_2002,10,"OUTLINE")
+        r.prgr:SetPoint("LEFT",r.cIcon,"RIGHT",10,-18)
+        local st=""
+        if data.delves then
+            for _,v in ipairs(data.delves) do
+                st=st..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
+            end
+        end
+        r.prgr:SetText(st~="" and st or SA_GREY.."—|r")
+
+        -- Gold rechts
+        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
+        r.gld:SetFont(C_2002,11,"OUTLINE")
+        r.gld:SetPoint("RIGHT",-10,0)
+        r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+
+        -- Hover tooltip (zelfde als Tab2)
+        r:SetScript("OnEnter",function(self)
+            self:SetBackdropColor(0.14,0.07,0.22,1)
+            self:SetBackdropBorderColor(0.50,0.15,0.80,1)
+            GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+            GameTooltip:SetText(SA_GOLD..shortName)
+            for pN,pF in pairs(DelveTracker.Plugins) do
+                if DelveTrackerDB.PluginStates[pN]~=false then
+                    pcall(pF,"Tooltip",data,key)
+                end
+            end
+            GameTooltip:Show()
+        end)
+        r:SetScript("OnLeave",function(self)
+            self:SetBackdropColor(0.08,0.04,0.12,0.8)
+            self:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
+            GameTooltip:Hide()
+        end)
+        -- Klik → open Charmory
+        r:SetScript("OnClick",function()
+            if DT_Armory_ShowCharacter then
+                data.name=shortName; DT_Armory_ShowCharacter(data); PlaySound(852)
+            end
+        end)
+        Tab4.scroll.content.rows[i]=r
+    end
+    Tab4.scroll.content:SetHeight(#sorted*(ROW_H+3))
+end
+
+-- ============================================================================
+-- WT_ShowArmory — Tab5: open Charmory voor huidig karakter
+-- ============================================================================
+local function WT_ShowArmory()
+    -- Toon hint in de tab
+    if not Tab5.shown then
+        Tab5.shown=true
+        Tab5.hint=Tab5.hint or Tab5:CreateFontString(nil,"OVERLAY")
+        Tab5.hint:SetFont(C_2002,12,"")
+        Tab5.hint:SetPoint("TOP",Tab5,"TOP",0,-20)
+        Tab5.hint:SetText(SA_PURPLE.."Armory|r  "..SA_GREY.."— huidig karakter|r")
+
+        Tab5.subhint=Tab5.subhint or Tab5:CreateFontString(nil,"OVERLAY")
+        Tab5.subhint:SetFont(C_2002,10,"")
+        Tab5.subhint:SetPoint("TOP",Tab5.hint,"BOTTOM",0,-8)
+        Tab5.subhint:SetText(SA_GREY.."Charmory opent naast het hoofdscherm|r")
+
+        Tab5.openBtn=Tab5.openBtn or CreateFrame("Button",nil,Tab5,"BackdropTemplate")
+        Tab5.openBtn:SetSize(200,28)
+        Tab5.openBtn:SetPoint("TOP",Tab5.subhint,"BOTTOM",0,-12)
+        Tab5.openBtn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+        Tab5.openBtn:SetBackdropColor(0.10,0.04,0.18,1)
+        Tab5.openBtn:SetBackdropBorderColor(0.50,0.15,0.80,1)
+        local t=Tab5.openBtn:CreateFontString(nil,"OVERLAY")
+        t:SetFont(C_2002,11,"OUTLINE")
+        t:SetPoint("CENTER")
+        t:SetText(SA_PURPLE.."Open Armory|r")
+        Tab5.openBtn:SetScript("OnClick",function()
+            local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+            local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
+            if data and DT_Armory_ShowCharacter then
+                data.name=UnitName("player"); DT_Armory_ShowCharacter(data)
+            elseif _G["DT_ArmoryFrame"] then
+                _G["DT_ArmoryFrame"]:Show()
+            end
+        end)
+    end
+
+    -- Automatisch openen voor huidig karakter
+    local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+    local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
+    if data and DT_Armory_ShowCharacter then
+        data.name=UnitName("player"); DT_Armory_ShowCharacter(data)
+    end
+end
+
+-- ============================================================================
+-- WT_UpdateCurrency — Tab6: currency overzicht alle karakters
+-- ============================================================================
+local CURRENCY_IDS = {
+    {id=3028, name="Restored Coffer Keys",  col="|cff00ccff"},
+    {id=3310, name="Coffer Key Shards",     col="|cffffee00"},
+    {id=3376, name="Shard of Dundun",       col="|cff44cc66"},
+    {id=3378, name="Dawnlight Manaflux",    col="|cffa335ee"},
+}
+
+local function WT_UpdateCurrency()
+    if not (Tab6.scroll and Tab6.scroll.content) then return end
+
+    -- Verberg oude rijen
+    for _,row in pairs(Tab6.scroll.content.crows or {}) do row:Hide() end
+    Tab6.scroll.content.crows = Tab6.scroll.content.crows or {}
+
+    local sorted={}
+    for k in pairs(DelveTrackerDB.characters or {}) do table.insert(sorted,k) end
+    table.sort(sorted)
+
+    -- Header rij (currency namen)
+    if not Tab6.scroll.content.headerBuilt then
+        Tab6.scroll.content.headerBuilt=true
+        local hdr=Tab6.scroll.content:CreateFontString(nil,"OVERLAY")
+        hdr:SetFont(C_2002,10,"OUTLINE")
+        hdr:SetPoint("TOPLEFT",4,-4)
+        hdr:SetText(
+            SA_GREY..string.format("%-22s","Karakter").."|r  "..
+            "|cff00ccff"..string.format("%-8s","Keys").."|r  "..
+            "|cffffee00"..string.format("%-8s","Shards").."|r  "..
+            "|cff44cc66"..string.format("%-8s","Dundun").."|r  "..
+            "|cffa335ee"..string.format("%-8s","Manaflux").."|r"
+        )
+    end
+
+    local ROW_H=28; local ROW_W=UI_W-46
+    for i,key in ipairs(sorted) do
+        local data=DelveTrackerDB.characters[key]
+        local cur=data.currencies or {}
+        local shortName=key:match("([^-]+)") or key
+
+        local r=Tab6.scroll.content.crows[i]
+        if not r then
+            r=CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
+            r:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+        end
+        r:SetSize(ROW_W,ROW_H)
+        r:SetPoint("TOPLEFT",0,-18-(i-1)*(ROW_H+2))
+        r:SetBackdropColor(0.08,0.04,0.12,(i%2==0) and 0.5 or 0.8)
+        r:SetBackdropBorderColor(0.18,0.05,0.28,0.5)
+        r:Show()
+
+        r.txt=r.txt or r:CreateFontString(nil,"OVERLAY")
+        r.txt:SetFont(C_2002,11,"OUTLINE")
+        r.txt:SetPoint("LEFT",6,0)
+
+        local k3028=cur[3028] or 0
+        local k3310=cur[3310] or 0
+        local k3376=cur[3376] or 0
+        local k3378=cur[3378] or 0
+
+        -- Kleurcode voor karakter
+        local cc=RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        local charCol=string.format("|cff%02x%02x%02x",
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255))
+
+        r.txt:SetText(
+            charCol..string.format("%-20s",shortName).."|r  "..
+            "|cff00ccff"..string.format("%-6d",k3028).."|r  "..
+            "|cffffee00"..string.format("%-6d",k3310).."|r  "..
+            (k3376>0 and "|cff44cc66" or "|cffff5555")..string.format("%-6d",k3376).."|r  "..
+            (k3378>0 and "|cffa335ee" or "|cff887799")..string.format("%-6d",k3378).."|r"
+        )
+
+        -- Gold rechts
+        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
+        r.gld:SetFont(C_2002,10,"OUTLINE")
+        r.gld:SetPoint("RIGHT",-8,0)
+        r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+
+        Tab6.scroll.content.crows[i]=r
+    end
+    Tab6.scroll.content:SetHeight(18+#sorted*(ROW_H+2)+10)
+end
 
 -- ── FOOTER ────────────────────────────────────────────────────────────────
 local FtrBG=UI:CreateTexture(nil,"BACKGROUND")
