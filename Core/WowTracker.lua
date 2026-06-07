@@ -69,9 +69,12 @@ end)
 local Tab1 = CreateFrame("Frame","DT_Tab1",UI); Tab1:SetFrameLevel(UI:GetFrameLevel()+1)
 local Tab2 = CreateFrame("Frame","DT_Tab2",UI); Tab2:SetFrameLevel(UI:GetFrameLevel()+1)
 local Tab3 = CreateFrame("Frame","DT_Tab3",UI); Tab3:SetFrameLevel(UI:GetFrameLevel()+1)
+local Tab4 = CreateFrame("Frame","DT_Tab4",UI); Tab4:SetFrameLevel(UI:GetFrameLevel()+1)
+local Tab5 = CreateFrame("Frame","DT_Tab5",UI); Tab5:SetFrameLevel(UI:GetFrameLevel()+1)
+local Tab6 = CreateFrame("Frame","DT_Tab6",UI); Tab6:SetFrameLevel(UI:GetFrameLevel()+1)
 local CONTENT_Y = -(TICKER_H + HEADER_H + TAB_BAR_H)
 local CONTENT_BOT = FOOTER_H
-for _,t in ipairs({Tab1,Tab2,Tab3}) do
+for _,t in ipairs({Tab1,Tab2,Tab3,Tab4,Tab5,Tab6}) do
     t:SetPoint("TOPLEFT",UI,"TOPLEFT",1,CONTENT_Y)
     t:SetPoint("BOTTOMRIGHT",UI,"BOTTOMRIGHT",-1,CONTENT_BOT)
     t:Hide()
@@ -216,7 +219,14 @@ UI.settingsBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","A
 local TAB_Y = -(TICKER_H+HEADER_H)
 local tabBtns={}; local activeTabID=2
 
-local tabDefs={{id=1,label="GUILD",col=SA_GOLD},{id=2,label="DELVES",col=SA_BLUE},{id=3,label="BOUNTY",col=SA_PURPLE}}
+local tabDefs={
+    {id=1,label="GUILD",   col=SA_GOLD},
+    {id=2,label="DELVES",  col=SA_BLUE},
+    {id=3,label="BOUNTY",  col=SA_PURPLE},
+    {id=4,label="ROSTER",  col="|cff00ff88"},
+    {id=5,label="ARMORY",  col="|cffff9900"},
+    {id=6,label="CURRENCY",col="|cffccaa00"},
+}
 local TAB_W = math.floor((UI_W-2)/#tabDefs)
 
 local function StyleTabBtn(btn,active)
@@ -236,7 +246,8 @@ local UpdateCharacterList
 
 local function ShowTab(id)
     UI:Show(); activeTabID=id
-    Tab1:Hide(); Tab2:Hide(); Tab3:Hide()
+    Tab1:Hide(); Tab2:Hide(); Tab3:Hide(); Tab4:Hide(); Tab5:Hide(); Tab6:Hide()
+
     if id==1 then
         Tab1:Show()
         if IsInGuild() then
@@ -247,17 +258,62 @@ local function ShowTab(id)
             Tab1.guildName:SetText(SA_GREY.."Geen guild|r")
             Tab1.motdText:SetText("")
         end
+
     elseif id==2 then
         Tab2:Show()
         if UpdateCharacterList then UpdateCharacterList() end
+
     elseif id==3 then
+        -- Bounty: volle breedte — QuickSet plugin vult Tab3.PluginArea
         Tab3:Show()
         for pN,pF in pairs(DelveTracker.Plugins) do
             if DelveTrackerDB.PluginStates and DelveTrackerDB.PluginStates[pN]~=false then
                 pcall(pF,"Tab3",Tab3.PluginArea)
             end
         end
+
+    elseif id==4 then
+        -- Roster: Registry XL in tab (inline versie)
+        Tab4:Show()
+        -- Trigger Registry plugin om content te vullen in Tab4.PluginArea
+        local pF = DelveTracker.Plugins["Registry"]
+        if pF and DelveTrackerDB.PluginStates["Registry"]~=false then
+            pcall(pF,"Tab4",Tab4.PluginArea)
+        else
+            -- Fallback: open standalone Registry
+            if _G["DT_RegistryFrame"] then _G["DT_RegistryFrame"]:Show() end
+        end
+
+    elseif id==5 then
+        -- Armory/Charmory: huidig karakter
+        Tab5:Show()
+        local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+        local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
+        local pF=DelveTracker.Plugins["Charmory"] or DelveTracker.Plugins["UserInfo"]
+        if pF and data then
+            data.name=UnitName("player")
+            pcall(pF,"Tab5",Tab5.PluginArea,data)
+        else
+            -- Fallback tekst
+            if not Tab5.hint then
+                Tab5.hint=Tab5:CreateFontString(nil,"OVERLAY")
+                Tab5.hint:SetFont(C_2002,13,"OUTLINE")
+                Tab5.hint:SetPoint("CENTER")
+                Tab5.hint:SetText(SA_GREY.."Armory laadt...
+Gebruik /charmory of /userinfo|r")
+            end
+            Tab5.hint:Show()
+        end
+
+    elseif id==6 then
+        -- Currency: Registry currency tab inline
+        Tab6:Show()
+        local pF=DelveTracker.Plugins["Registry"]
+        if pF and DelveTrackerDB.PluginStates["Registry"]~=false then
+            pcall(pF,"Currency",Tab6.PluginArea)
+        end
     end
+
     for _,b in ipairs(tabBtns) do StyleTabBtn(b,b._id==id) end
 end
 
@@ -349,10 +405,53 @@ searchBox:SetScript("OnTextChanged",function(self)
     if UpdateCharacterList then UpdateCharacterList() end
 end)
 
--- ── TAB 3: BOUNTY ─────────────────────────────────────────────────────────
-Tab3.PluginArea=CreateFrame("Frame",nil,Tab3)
+-- ── TAB 3: BOUNTY — volle breedte, geen padding ──────────────────────────
+Tab3.PluginArea=CreateFrame("Frame","DT_BountyArea",Tab3)
 Tab3.PluginArea:SetPoint("TOPLEFT",Tab3,"TOPLEFT",0,0)
 Tab3.PluginArea:SetPoint("BOTTOMRIGHT",Tab3,"BOTTOMRIGHT",0,0)
+-- Achtergrond voor volle breedte bounty panel
+Tab3.bg=Tab3:CreateTexture(nil,"BACKGROUND")
+Tab3.bg:SetAllPoints()
+Tab3.bg:SetColorTexture(0.05,0.02,0.08,0.6)
+
+-- ── TAB 4: ROSTER ─────────────────────────────────────────────────────────
+Tab4.PluginArea=CreateFrame("Frame","DT_RosterArea",Tab4)
+Tab4.PluginArea:SetPoint("TOPLEFT",Tab4,"TOPLEFT",0,0)
+Tab4.PluginArea:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",0,0)
+-- Header label
+Tab4.hdr=Tab4:CreateFontString(nil,"OVERLAY")
+Tab4.hdr:SetFont(C_2002,13,"OUTLINE")
+Tab4.hdr:SetPoint("TOPLEFT",Tab4,"TOPLEFT",12,-10)
+Tab4.hdr:SetText(SA_PURPLE.."Karakter Index|r  "..SA_GREY.."(klik = Armory)|r")
+-- Scroll voor roster
+Tab4.scroll=CreateFrame("ScrollFrame",nil,Tab4,"UIPanelScrollFrameTemplate")
+Tab4.scroll:SetPoint("TOPLEFT",Tab4,"TOPLEFT",1,-32)
+Tab4.scroll:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",-22,4)
+Tab4.scroll.content=CreateFrame("Frame",nil,Tab4.scroll)
+Tab4.scroll.content:SetSize(UI_W-40,1)
+Tab4.scroll:SetScrollChild(Tab4.scroll.content)
+
+-- ── TAB 5: ARMORY/CHARMORY ────────────────────────────────────────────────
+Tab5.PluginArea=CreateFrame("Frame","DT_ArmoryArea",Tab5)
+Tab5.PluginArea:SetPoint("TOPLEFT",Tab5,"TOPLEFT",0,0)
+Tab5.PluginArea:SetPoint("BOTTOMRIGHT",Tab5,"BOTTOMRIGHT",0,0)
+
+-- ── TAB 6: CURRENCY ───────────────────────────────────────────────────────
+Tab6.PluginArea=CreateFrame("Frame","DT_CurrencyArea",Tab6)
+Tab6.PluginArea:SetPoint("TOPLEFT",Tab6,"TOPLEFT",0,0)
+Tab6.PluginArea:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",0,0)
+-- Currency header
+Tab6.hdr=Tab6:CreateFontString(nil,"OVERLAY")
+Tab6.hdr:SetFont(C_2002,13,"OUTLINE")
+Tab6.hdr:SetPoint("TOPLEFT",Tab6,"TOPLEFT",12,-10)
+Tab6.hdr:SetText(SA_GOLD.."Warband Currencies|r  "..SA_GREY.."(alle karakters)|r")
+-- Currency scroll
+Tab6.scroll=CreateFrame("ScrollFrame",nil,Tab6,"UIPanelScrollFrameTemplate")
+Tab6.scroll:SetPoint("TOPLEFT",Tab6,"TOPLEFT",1,-32)
+Tab6.scroll:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",-22,4)
+Tab6.scroll.content=CreateFrame("Frame",nil,Tab6.scroll)
+Tab6.scroll.content:SetSize(UI_W-40,1)
+Tab6.scroll:SetScrollChild(Tab6.scroll.content)
 
 -- ── FOOTER ────────────────────────────────────────────────────────────────
 local FtrBG=UI:CreateTexture(nil,"BACKGROUND")
@@ -678,6 +777,58 @@ local function UpdatePluginList()
 end
 opt:SetScript("OnShow",UpdatePluginList)
 
+-- ── EXTRA SETTINGS: Combat Announcer + Grid ────────────────────────────
+opt.extraLbl=opt:CreateFontString(nil,"OVERLAY")
+opt.extraLbl:SetFont(C_2002,11,"OUTLINE")
+opt.extraLbl:SetPoint("TOPLEFT",110,-560)
+opt.extraLbl:SetText(SA_PURPLE.."Extra opties|r")
+
+-- Combat Announcer knop
+opt.caBtn=CreateFrame("Button",nil,opt,"BackdropTemplate")
+opt.caBtn:SetSize(200,24)
+opt.caBtn:SetPoint("TOPLEFT",110,-582)
+opt.caBtn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+opt.caBtn:SetBackdropColor(0.08,0.04,0.12,0.9)
+opt.caBtn:SetBackdropBorderColor(0.30,0.08,0.50,1)
+opt.caBtn.t=opt.caBtn:CreateFontString(nil,"OVERLAY")
+opt.caBtn.t:SetFont(C_2002,10,"")
+opt.caBtn.t:SetPoint("LEFT",8,0)
+opt.caBtn.t:SetText(SA_GREY.."Combat Announcer instellingen (/cset)|r")
+opt.caBtn:SetScript("OnClick",function()
+    if SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("")
+    elseif SlashCmdList["CSET"] then SlashCmdList["CSET"]("") end
+end)
+
+-- AFK Grid knop
+opt.gridBtn=CreateFrame("Button",nil,opt,"BackdropTemplate")
+opt.gridBtn:SetSize(200,24)
+opt.gridBtn:SetPoint("TOPLEFT",110,-610)
+opt.gridBtn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+opt.gridBtn:SetBackdropColor(0.08,0.04,0.12,0.9)
+opt.gridBtn:SetBackdropBorderColor(0.30,0.08,0.50,1)
+opt.gridBtn.t=opt.gridBtn:CreateFontString(nil,"OVERLAY")
+opt.gridBtn.t:SetFont(C_2002,10,"")
+opt.gridBtn.t:SetPoint("LEFT",8,0)
+opt.gridBtn.t:SetText(SA_GREY.."AFK Screen layout (/dtgrid)|r")
+opt.gridBtn:SetScript("OnClick",function()
+    if SlashCmdList["DTGRID"] then SlashCmdList["DTGRID"]("") end
+end)
+
+-- AFK scherm test knop
+opt.afkBtn=CreateFrame("Button",nil,opt,"BackdropTemplate")
+opt.afkBtn:SetSize(200,24)
+opt.afkBtn:SetPoint("TOPLEFT",110,-638)
+opt.afkBtn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+opt.afkBtn:SetBackdropColor(0.08,0.04,0.12,0.9)
+opt.afkBtn:SetBackdropBorderColor(0.30,0.08,0.50,1)
+opt.afkBtn.t=opt.afkBtn:CreateFontString(nil,"OVERLAY")
+opt.afkBtn.t:SetFont(C_2002,10,"")
+opt.afkBtn.t:SetPoint("LEFT",8,0)
+opt.afkBtn.t:SetText(SA_GREY.."Preview AFK scherm (/dtafk)|r")
+opt.afkBtn:SetScript("OnClick",function()
+    if SlashCmdList["DTAFK"] then SlashCmdList["DTAFK"]("") end
+end)
+
 -- ── MURLOC ────────────────────────────────────────────────────────────────
 local MBtn=CreateFrame("Button","DT_MurlocBtn",UIParent)
 MBtn:SetSize(58,58); MBtn:SetPoint("CENTER"); MBtn:SetMovable(true)
@@ -813,6 +964,9 @@ SLASH_WTMAIN1="/wt";     SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/dt"; SLASH
 SLASH_WTAB11="/wt1";    SLASH_WTAB12="/wt guild";  SLASH_WTAB13="/dt1"; SLASH_WTAB14="/tb1"
 SLASH_WTAB21="/wt2";    SLASH_WTAB22="/wt delves"; SLASH_WTAB23="/dt2"; SLASH_WTAB24="/tb2"
 SLASH_WTAB31="/wt3";    SLASH_WTAB32="/wt bounty"; SLASH_WTAB33="/dt3"; SLASH_WTAB34="/tb3"
+SLASH_WTAB41="/wt4";    SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
+SLASH_WTAB51="/wt5";    SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
+SLASH_WTAB61="/wt6";    SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
 SLASH_WTRELOAD1="/wt-reload"; SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
 -- Legacy aliases
 SLASH_DTRELOAD1="/dtreload"; SLASH_DTMEM1="/dtmem"; SLASH_DTCOMBAT1="/dtcombat"
@@ -829,6 +983,9 @@ end
 SlashCmdList["WTAB1"]=function() ShowTab(1) end
 SlashCmdList["WTAB2"]=function() ShowTab(2) end
 SlashCmdList["WTAB3"]=function() ShowTab(3) end
+SlashCmdList["WTAB4"]=function() ShowTab(4) end
+SlashCmdList["WTAB5"]=function() ShowTab(5) end
+SlashCmdList["WTAB6"]=function() ShowTab(6) end
 SlashCmdList["WTRELOAD"]=function() ReloadUI() end
 SlashCmdList["WTMEM"]=function()
     if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then C_AddOns.UpdateAddOnMemoryUsage() end
