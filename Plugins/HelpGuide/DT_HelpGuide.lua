@@ -1,83 +1,105 @@
 -- =====================================================
--- DelveTracker Plugin: Help Guide v1.4 (ULTIMATE - EN)
+-- DelveTracker Plugin: Help Guide v1.5
+-- Standalone frame — niet langer op opt canvas
 -- =====================================================
 
 if DelveTracker then
     DelveTracker:RegisterPlugin("HelpGuide", function() end)
 
-    local opt = _G["DelveTrackerOptions"]
-    if not opt then return end
-
-    -- Color codes for scannability
-    local SA_GOLD = "|cffccaa00"
+    local SA_GOLD   = "|cffccaa00"
     local SA_PURPLE = "|cffa335ee"
-    local SA_BLUE = "|cff00ccff"
-    local SA_GREEN = "|cff00ff00"
-    local WHITE = "|cffffffff"
+    local SA_BLUE   = "|cff00ccff"
+    local SA_GREEN  = "|cff00ff00"
+    local WHITE     = "|cffffffff"
+    local C_2002    = "Fonts\\2002.ttf"
 
-    -- 1. Create the ScrollFrame
-    if not opt.scrollFrame then
-        opt.scrollFrame = CreateFrame("ScrollFrame", "DTHelpScrollFrame", opt, "UIPanelScrollFrameTemplate")
-        opt.scrollFrame:SetPoint("TOPLEFT", 150, -420) 
-        opt.scrollFrame:SetSize(380, 200) 
-        
-        opt.scrollBG = opt.scrollFrame:CreateTexture(nil, "BACKGROUND")
-        opt.scrollBG:SetAllPoints()
-        opt.scrollBG:SetColorTexture(0, 0, 0, 0.2) 
-    end
+    -- Standalone help frame (niet op opt canvas)
+    local helpFrame = CreateFrame("Frame","DT_HelpFrame",UIParent,"BackdropTemplate")
+    helpFrame:SetSize(480, 560)
+    helpFrame:SetPoint("CENTER")
+    helpFrame:SetMovable(true)
+    helpFrame:EnableMouse(true)
+    helpFrame:RegisterForDrag("LeftButton")
+    helpFrame:SetClampedToScreen(true)
+    helpFrame:SetFrameStrata("HIGH")
+    helpFrame:SetToplevel(true)
+    helpFrame:Hide()
+    helpFrame:SetBackdrop({
+        bgFile="Interface\\Buttons\\WHITE8x8",
+        edgeFile="Interface\\Buttons\\WHITE8x8",
+        edgeSize=1,
+    })
+    helpFrame:SetBackdropColor(0.04,0.02,0.08,0.97)
+    helpFrame:SetBackdropBorderColor(0.40,0.12,0.65,1)
+    helpFrame:SetScript("OnDragStart",helpFrame.StartMoving)
+    helpFrame:SetScript("OnDragStop",helpFrame.StopMovingOrSizing)
 
-    -- 2. Create the Content Container
-    if not opt.scrollContent then
-        opt.scrollContent = CreateFrame("Frame", nil, opt.scrollFrame)
-        opt.scrollContent:SetSize(360, 850) 
-        opt.scrollFrame:SetScrollChild(opt.scrollContent)
-    end
+    -- Header
+    local hdrBG = helpFrame:CreateTexture(nil,"BACKGROUND")
+    hdrBG:SetHeight(36)
+    hdrBG:SetPoint("TOPLEFT",1,-1)
+    hdrBG:SetPoint("TOPRIGHT",-1,-1)
+    hdrBG:SetColorTexture(0.08,0.04,0.14,1)
 
-    -- 3. Full Help Text in English
-    opt.helpBox = opt.helpBox or opt.scrollContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    opt.helpBox:ClearAllPoints()
-    opt.helpBox:SetPoint("TOPLEFT", 5, -5)
-    opt.helpBox:SetWidth(350) 
-    opt.helpBox:SetJustifyH("LEFT")
-    opt.helpBox:SetSpacing(4)
+    local hdrTxt = helpFrame:CreateFontString(nil,"OVERLAY")
+    hdrTxt:SetFont(C_2002,13,"OUTLINE")
+    hdrTxt:SetPoint("TOPLEFT",12,-10)
+    hdrTxt:SetText(SA_PURPLE.."WowTracker|r  "..SA_GOLD.."Help Guide|r")
 
-    opt.helpBox:SetText(
-        SA_BLUE .. "BASIC CONTROLS:" .. WHITE .. "\n" ..
-        "• Click the Murloc to open the tracker.\n" ..
-        "• Right-click + drag the Murloc to reposition it.\n" ..
-        "• Use the cogwheel in the main window for options.\n\n" ..
-        
-        SA_PURPLE .. "CHARACTER REGISTRY (XL Index):" .. WHITE .. "\n" ..
-        "• Click the " .. SA_PURPLE .. "[B]" .. WHITE .. " button top-right for the full overview.\n" ..
-        "• Click a name in the list to open the " .. SA_BLUE .. "Armory" .. WHITE .. ".\n" ..
-        "• The Armory displays 3D models, gear, and iLvls.\n\n" ..
+    local closeBtn = CreateFrame("Button",nil,helpFrame,"UIPanelCloseButton")
+    closeBtn:SetPoint("TOPRIGHT",helpFrame,"TOPRIGHT",2,-2)
 
-        SA_GOLD .. "ALL SLASH COMMANDS (/cmd):" .. WHITE .. "\n" ..
-        SA_BLUE .. "/delves" .. WHITE .. " - Open/Close the main window.\n" ..
-        SA_BLUE .. "/dt1" .. WHITE .. " or " .. SA_BLUE .. "/tb1" .. WHITE .. " - Jump to Guild Tab.\n" ..
-        SA_BLUE .. "/dt2" .. WHITE .. " or " .. SA_BLUE .. "/tb2" .. WHITE .. " - Jump to Delves List.\n" ..
-        SA_BLUE .. "/dt3" .. WHITE .. " or " .. SA_BLUE .. "/tb3" .. WHITE .. " - Jump to Bounty Overview.\n\n" ..
+    -- Scroll
+    local sf = CreateFrame("ScrollFrame",nil,helpFrame,"UIPanelScrollFrameTemplate")
+    sf:SetPoint("TOPLEFT",8,-42)
+    sf:SetPoint("BOTTOMRIGHT",-24,8)
 
-        SA_GREEN .. "SYSTEM & UTILITIES:" .. WHITE .. "\n" ..
-        SA_BLUE .. "/dthelp" .. WHITE .. " - Displays this help guide.\n" ..
-        SA_BLUE .. "/dtcombat" .. WHITE .. " - Toggle Combat Announcer ON/OFF.\n" ..
-        SA_BLUE .. "/dtreload" .. WHITE .. " - Fast UI Reload.\n" ..
-        SA_BLUE .. "/dtmem" .. WHITE .. " - Show addon memory usage in chat.\n\n" ..
+    local sc = CreateFrame("Frame",nil,sf)
+    sc:SetWidth(440)
+    sc:SetHeight(1)
+    sf:SetScrollChild(sc)
 
-        SA_PURPLE .. "BOUNTY TRACKER:" .. WHITE .. "\n" ..
-        "• Tracks which Delves are currently 'Bountiful'.\n" ..
-        "• Shows the predicted rotation for tomorrow.\n" ..
-        "• Fully prepared for the " .. SA_GOLD .. "Midnight" .. WHITE .. " release.\n\n" ..
-
-        SA_GOLD .. "DISCORD & COMMUNITY:" .. WHITE .. "\n" ..
-        "• Copy the link at the bottom of the main UI to join the Slayer Alliance community!"
+    local txt = sc:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+    txt:SetPoint("TOPLEFT",5,-5)
+    txt:SetWidth(430)
+    txt:SetJustifyH("LEFT")
+    txt:SetSpacing(5)
+    txt:SetText(
+        SA_BLUE.."BASIC CONTROLS:"..WHITE.."\n"..
+        "  • Klik de Murloc om de tracker te openen.\n"..
+        "  • Rechtermuisklik + sleep om te verplaatsen.\n"..
+        "  • Tandwiel bovenaan voor instellingen.\n\n"..
+        SA_PURPLE.."TABS:"..WHITE.."\n"..
+        "  • Guild — gilde info + MOTD + online leden\n"..
+        "  • Delves — warband karakter lijst + voortgang\n"..
+        "  • Bounty — Nemesis/Bountiful/Normal delve tracker\n"..
+        "  • Roster — karakter index (klik = Armory)\n"..
+        "  • Armory — 3D model + gear + stats\n"..
+        "  • Currency — alle currencies per karakter\n\n"..
+        SA_GOLD.."SLASH COMMANDS:"..WHITE.."\n"..
+        "  /wt  /dt  /delves     — Open/sluit tracker\n"..
+        "  /wt1  /wt2  /wt3      — Tab direct openen\n"..
+        "  /wt4  /wt5  /wt6      — Roster/Armory/Currency\n"..
+        "  /prey  /pton  /ptoff  — Prey Tracker HUD\n"..
+        "  /crew                 — Registry XL\n"..
+        "  /cbud  /cloth         — ClothCounter\n"..
+        "  /snr  /mt             — SkinNRare\n"..
+        "  /dtlockout  /dtprof   — Lockout scanner\n"..
+        "  /cbot                 — Exchange Bot\n"..
+        "  /dtafk  /dtgrid       — AFK scherm\n"..
+        "  /dtdebug              — Debug console\n"..
+        "  /dthelp               — Dit scherm\n"..
+        "  /dtmem                — Geheugengebruik\n"..
+        "  /wt-reload            — UI herladen\n\n"..
+        SA_GREEN.."DISCORD:"..WHITE.."\n"..
+        "  https://slayeralliance.com/discord\n"..
+        "  https://slayeralliance.com"
     )
+    sc:SetHeight(txt:GetStringHeight() + 20)
 
-    -- 4. Slash command to open help directly
     SLASH_DTHELP1 = "/dthelp"
     SlashCmdList["DTHELP"] = function()
-        if not DelveTrackerOptions:IsShown() then
-            Settings.OpenToCategory("DelveTracker")
-        end
+        if helpFrame:IsShown() then helpFrame:Hide()
+        else helpFrame:Show() end
     end
 end

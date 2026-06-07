@@ -339,16 +339,13 @@ local function ShowTab(id)
     elseif id==3 then
         Tab3:Show()
         Tab3.PluginArea:Show()
-        -- QuickSet bouwt op 400px breed — geef een wrapper van 400px
-        -- Zodat het links staat en de rest van 760px vrij is voor extra info
-        -- QuickSet verwacht container van 400x335px (zie CONT_W/HDR_H/TAB_H constanten)
-        -- Geef hem exact dat — tabs en content passen dan correct
+        -- QuickSet: geef volledige Tab3 breedte mee
+        -- QuickSet bouwt tiles in een scrollframe — het vult de breedte van de container
         if not Tab3.quickWrap then
             Tab3.quickWrap = CreateFrame("Frame",nil,Tab3.PluginArea)
-            Tab3.quickWrap:SetSize(400,335)
-            Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",2,-2)
+            Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",0,0)
+            Tab3.quickWrap:SetPoint("BOTTOMRIGHT",Tab3.PluginArea,"BOTTOMRIGHT",0,0)
         end
-        -- Reset _dtBuilt zodat QuickSet opnieuw bouwt als nodig
         if Tab3.quickWrap._dtBuilt == nil then
             local qpF = DelveTracker.Plugins["QuickSet"]
             if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
@@ -686,20 +683,25 @@ WT_ShowArmory = function()
         return
     end
 
-    -- Eerste keer: embed in Tab5 als twee kolommen
+    -- Embed in Tab5: model links (420px), stats rechts
     if not Tab5.armoryEmbedded then
         Tab5.armoryEmbedded = true
-        -- Links: model frame (420px)
+        armFrame._embedded = true  -- voorkomt dat ResetArmoryPosition het verplaatst
+
         armFrame:SetParent(Tab5)
         armFrame:ClearAllPoints()
         armFrame:SetPoint("TOPLEFT",Tab5,"TOPLEFT",0,0)
-        armFrame:SetSize(420,400)
+        armFrame:SetSize(420, Tab5:GetHeight() or 404)
         armFrame:SetMovable(false)
         armFrame:SetFrameStrata("MEDIUM")
+        armFrame:SetFrameLevel(Tab5:GetFrameLevel()+2)
+
+        -- Verberg UI controls die niet passen in embedded modus
         if armFrame.closeBtn  then armFrame.closeBtn:Hide()  end
         if armFrame.btnPlus   then armFrame.btnPlus:Hide()   end
         if armFrame.btnMinus  then armFrame.btnMinus:Hide()  end
-        -- Rechts: stats panel (rest van breedte)
+
+        -- Stats panel rechts
         local sp = _G["DT_ArmoryStatsPanel"]
         if sp then
             sp:SetParent(Tab5)
@@ -709,13 +711,15 @@ WT_ShowArmory = function()
         end
     end
 
+    -- Zorg dat armory zichtbaar is
     armFrame:Show()
+    local sp = _G["DT_ArmoryStatsPanel"]
+    if sp then sp:Show() end
 
     -- Haal verse data op voor huidig karakter
     local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
     local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
     if data then
-        -- Live stats voor huidig karakter
         if UnitStat then
             data.stats = {
                 stamina = UnitStat("player",3),

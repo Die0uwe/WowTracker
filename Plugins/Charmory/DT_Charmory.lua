@@ -45,6 +45,8 @@ if DelveTracker then
     Armory:SetClampedToScreen(true)
 
     local function ResetArmoryPosition()
+        -- Niet verplaatsen als embedded in Tab5
+        if Armory._embedded then return end
         Armory:ClearAllPoints()
         if DelveTrackerFrame and DelveTrackerFrame:IsShown() then
             Armory:SetPoint("TOPLEFT", DelveTrackerFrame, "TOPRIGHT", 2, 0)

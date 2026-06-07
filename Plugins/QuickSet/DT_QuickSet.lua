@@ -553,6 +553,13 @@ end
 local function BuildGrid(container)
     if container._dtBuilt then return end
     container._dtBuilt = true
+    -- Gebruik container breedte als die groter is dan default
+    local cw = container:GetWidth()
+    if cw and cw > 0 and cw ~= CONT_W then
+        CONT_W   = math.floor(cw)
+        SF_RIGHT = 20
+        SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
+    end
 
     -- ════════════════════════════════════════════════
     -- 1. VALEERA HEADER
