@@ -299,8 +299,7 @@ local function ShowTab(id)
                 Tab5.hint=Tab5:CreateFontString(nil,"OVERLAY")
                 Tab5.hint:SetFont(C_2002,13,"OUTLINE")
                 Tab5.hint:SetPoint("CENTER")
-                Tab5.hint:SetText(SA_GREY.."Armory laadt...
-Gebruik /charmory of /userinfo|r")
+                Tab5.hint:SetText(SA_GREY.."Armory laadt...\nGebruik /charmory of /userinfo|r")
             end
             Tab5.hint:Show()
         end
