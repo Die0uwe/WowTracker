@@ -303,8 +303,13 @@ local function StyleTabBtn(btn,active)
     end
 end
 
--- Forward declare UpdateCharacterList
+-- Forward declare alle tab-update functies (gedefinieerd later in het bestand)
 local UpdateCharacterList
+local WT_UpdateRoster
+local WT_ShowArmory
+local WT_UpdateCurrency
+local WT_UpdateGuildOnline
+local ScanDelves
 
 local function ShowTab(id)
     UI:Show(); activeTabID=id
@@ -555,7 +560,7 @@ Tab6.scroll.content.crows={}  -- initialiseer currency rows
 -- ============================================================================
 -- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
 -- ============================================================================
-local function WT_UpdateRoster()
+WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
@@ -661,7 +666,7 @@ end
 -- ============================================================================
 -- WT_ShowArmory — Tab5: open Charmory voor huidig karakter
 -- ============================================================================
-local function WT_ShowArmory()
+WT_ShowArmory = function()
     -- Toon hint in de tab
     if not Tab5.shown then
         Tab5.shown=true
@@ -714,7 +719,7 @@ local CURRENCY_IDS = {
     {id=3378, name="Dawnlight Manaflux",    col="|cffa335ee"},
 }
 
-local function WT_UpdateCurrency()
+WT_UpdateCurrency = function()
     if not (Tab6.scroll and Tab6.scroll.content) then return end
 
     -- Verberg oude rijen
@@ -793,7 +798,7 @@ end
 -- ============================================================================
 -- WT_UpdateGuildOnline — Tab1 rechts: online guild leden
 -- ============================================================================
-local function WT_UpdateGuildOnline()
+WT_UpdateGuildOnline = function()
     if not (Tab1.onlineScroll and Tab1.onlineScroll.content) then return end
 
     -- Verberg oude rijen
@@ -956,7 +961,7 @@ local function CheckWeeklyReset()
     end
 end
 
-local function ScanDelves()
+ScanDelves = function()
     CheckWeeklyReset()
     local name=UnitName("player"); local realm=GetNormalizedRealmName()
     if not name or not realm then return end
