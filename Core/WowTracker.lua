@@ -740,7 +740,7 @@ local function DT_OpenMurlocMenu(owner)
                         addonTable.PreyTrackerEnable()
                     end
                 else
-                    SlashCmdList["DTPREY"] and SlashCmdList["DTPREY"]("")
+                    if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
                 end
             end)
         root:CreateButton("|cffffffff📦  Bounty|r  "..SA_GREY.."(delve bounty tab)|r",
@@ -807,13 +807,17 @@ MBtn:SetScript("OnDragStop",function(self)
 end)
 
 -- ── SLASH COMMANDS ────────────────────────────────────────────────────────
-SLASH_DTMAIN1="/dt";    SLASH_DTMAIN2="/delves"
-SLASH_DTAB11="/dt1";   SLASH_DTAB12="/tb1"
-SLASH_DTAB21="/dt2";   SLASH_DTAB22="/tb2"
-SLASH_DTAB31="/dt3";   SLASH_DTAB32="/tb3"
+-- WowTracker slash commands — /wt als hoofd prefix (geen conflict met andere addons)
+-- Oude /dt commands blijven werken als alias voor backward compatibility
+SLASH_WTMAIN1="/wt";     SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/dt"; SLASH_WTMAIN4="/delves"
+SLASH_WTAB11="/wt1";    SLASH_WTAB12="/wt guild";  SLASH_WTAB13="/dt1"; SLASH_WTAB14="/tb1"
+SLASH_WTAB21="/wt2";    SLASH_WTAB22="/wt delves"; SLASH_WTAB23="/dt2"; SLASH_WTAB24="/tb2"
+SLASH_WTAB31="/wt3";    SLASH_WTAB32="/wt bounty"; SLASH_WTAB33="/dt3"; SLASH_WTAB34="/tb3"
+SLASH_WTRELOAD1="/wt-reload"; SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
+-- Legacy aliases
 SLASH_DTRELOAD1="/dtreload"; SLASH_DTMEM1="/dtmem"; SLASH_DTCOMBAT1="/dtcombat"
 
-SlashCmdList["DTMAIN"]=function(msg)
+SlashCmdList["WTMAIN"]=function(msg)
     msg=(msg or ""):lower():gsub("^%s+",""):gsub("%s+$","")
     if     msg=="1" or msg=="guild"   then ShowTab(1)
     elseif msg=="2" or msg=="delves"  then ShowTab(2)
@@ -822,16 +826,16 @@ SlashCmdList["DTMAIN"]=function(msg)
     elseif UI:IsShown() then UI:Hide()
     else ShowTab(activeTabID) end
 end
-SlashCmdList["DTAB1"]=function() ShowTab(1) end
-SlashCmdList["DTAB2"]=function() ShowTab(2) end
-SlashCmdList["DTAB3"]=function() ShowTab(3) end
-SlashCmdList["DTRELOAD"]=function() ReloadUI() end
-SlashCmdList["DTMEM"]=function()
+SlashCmdList["WTAB1"]=function() ShowTab(1) end
+SlashCmdList["WTAB2"]=function() ShowTab(2) end
+SlashCmdList["WTAB3"]=function() ShowTab(3) end
+SlashCmdList["WTRELOAD"]=function() ReloadUI() end
+SlashCmdList["WTMEM"]=function()
     if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then C_AddOns.UpdateAddOnMemoryUsage() end
     local m=(C_AddOns and C_AddOns.GetAddOnMemoryUsage and C_AddOns.GetAddOnMemoryUsage("DelveTracker")) or 0
     print(string.format(SA_PURPLE.."[DelveTracker]|r Geheugen: %.1f KB",m))
 end
-SlashCmdList["DTCOMBAT"]=function()
+SlashCmdList["WTCOMBAT"]=function()
     DelveTrackerDB.enableCombatAlert=not DelveTrackerDB.enableCombatAlert
     print(SA_PURPLE.."[DelveTracker]|r Combat alert: "
         ..(DelveTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))

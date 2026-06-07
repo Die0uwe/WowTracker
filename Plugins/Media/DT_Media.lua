@@ -66,9 +66,16 @@ local function InitMedia()
     end
 end
 
--- Register the plugin
-DelveTracker:RegisterPlugin("Regional Media", function(mode)
-    if mode == "Init" then InitMedia() end
+-- Register via PLAYER_LOGIN zodat DelveTracker global zeker bestaat
+local _wtMediaReg = CreateFrame("Frame")
+_wtMediaReg:RegisterEvent("PLAYER_LOGIN")
+_wtMediaReg:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    if DelveTracker and DelveTracker.RegisterPlugin then
+        DelveTracker:RegisterPlugin("Media", function(mode)
+            if mode == "Init" then InitMedia() end
+        end)
+    end
 end)
 
 -- Events for loading and switching tabs
