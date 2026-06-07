@@ -675,131 +675,64 @@ end
 -- WT_ShowArmory — Tab5: open Charmory voor huidig karakter
 -- ============================================================================
 WT_ShowArmory = function()
-    -- Embed DT_ArmoryFrame in Tab5 ipv ernaast openen
     local armFrame = _G["DT_ArmoryFrame"]
-    if armFrame then
-        -- Reparent naar Tab5 zodat het IN de interface zit
-        if not Tab5.armoryEmbedded then
-            Tab5.armoryEmbedded = true
-            armFrame:SetParent(Tab5)
-            armFrame:ClearAllPoints()
-            armFrame:SetPoint("TOPLEFT",Tab5,"TOPLEFT",2,-2)
-            armFrame:SetPoint("BOTTOMRIGHT",Tab5,"BOTTOMRIGHT",-2,2)
-            -- Verwijder de close knop want Tab5 IS de container
-            if armFrame.CloseButton then armFrame.CloseButton:Hide() end
-            -- Maak het frame niet movable — Tab5 is de container
-            armFrame:SetMovable(false)
-            armFrame:EnableMouse(false)
-            armFrame:SetFrameStrata("MEDIUM")
-        end
-        armFrame:Show()
-        -- Laad huidig karakter data
-        local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-        local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
-        if data and DT_Armory_ShowCharacter then
-            data.name=UnitName("player")
-            pcall(DT_Armory_ShowCharacter,data)
-        end
-    else
-        -- Fallback: armory nog niet geladen, toon laad tekst
+    if not armFrame then
         if not Tab5.loadTxt then
             Tab5.loadTxt=Tab5:CreateFontString(nil,"OVERLAY")
             Tab5.loadTxt:SetFont(C_2002,12,"")
             Tab5.loadTxt:SetPoint("CENTER")
-            Tab5.loadTxt:SetText(SA_GREY.."Armory laadt...\n/charmory of /cdb om te openen|r")
+            Tab5.loadTxt:SetText(SA_GREY.."Armory laadt... gebruik /charmory eenmalig|r")
+        end
+        return
+    end
+
+    -- Eerste keer: embed in Tab5 als twee kolommen
+    if not Tab5.armoryEmbedded then
+        Tab5.armoryEmbedded = true
+        -- Links: model frame (420px)
+        armFrame:SetParent(Tab5)
+        armFrame:ClearAllPoints()
+        armFrame:SetPoint("TOPLEFT",Tab5,"TOPLEFT",0,0)
+        armFrame:SetSize(420,400)
+        armFrame:SetMovable(false)
+        armFrame:SetFrameStrata("MEDIUM")
+        if armFrame.closeBtn  then armFrame.closeBtn:Hide()  end
+        if armFrame.btnPlus   then armFrame.btnPlus:Hide()   end
+        if armFrame.btnMinus  then armFrame.btnMinus:Hide()  end
+        -- Rechts: stats panel (rest van breedte)
+        local sp = _G["DT_ArmoryStatsPanel"]
+        if sp then
+            sp:SetParent(Tab5)
+            sp:ClearAllPoints()
+            sp:SetPoint("TOPLEFT",Tab5,"TOPLEFT",422,0)
+            sp:SetPoint("BOTTOMRIGHT",Tab5,"BOTTOMRIGHT",0,0)
+        end
+    end
+
+    armFrame:Show()
+
+    -- Haal verse data op voor huidig karakter
+    local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+    local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
+    if data then
+        -- Live stats voor huidig karakter
+        if UnitStat then
+            data.stats = {
+                stamina = UnitStat("player",3),
+                str     = UnitStat("player",1),
+                agi     = UnitStat("player",2),
+                int     = UnitStat("player",4),
+                armor   = select(2,UnitArmor("player")),
+            }
+        end
+        data.name  = UnitName("player") or data.name
+        data.guild = GetGuildInfo("player") or data.guild or "Geen Guild"
+        if DT_Armory_ShowCharacter then
+            pcall(DT_Armory_ShowCharacter,data)
         end
     end
 end
 
--- ============================================================================
--- WT_UpdateCurrency — Tab6: currency overzicht alle karakters
--- ============================================================================
-local CURRENCY_IDS = {
-    {id=3028, name="Restored Coffer Keys",  col="|cff00ccff"},
-    {id=3310, name="Coffer Key Shards",     col="|cffffee00"},
-    {id=3376, name="Shard of Dundun",       col="|cff44cc66"},
-    {id=3378, name="Dawnlight Manaflux",    col="|cffa335ee"},
-}
-
-WT_UpdateCurrency = function()
-    if not (Tab6.scroll and Tab6.scroll.content) then return end
-
-    -- Verberg oude rijen
-    for _,row in pairs(Tab6.scroll.content.crows or {}) do row:Hide() end
-    Tab6.scroll.content.crows = Tab6.scroll.content.crows or {}
-
-    local sorted={}
-    for k in pairs(DelveTrackerDB.characters or {}) do table.insert(sorted,k) end
-    table.sort(sorted)
-
-    -- Header rij (currency namen)
-    if not Tab6.scroll.content.headerBuilt then
-        Tab6.scroll.content.headerBuilt=true
-        local hdr=Tab6.scroll.content:CreateFontString(nil,"OVERLAY")
-        hdr:SetFont(C_2002,10,"OUTLINE")
-        hdr:SetPoint("TOPLEFT",4,-4)
-        hdr:SetText(
-            SA_GREY..string.format("%-22s","Karakter").."|r  "..
-            "|cff00ccff"..string.format("%-8s","Keys").."|r  "..
-            "|cffffee00"..string.format("%-8s","Shards").."|r  "..
-            "|cff44cc66"..string.format("%-8s","Dundun").."|r  "..
-            "|cffa335ee"..string.format("%-8s","Manaflux").."|r"
-        )
-    end
-
-    local ROW_H=28; local ROW_W=UI_W-46
-    for i,key in ipairs(sorted) do
-        local data=DelveTrackerDB.characters[key]
-        local cur=data.currencies or {}
-        local shortName=key:match("([^-]+)") or key
-
-        local r=Tab6.scroll.content.crows[i]
-        if not r then
-            r=CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        end
-        r:SetSize(ROW_W,ROW_H)
-        r:SetPoint("TOPLEFT",0,-18-(i-1)*(ROW_H+2))
-        r:SetBackdropColor(0.08,0.04,0.12,(i%2==0) and 0.5 or 0.8)
-        r:SetBackdropBorderColor(0.18,0.05,0.28,0.5)
-        r:Show()
-
-        r.txt=r.txt or r:CreateFontString(nil,"OVERLAY")
-        r.txt:SetFont(C_2002,11,"OUTLINE")
-        r.txt:SetPoint("LEFT",6,0)
-
-        local k3028=cur[3028] or 0
-        local k3310=cur[3310] or 0
-        local k3376=cur[3376] or 0
-        local k3378=cur[3378] or 0
-
-        -- Kleurcode voor karakter
-        local cc=RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
-        local charCol=string.format("|cff%02x%02x%02x",
-            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255))
-
-        r.txt:SetText(
-            charCol..string.format("%-20s",shortName).."|r  "..
-            "|cff00ccff"..string.format("%-6d",k3028).."|r  "..
-            "|cffffee00"..string.format("%-6d",k3310).."|r  "..
-            (k3376>0 and "|cff44cc66" or "|cffff5555")..string.format("%-6d",k3376).."|r  "..
-            (k3378>0 and "|cffa335ee" or "|cff887799")..string.format("%-6d",k3378).."|r"
-        )
-
-        -- Gold rechts
-        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
-        r.gld:SetFont(C_2002,10,"OUTLINE")
-        r.gld:SetPoint("RIGHT",-8,0)
-        r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
-
-        Tab6.scroll.content.crows[i]=r
-    end
-    Tab6.scroll.content:SetHeight(18+#sorted*(ROW_H+2)+10)
-end
-
--- ============================================================================
--- WT_UpdateGuildOnline — Tab1 rechts: online guild leden
--- ============================================================================
 WT_UpdateGuildOnline = function()
     if not (Tab1.onlineScroll and Tab1.onlineScroll.content) then return end
 

@@ -110,9 +110,127 @@ if DelveTracker then
         Armory.buttons[info[1]] = b
     end
 
+    -- ── STATS PANEL (rechts naast model in Tab5) ─────────────────────────
+    local StatsPanel = CreateFrame("Frame", "DT_ArmoryStatsPanel", Armory, "BackdropTemplate")
+    StatsPanel:SetSize(480, 500)
+    StatsPanel:SetPoint("TOPLEFT", Armory, "TOPRIGHT", 4, 0)
+    StatsPanel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+    StatsPanel:SetBackdropColor(0.04, 0.02, 0.08, 0.96)
+    StatsPanel:SetBackdropBorderColor(0.20, 0.50, 0.80, 0.8)
+    StatsPanel:Hide()
+
+    -- Sectie header helper
+    local C_2002 = "Fonts\\2002.ttf"
+    local function SecHdr(txt, yOff)
+        local f = StatsPanel:CreateFontString(nil,"OVERLAY")
+        f:SetFont(C_2002, 10, "OUTLINE")
+        f:SetPoint("TOPLEFT", 10, yOff)
+        f:SetTextColor(0.60, 0.40, 1.0, 1)
+        f:SetText(txt)
+        return f
+    end
+    local function StatRow(lbl, yOff)
+        local l = StatsPanel:CreateFontString(nil,"OVERLAY")
+        l:SetFont(C_2002, 11, "")
+        l:SetPoint("TOPLEFT", 10, yOff)
+        l:SetTextColor(0.70, 0.70, 0.80, 1)
+        l:SetText(lbl)
+        local v = StatsPanel:CreateFontString(nil,"OVERLAY")
+        v:SetFont(C_2002, 11, "OUTLINE")
+        v:SetPoint("TOPRIGHT", -10, yOff)
+        v:SetTextColor(1.0, 1.0, 1.0, 1)
+        return l, v
+    end
+
+    -- Bouw stat rijen
+    SecHdr("── KARAKTER ──", -12)
+    local _,  vClass  = StatRow("Klasse",  -26)
+    local _,  vSpec   = StatRow("Spec",    -42)
+    local _,  vLevel  = StatRow("Level",   -58)
+    local _,  vIlvl   = StatRow("iLvl",    -74)
+    local _,  vGuild  = StatRow("Guild",   -90)
+
+    SecHdr("── STATS ──", -114)
+    local _,  vStam   = StatRow("Stamina",  -128)
+    local _,  vStr    = StatRow("Strength", -144)
+    local _,  vAgi    = StatRow("Agility",  -160)
+    local _,  vInt    = StatRow("Intellect",-176)
+    local _,  vArmor  = StatRow("Armor",    -192)
+
+    SecHdr("── CURRENCIES ──", -216)
+    local _,  vKeys   = StatRow("Coffer Keys",   -230)
+    local _,  vShards = StatRow("Key Shards",    -246)
+    local _,  vDundun = StatRow("Shard of Dundun",-262)
+    local _,  vMana   = StatRow("Dawnlight Manaflux",-278)
+
+    SecHdr("── DELVES DEZE WEEK ──", -302)
+    local _,  vD4     = StatRow("Threshold 4",  -316)
+    local _,  vD8     = StatRow("Threshold 8",  -332)
+    local _,  vD12    = StatRow("Threshold 12", -348)
+
+    SecHdr("── GOUD ──", -372)
+    local _,  vGold   = StatRow("Totaal",  -386)
+
+    StatsPanel.Fill = function(data)
+        if not data then StatsPanel:Hide(); return end
+        StatsPanel:Show()
+
+        -- Karakter
+        local clr = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class] or {r=1,g=1,b=1}
+        vClass:SetText(string.format("|cff%02x%02x%02x%s|r",
+            math.floor((clr.r or 1)*255), math.floor((clr.g or 1)*255), math.floor((clr.b or 1)*255),
+            data.class or "?"))
+        vSpec:SetText("|cffccddff"..(data.spec or "?").."|r")
+        vLevel:SetText("|cffffffff"..(data.level or "?").."|r")
+        vIlvl:SetText("|cff00ff00"..(data.ilvl or 0).."|r")
+        vGuild:SetText("|cff00ccff"..(data.guild or "Geen Guild").."|r")
+
+        -- Stats (alleen als huidig karakter)
+        if data.stats then
+            vStam:SetText("|cffffffff"..(data.stats.stamina or 0).."|r")
+            vStr:SetText("|cffffffff"..(data.stats.str or 0).."|r")
+            vAgi:SetText("|cffffffff"..(data.stats.agi or 0).."|r")
+            vInt:SetText("|cffffffff"..(data.stats.int or 0).."|r")
+            vArmor:SetText("|cffffffff"..(data.stats.armor or 0).."|r")
+        else
+            for _, v in ipairs({vStam,vStr,vAgi,vInt,vArmor}) do v:SetText("|cff554466—|r") end
+        end
+
+        -- Currencies
+        local cur = data.currencies or {}
+        local function cv(id) return tostring(cur[id] or 0) end
+        vKeys:SetText("|cff00ccff"..cv(3028).."|r")
+        vShards:SetText("|cffffee00"..cv(3310).."|r")
+        local dv = cur[3376] or 0
+        vDundun:SetText((dv>0 and "|cff44cc66" or "|cffff5555")..dv.."|r")
+        local mv = cur[3378] or 0
+        vMana:SetText((mv>0 and "|cffa335ee" or "|cff887799")..mv.."|r")
+
+        -- Delves
+        if data.delves then
+            local thresholds = {4,8,12}
+            local targets = {vD4,vD8,vD12}
+            for i,v in ipairs(data.delves) do
+                if targets[i] then
+                    local col = v.p >= v.t and "|cff44cc66" or "|cffff5555"
+                    targets[i]:SetText(col..v.p.."/"..v.t.."|r")
+                end
+            end
+            for i=#data.delves+1,3 do
+                if targets[i] then targets[i]:SetText("|cff554466—|r") end
+            end
+        else
+            for _,v in ipairs({vD4,vD8,vD12}) do v:SetText("|cff554466—|r") end
+        end
+
+        -- Gold
+        vGold:SetText("|cffccaa00"..math.floor((data.money or 0)/10000).."g|r")
+    end
+
     function DT_Armory_ShowCharacter(data)
         if not data then return end
         ResetArmoryPosition(); Armory:Show()
+        StatsPanel.Fill(data)
         
         if data.stats then
             local mainStat = data.stats.str or data.stats.agi or data.stats.int or 0
