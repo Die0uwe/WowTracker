@@ -187,6 +187,20 @@ local function BuildTickerStr()
         end
     end
 
+    -- Abundance delve modifier
+    if ts.events ~= false then
+        local abData = DT_GetAbundanceData and DT_GetAbundanceData()
+        if abData and abData.active then
+            local chipTxt = SA_GOLD.."✦ Abundance ACTIEF|r  "..SA_GREY.."(Shard of Dundun beschikbaar)|r"
+            if abData.timedEvents and #abData.timedEvents > 0 then
+                local ev = abData.timedEvents[1]
+                local rem = ev.timeRemaining and math.floor(ev.timeRemaining/60) or 0
+                chipTxt = SA_GOLD.."✦ Abundance: "..rem.."min|r  "..SA_GREY.."Chip vendor actief|r"
+            end
+            table.insert(parts, chipTxt)
+        end
+    end
+
     -- Guild online teller
     if ts.guild ~= false and IsInGuild() then
         local online = 0
@@ -269,16 +283,92 @@ UI.charInfo:SetPoint("RIGHT",UI,"RIGHT",-120,0)
 UI.charInfo:SetJustifyH("LEFT")
 UI.charInfo:SetText(SA_GREY.."Laden...|r")
 
-UI.close = CreateFrame("Button",nil,UI,"UIPanelCloseButton")
-UI.close:SetSize(22,22)
-UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",2,-(TICKER_H+6))
+-- Header knoppen: X · Tandwiel · [Theme] [Lang] — rechtsboven op één lijn
+local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 11)
+local HDR_BTN_SZ = 22
 
-UI.settingsBtn = CreateFrame("Button",nil,UI)
-UI.settingsBtn:SetSize(22,22)
-UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-2,0)
-UI.settingsBtn:SetSize(22,22)
-UI.settingsBtn:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
-UI.settingsBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
+-- X Sluiten
+UI.close = CreateFrame("Button",nil,UI,"UIPanelCloseButton")
+UI.close:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
+UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",2,HDR_BTN_Y)
+
+-- Tandwiel (Settings)
+UI.settingsBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
+UI.settingsBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
+UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-3,0)
+UI.settingsBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+UI.settingsBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
+UI.settingsBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
+local sIco=UI.settingsBtn:CreateFontString(nil,"OVERLAY")
+sIco:SetFont(C_2002,14,"OUTLINE"); sIco:SetPoint("CENTER")
+sIco:SetText(SA_PURPLE.."⚙|r")
+UI.settingsBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
+UI.settingsBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+
+-- Theme knop
+UI.themeBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
+UI.themeBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
+UI.themeBtn:SetPoint("RIGHT",UI.settingsBtn,"LEFT",-3,0)
+UI.themeBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+UI.themeBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
+UI.themeBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
+local tIco=UI.themeBtn:CreateFontString(nil,"OVERLAY")
+tIco:SetFont(C_2002,11,"OUTLINE"); tIco:SetPoint("CENTER")
+tIco:SetText("|cff44aaff🎨|r")
+UI.themeBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
+UI.themeBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+UI.themeBtn:SetScript("OnClick",function(self)
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+    local themes = {
+        {name="SA Dark (standaard)", r=0.04,g=0.02,b=0.08, border={0.25,0.07,0.40}},
+        {name="ProfBuddy Paars",     r=0.06,g=0.02,b=0.12, border={0.45,0.10,0.70}},
+        {name="MailVault Blauw",     r=0.02,g=0.04,b=0.12, border={0.10,0.25,0.60}},
+        {name="Nacht Zwart",         r=0.02,g=0.02,b=0.04, border={0.20,0.20,0.20}},
+    }
+    MenuUtil.CreateContextMenu(self,function(_,root)
+        root:CreateTitle(SA_PURPLE.."Thema kiezen|r")
+        for _,t in ipairs(themes) do
+            local th=t
+            root:CreateButton(th.name,function()
+                DelveTrackerDB.theme={bg={th.r,th.g,th.b}, border=th.border, name=th.name}
+                UI:SetBackdropColor(th.r,th.g,th.b,0.97)
+                UI:SetBackdropBorderColor(th.border[1],th.border[2],th.border[3],1)
+                print(SA_PURPLE.."[WowTracker] Thema: "..th.name.."|r")
+            end)
+        end
+    end)
+end)
+
+-- Taal knop
+UI.langBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
+UI.langBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
+UI.langBtn:SetPoint("RIGHT",UI.themeBtn,"LEFT",-3,0)
+UI.langBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+UI.langBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
+UI.langBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
+local lIco=UI.langBtn:CreateFontString(nil,"OVERLAY")
+lIco:SetFont(C_2002,9,"OUTLINE"); lIco:SetPoint("CENTER")
+lIco:SetText("|cff44ffaa🌐|r")
+UI.langBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
+UI.langBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+-- Expose als global referentie voor andere plugins (Registry B knop)
+DelveTrackerFrame.langBtn  = UI.langBtn
+DelveTrackerFrame.themeBtn = UI.themeBtn
+
+UI.langBtn:SetScript("OnClick",function(self)
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+    local langs = {"Nederlands","English","Deutsch","Français","Español"}
+    MenuUtil.CreateContextMenu(self,function(_,root)
+        root:CreateTitle(SA_BLUE.."Taal / Language|r")
+        for _,lang in ipairs(langs) do
+            local l=lang
+            root:CreateButton(l,function()
+                DelveTrackerDB.language=l
+                print(SA_PURPLE.."[WowTracker] Taal: "..l.." (herlaad UI voor effect)|r")
+            end)
+        end
+    end)
+end)
 
 -- ── TABS ──────────────────────────────────────────────────────────────────
 local TAB_Y = -(TICKER_H+HEADER_H)
@@ -1623,6 +1713,27 @@ UpdateCharacterList = function()
             r2.gld=r2.gld or r2:CreateFontString(nil,"OVERLAY")
             r2.gld:SetFont(C_2002,10,"OUTLINE"); r2.gld:SetPoint("RIGHT",-6,0)
             r2.gld:SetText(SA_GOLD..math.floor((data2.money or 0)/10000).."g|r")
+            -- Tooltip + click (zelfde als kolom 1)
+            local sn2,d2=shortName2,data2
+            r2:SetScript("OnEnter",function(self)
+                self:SetBackdropColor(0.14,0.07,0.22,1)
+                self:SetBackdropBorderColor(0.50,0.15,0.80,1)
+                GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+                GameTooltip:SetText(SA_GOLD..sn2)
+                GameTooltip:AddLine(SA_GREY..(d2.spec or "??").." · iLvl "..(d2.ilvl or 0).."|r")
+                GameTooltip:AddLine(SA_GOLD..math.floor((d2.money or 0)/10000).."g|r")
+                GameTooltip:Show()
+            end)
+            r2:SetScript("OnLeave",function(self)
+                self:SetBackdropColor(0.08,0.04,0.12,0.8)
+                self:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
+                GameTooltip:Hide()
+            end)
+            r2:SetScript("OnClick",function()
+                if DT_Armory_ShowCharacter then
+                    d2.name=sn2; DT_Armory_ShowCharacter(d2); PlaySound(852)
+                end
+            end)
             s2.content.rows[ri2]=r2
         end
         s2.content:SetHeight(ri2*(ROW_H+3))

@@ -45,22 +45,16 @@ if DelveTracker then
     Armory:SetClampedToScreen(true)
 
     local function ResetArmoryPosition()
-        -- Embedded in Tab5: niet verplaatsen via WT_ShowArmory
-        -- Standalone /charmory: loskoppelen en als popup tonen
-        if Armory._embedded and not Armory._standaloneMode then return end
-        if Armory._standaloneMode then
-            -- Los van Tab5 — zet als floating popup naast DelveTrackerFrame
-            Armory:SetParent(UIParent)
-            Armory:SetMovable(true)
-            Armory:EnableMouse(true)
-            Armory:SetFrameStrata("DIALOG")
-        end
+        -- Embedded in Tab5: nooit verplaatsen
+        if Armory._embedded then return end
+        -- Standalone: altijd gecentreerd op scherm, nooit buiten beeld
+        Armory:SetParent(UIParent)
+        Armory:SetMovable(true)
+        Armory:EnableMouse(true)
+        Armory:SetFrameStrata("DIALOG")
         Armory:ClearAllPoints()
-        if DelveTrackerFrame and DelveTrackerFrame:IsShown() then
-            Armory:SetPoint("TOPLEFT", DelveTrackerFrame, "TOPRIGHT", 4, 0)
-        else
-            Armory:SetPoint("CENTER", UIParent, "CENTER", -200, 0)
-        end
+        -- Gecentreerd links van scherm midden — altijd zichtbaar
+        Armory:SetPoint("CENTER", UIParent, "CENTER", -250, 20)
     end
 
     Armory:SetScript("OnDragStart", Armory.StartMoving)

@@ -241,7 +241,13 @@ if DelveTracker then
         if DelveTrackerFrame then
             local bookBtn = CreateFrame("Button", "DT_RegistryOpenBtn", DelveTrackerFrame, "BackdropTemplate")
             bookBtn:SetSize(22, 22)
-            bookBtn:SetPoint("TOPRIGHT", DelveTrackerFrame, "TOPRIGHT", -28, -22)
+            -- Verankerd aan UI.langBtn als dat bestaat, anders vaste positie
+            local langBtn = _G["DelveTrackerFrame"] and DelveTrackerFrame.langBtn
+            if langBtn then
+                bookBtn:SetPoint("RIGHT", langBtn, "LEFT", -3, 0)
+            else
+                bookBtn:SetPoint("TOPRIGHT", DelveTrackerFrame, "TOPRIGHT", -98, -22)
+            end
             bookBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
             bookBtn:SetBackdropColor(0.08,0.04,0.14,0.95)
             bookBtn:SetBackdropBorderColor(0.45,0.12,0.70,0.9)
