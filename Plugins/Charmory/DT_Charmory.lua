@@ -69,11 +69,13 @@ if DelveTracker then
     Armory:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
     Armory:SetBackdropColor(0, 0, 0, 0.9); Armory:SetBackdropBorderColor(0, 0, 0, 1)
 
-    Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -1)
+    -- Shield: BACKGROUND laag -2, tot aan gold bar, achter gear+model+tekst
+    Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -2)
     Armory.bgShield:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Shield.tga")
-    Armory.bgShield:SetSize(280, 380)
-    Armory.bgShield:SetPoint("TOP", Armory, "TOP", 0, -50)
-    Armory.bgShield:SetAlpha(0.65)  -- zichtbaar maar gear/tekst leesbaar
+    -- Grootte: vult het model gebied van top tot boven de gold bar
+    Armory.bgShield:SetSize(360, 440)
+    Armory.bgShield:SetPoint("TOP", Armory, "TOP", 0, -30)
+    Armory.bgShield:SetAlpha(0.55)
 
     Armory.closeBtn = CreateFrame("Button", nil, Armory, "UIPanelCloseButton")
     Armory.closeBtn:SetPoint("TOPRIGHT", Armory, "TOPRIGHT", -2, -2)
@@ -292,17 +294,21 @@ if DelveTracker then
     end
 
     SLASH_CHARMORY1 = "/charmory"
+SLASH_CHARMORY2 = "/armory"
     SlashCmdList["CHARMORY"] = function()
     Armory._standaloneMode = true
     Armory._embedded = false
-    -- Herstel StatsPanel parent naar Armory (was Tab5)
+    -- Herstel StatsPanel parent naar Armory
     local sp = _G["DT_ArmoryStatsPanel"]
     if sp then
         sp:SetParent(Armory)
         sp:ClearAllPoints()
         sp:SetPoint("TOPLEFT", Armory, "TOPRIGHT", 4, 0)
-        sp:SetSize(400, Armory:GetHeight() or 500)
-    end 
+        sp:SetSize(420, Armory:GetHeight() or 500)
+        sp:Show()
+    end
+    -- Zorg dat close knop zichtbaar is
+    if Armory.closeBtn then Armory.closeBtn:Show() end 
         local name, realm = UnitName("player"), GetNormalizedRealmName()
         local key = name.."-"..realm
         if not DelveTrackerDB.characters then DelveTrackerDB.characters = {} end

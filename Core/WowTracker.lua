@@ -636,13 +636,13 @@ Tab6.searchBox:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Inte
 Tab6.searchBox:SetBackdropColor(0.04,0.02,0.08,0.95)
 Tab6.searchBox:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
 Tab6.searchBox:SetFontObject("ChatFontNormal")
-Tab6.searchBox:SetText("Filter karakter...")
+Tab6.searchBox:SetText("Filter currency naam...")
 Tab6.searchBox:SetAutoFocus(false)
 Tab6.searchBox:SetScript("OnEditFocusGained",function(s)
-    if s:GetText()=="Filter karakter..." then s:SetText("") end
+    if s:GetText()=="Filter currency naam..." then s:SetText("") end
 end)
 Tab6.searchBox:SetScript("OnEditFocusLost",function(s)
-    if s:GetText()=="" then s:SetText("Filter karakter...") end
+    if s:GetText()=="" then s:SetText("Filter currency naam...") end
 end)
 Tab6.searchBox:SetScript("OnTextChanged",function()
     if WT_UpdateCurrency then WT_UpdateCurrency() end
@@ -663,7 +663,7 @@ Tab6.scroll.content.crows={}
 -- ============================================================================
 -- Roster ProfessionBuddy-stijl: kaartjes per karakter
 local ROSTER_CARD_W = 170
-local ROSTER_CARD_H = 80
+local ROSTER_CARD_H = 100  -- hoger voor profession iconen rij
 local ROSTER_COLS   = 4  -- 4 naast elkaar bij 760px breed: 4*170 + 3*10 = 710px
 local ROSTER_GAP    = 10
 
@@ -770,11 +770,29 @@ WT_UpdateRoster = function()
         end
         card.prgr:SetText(st~="" and st or SA_GREY.."—|r")
 
-        -- Gold onderaan
+        -- Gold
         card.gld=card.gld or card:CreateFontString(nil,"OVERLAY")
         card.gld:SetFont(C_2002,10,"OUTLINE")
         card.gld:SetPoint("BOTTOMRIGHT",-4,4)
         card.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+
+        -- Professions rij (max 4 iconen onderaan, 20x20)
+        if not card.profRow then card.profRow = {} end
+        for _,p in ipairs(card.profRow) do if p.Hide then p:Hide() end end
+        card.profRow = {}
+        if data.professions then
+            for pi,prof in ipairs(data.professions) do
+                if pi > 4 then break end
+                local px = 4 + (pi-1)*20
+                local pico = card:CreateTexture(nil,"OVERLAY")
+                pico:SetSize(16,16)
+                pico:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,22)
+                if prof.icon then pico:SetTexture(prof.icon) end
+                pico:SetTexCoord(0.08,0.92,0.08,0.92)
+                pico:Show()
+                table.insert(card.profRow,pico)
+            end
+        end
 
         -- Faction dot
         card.fac=card.fac or card:CreateTexture(nil,"OVERLAY")
@@ -784,6 +802,37 @@ WT_UpdateRoster = function()
             card.fac:SetColorTexture(0.8,0.1,0.1,1)
         else
             card.fac:SetColorTexture(0.1,0.4,0.9,1)
+        end
+
+        -- Beroepen onderaan het kaartje
+        if card.profIcons then
+            for _,ico in ipairs(card.profIcons) do ico:Hide() end
+        end
+        card.profIcons = {}
+        if data.professions and #data.professions > 0 then
+            for pi, prof in ipairs(data.professions) do
+                if pi > 3 then break end  -- max 3 iconen
+                local pIco = card:CreateTexture(nil,"ARTWORK")
+                pIco:SetSize(16,16)
+                pIco:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",4+(pi-1)*20,24)
+                if prof.icon then pIco:SetTexture(prof.icon) end
+                pIco:SetTexCoord(0.08,0.92,0.08,0.92)
+                pIco:Show()
+                -- Tooltip
+                local pBtn = CreateFrame("Button",nil,card)
+                pBtn:SetSize(16,16)
+                pBtn:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",4+(pi-1)*20,24)
+                pBtn._prof = prof
+                pBtn:SetScript("OnEnter",function(s)
+                    GameTooltip:SetOwner(s,"ANCHOR_RIGHT")
+                    GameTooltip:SetText(SA_GOLD..(s._prof.name or "?"))
+                    GameTooltip:AddLine(SA_GREY..(s._prof.rank or 0).."/".. (s._prof.maxRank or 0).."|r")
+                    GameTooltip:Show()
+                end)
+                pBtn:SetScript("OnLeave",function() GameTooltip:Hide() end)
+                table.insert(card.profIcons, pIco)
+                table.insert(card.profIcons, pBtn)
+            end
         end
 
         -- Hover + click
@@ -842,10 +891,22 @@ WT_ShowArmory = function()
         armFrame:SetFrameStrata("MEDIUM")
         armFrame:SetFrameLevel(Tab5:GetFrameLevel()+2)
 
-        -- Verberg UI controls die niet passen in embedded modus
-        if armFrame.closeBtn  then armFrame.closeBtn:Hide()  end
-        if armFrame.btnPlus   then armFrame.btnPlus:Hide()   end
-        if armFrame.btnMinus  then armFrame.btnMinus:Hide()  end
+        -- CloseBtn zichtbaar houden maar repositioneren
+        if armFrame.closeBtn then
+            armFrame.closeBtn:ClearAllPoints()
+            armFrame.closeBtn:SetPoint("TOPRIGHT",armFrame,"TOPRIGHT",0,0)
+            armFrame.closeBtn:Show()
+            -- Close embedded: ga terug naar vorige tab
+            armFrame.closeBtn:SetScript("OnClick",function()
+                armFrame:Hide()
+                if _G["DT_ArmoryStatsPanel"] then _G["DT_ArmoryStatsPanel"]:Hide() end
+                Tab5.armoryEmbedded = nil
+                armFrame._embedded = nil
+                ShowTab(4)  -- terug naar Roster
+            end)
+        end
+        if armFrame.btnPlus  then armFrame.btnPlus:Hide()  end
+        if armFrame.btnMinus then armFrame.btnMinus:Hide() end
 
         -- Stats panel rechts
         local sp = _G["DT_ArmoryStatsPanel"]
@@ -992,7 +1053,14 @@ WT_UpdateCurrency = function()
     end
     Tab6.scroll.content.crows = {}
 
-    -- Currency definities — gebruik C_CurrencyInfo voor live iconen
+    -- Currency definities — alle expansies van nieuw naar oud
+    -- Filter op naam als zoekbalk gevuld
+    local curFilter = ""
+    if Tab6.searchBox then
+        local t = Tab6.searchBox:GetText() or ""
+        if t ~= "Filter currency naam..." then curFilter = t:lower() end
+    end
+
     local function getCurInfo(id)
         if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyInfo then
             local ok,info = pcall(C_CurrencyInfo.GetCurrencyInfo,id)
@@ -1001,12 +1069,44 @@ WT_UpdateCurrency = function()
         return nil, tostring(id)
     end
 
-    local CUR_DEFS = {
-        {id=3028, label="Coffer Keys",       col="|cff00ccff"},
-        {id=3310, label="Key Shards",         col="|cffffee00"},
-        {id=3376, label="Shard of Dundun",    col="|cff44cc66"},
-        {id=3378, label="Dawnlight Manaflux", col="|cffa335ee"},
+    -- Volledige lijst: Midnight → The War Within → Dragonflight → Shadowlands → BfA → Legion
+    local CUR_DEFS_ALL = {
+        -- Midnight (12.x)
+        {id=3028, label="Restored Coffer Keys",       col="|cff00ccff", expac="Midnight"},
+        {id=3310, label="Coffer Key Shards",           col="|cffffee00", expac="Midnight"},
+        {id=3376, label="Shard of Dundun",             col="|cff44cc66", expac="Midnight"},
+        {id=3378, label="Dawnlight Manaflux",          col="|cffa335ee", expac="Midnight"},
+        -- The War Within (11.x)
+        {id=2803, label="Resonance Crystals",          col="|cff88ddff", expac="War Within"},
+        {id=2778, label="Weathered Harbinger Crest",   col="|cff779966", expac="War Within"},
+        {id=2779, label="Carved Harbinger Crest",      col="|cff88aa55", expac="War Within"},
+        {id=2780, label="Runed Harbinger Crest",       col="|cff99bb44", expac="War Within"},
+        {id=2781, label="Gilded Harbinger Crest",      col="|cffccaa00", expac="War Within"},
+        {id=3028, label="Restored Coffer Keys",        col="|cff00ccff", expac="War Within"},
+        -- Dragonflight (10.x)
+        {id=2245, label="Dragon Isles Supplies",       col="|cff55aa88", expac="Dragonflight"},
+        {id=2123, label="Valor",                       col="|cff4488dd", expac="Dragonflight"},
+        {id=2119, label="Conquest",                    col="|cffdd4444", expac="Dragonflight"},
+        -- Shadowlands
+        {id=1885, label="Anima",                       col="|cff8855ff", expac="Shadowlands"},
+        {id=1906, label="Soul Cinders",                col="|cff4455dd", expac="Shadowlands"},
+        -- Warband / Algemeen
+        {id=1792, label="Honor",                       col="|cffaaffaa", expac="PvP"},
+        {id=1602, label="Conquest",                    col="|cffff4444", expac="PvP"},
     }
+
+    -- Filter op naam als curFilter gevuld
+    local CUR_DEFS = {}
+    local seenIDs = {}
+    for _,def in ipairs(CUR_DEFS_ALL) do
+        if not seenIDs[def.id] then
+            if curFilter == "" or def.label:lower():find(curFilter,1,true) or (def.expac and def.expac:lower():find(curFilter,1,true)) then
+                -- Check of karakter echt iets heeft
+                table.insert(CUR_DEFS, def)
+                seenIDs[def.id] = true
+            end
+        end
+    end
 
     -- Haal live iconen op (eenmalig)
     for _,def in ipairs(CUR_DEFS) do
@@ -1250,17 +1350,19 @@ MakePluginBtn("🎯 Prey+","|cffff6644", 4+(BTN_W+GAP)*2, function()
 end)
 
 -- Rechts: Debug naast de +/- schaal knoppen
+-- Debug knop rechtsonder naast +/- knoppen, BOVEN de discord box
 local function MakeDebugBtn()
     local b=CreateFrame("Button",nil,UI,"BackdropTemplate")
     b:SetSize(BTN_W,BTN_H)
-    b:SetPoint("BOTTOMRIGHT",UI,"BOTTOMRIGHT",-80,BTN_Y)
+    -- Rechts naast de +/- schaal knoppen (schaal eindigt op -8, debug er net links van)
+    b:SetPoint("BOTTOMRIGHT",UI,"BOTTOMRIGHT",-52-BTN_W,BTN_Y)
     b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
     b:SetBackdropColor(0.06,0.03,0.10,0.95)
     b:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
     local t=b:CreateFontString(nil,"OVERLAY")
     t:SetFont(C_2002,10,"OUTLINE")
     t:SetPoint("CENTER")
-    t:SetText("|cff887799🐛 Debug|r")
+    t:SetText("|cff887799Debug|r")
     b:SetScript("OnClick",function()
         local f=_G["DT_DebugFrame"]
         if f then if f:IsShown() then f:Hide() else f:Show() end
@@ -1335,6 +1437,32 @@ ScanDelves = function()
             d.gear[s] = nil
         end
     end
+
+    -- Scan beroepen (professions) voor huidig karakter
+    d.professions = {}
+    local prof1, prof2, arch, fish, cook = GetProfessions()
+    for _,profIndex in ipairs({prof1, prof2, arch, fish, cook}) do
+        if profIndex then
+            local name, icon, rank, maxRank, numSpells, spelloffset, skillLine, rankMod, specializationIndex = GetProfessionInfo(profIndex)
+            if name then
+                table.insert(d.professions, {
+                    name    = name,
+                    icon    = icon,
+                    rank    = rank or 0,
+                    maxRank = maxRank or 0,
+                    skillLine = skillLine,
+                })
+            end
+        end
+    end
+    -- Spec ID opslaan voor spec iconen
+    local specIndex = GetSpecialization()
+    if specIndex then
+        local specID = GetSpecializationInfo(specIndex)
+        d.specID = specID
+    end
+    d.race = UnitRace("player") or d.race
+    d.faction = UnitFactionGroup("player") or d.faction
 end
 
 UpdateCharacterList = function()
