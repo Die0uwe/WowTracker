@@ -429,32 +429,43 @@ Tab1.motdLabel:SetText(SA_PURPLE.."─── Bericht van de dag ───|r")
 Tab1.motdText=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdText:SetFont(C_2002,11,"")
 Tab1.motdText:SetPoint("TOP",Tab1.motdLabel,"BOTTOM",0,-8)
-Tab1.motdText:SetWidth(GUILD_LEFT_W-50)
+Tab1.motdText:SetWidth(GUILD_LEFT_W-60)
 Tab1.motdText:SetJustifyH("CENTER")
 Tab1.motdText:SetWordWrap(true)
 Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
 Tab1.motdText:SetText(SA_GREY.."Laden...|r")
+-- MOTD hoogte begrenzen — max tot halverwege de tab (Kelsey staat onderin)
+Tab1.motdText:SetMaxLines(4)
 
--- Kelsey image linksonder
+-- ── GUILD TAB IMAGES ─────────────────────────────────────────────────────
+-- Layout:
+--   Kelsey: groot centraal als feature image (ARTWORK, hoge alpha)
+--   DieOuwe: klein, rechtsonder linker kolom, gespiegeld, wijst naar binnen
+--   Logo: subtiel watermark linksonder
+
+-- Kelsey centraal groot — feature image van de guild
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.img:SetSize(140,140)
-Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",14,8)
+Tab1.img:SetSize(220,220)
+-- Gecentreerd in linker kolom, in het onderste gedeelte
+Tab1.img:SetPoint("BOTTOM",Tab1,"BOTTOMLEFT",GUILD_LEFT_W/2,30)
 Tab1.img:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\kelsey.tga")
-Tab1.img:SetAlpha(0.80)
+Tab1.img:SetAlpha(0.90)
 
--- DieOuwe watermark achtergrond midden-links
-Tab1.dieouwe=Tab1:CreateTexture(nil,"BACKGROUND")
-Tab1.dieouwe:SetSize(160,260)
-Tab1.dieouwe:SetPoint("BOTTOM",Tab1,"BOTTOM",-(GUILD_RIGHT_W/2),-10)
+-- DieOuwe: klein, rechterhoek van linker kolom, gespiegeld (wijst naar binnen)
+Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
+Tab1.dieouwe:SetSize(80,138)  -- proportioneel kleiner
+Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
-Tab1.dieouwe:SetAlpha(0.20)
+Tab1.dieouwe:SetAlpha(0.75)
+-- Horizontaal spiegelen: TexCoord (1→0 in plaats van 0→1)
+Tab1.dieouwe:SetTexCoord(1,0,0,0, 1,1,0,1)  -- gespiegeld zodat hij naar links (binnen) wijst
 
--- Logo watermark
+-- Logo watermark links midden — subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
-Tab1.logoWM:SetSize(100,100)
-Tab1.logoWM:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-GUILD_RIGHT_W-10,8)
+Tab1.logoWM:SetSize(90,90)
+Tab1.logoWM:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",8,8)
 Tab1.logoWM:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
-Tab1.logoWM:SetAlpha(0.10)
+Tab1.logoWM:SetAlpha(0.12)
 
 -- ── RECHTER KOLOM: GUILD ONLINE LEDEN ─────────────────────────────────────
 -- Verticale scheidingslijn
