@@ -270,11 +270,13 @@ UI.charInfo:SetJustifyH("LEFT")
 UI.charInfo:SetText(SA_GREY.."Laden...|r")
 
 UI.close = CreateFrame("Button",nil,UI,"UIPanelCloseButton")
-UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",2,-(TICKER_H-2))
+UI.close:SetSize(22,22)
+UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",2,-(TICKER_H+6))
 
 UI.settingsBtn = CreateFrame("Button",nil,UI)
 UI.settingsBtn:SetSize(22,22)
-UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-4,0)
+UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-2,0)
+UI.settingsBtn:SetSize(22,22)
 UI.settingsBtn:SetNormalTexture("Interface\\Buttons\\UI-OptionsButton")
 UI.settingsBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
 
@@ -1712,6 +1714,7 @@ UI:SetScript("OnEvent",function(self,event)
         ScanDelves()
         if Tab2:IsShown() then UpdateCharacterList() end
         tickerDirty=true
+        if event=="PLAYER_LOGIN" and IsInGuild() then GuildRoster() end
     end
 end)
 

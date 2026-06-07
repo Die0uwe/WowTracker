@@ -45,13 +45,21 @@ if DelveTracker then
     Armory:SetClampedToScreen(true)
 
     local function ResetArmoryPosition()
-        -- Niet verplaatsen als embedded in Tab5
-        if Armory._embedded then return end
+        -- Embedded in Tab5: niet verplaatsen via WT_ShowArmory
+        -- Standalone /charmory: loskoppelen en als popup tonen
+        if Armory._embedded and not Armory._standaloneMode then return end
+        if Armory._standaloneMode then
+            -- Los van Tab5 — zet als floating popup naast DelveTrackerFrame
+            Armory:SetParent(UIParent)
+            Armory:SetMovable(true)
+            Armory:EnableMouse(true)
+            Armory:SetFrameStrata("DIALOG")
+        end
         Armory:ClearAllPoints()
         if DelveTrackerFrame and DelveTrackerFrame:IsShown() then
-            Armory:SetPoint("TOPLEFT", DelveTrackerFrame, "TOPRIGHT", 2, 0)
+            Armory:SetPoint("TOPLEFT", DelveTrackerFrame, "TOPRIGHT", 4, 0)
         else
-            Armory:SetPoint("CENTER", UIParent, "CENTER")
+            Armory:SetPoint("CENTER", UIParent, "CENTER", -200, 0)
         end
     end
 
@@ -283,7 +291,17 @@ if DelveTracker then
     end
 
     SLASH_CHARMORY1 = "/charmory"
-    SlashCmdList["CHARMORY"] = function() 
+    SlashCmdList["CHARMORY"] = function()
+    Armory._standaloneMode = true
+    Armory._embedded = false
+    -- Herstel StatsPanel parent naar Armory (was Tab5)
+    local sp = _G["DT_ArmoryStatsPanel"]
+    if sp then
+        sp:SetParent(Armory)
+        sp:ClearAllPoints()
+        sp:SetPoint("TOPLEFT", Armory, "TOPRIGHT", 4, 0)
+        sp:SetSize(400, Armory:GetHeight() or 500)
+    end 
         local name, realm = UnitName("player"), GetNormalizedRealmName()
         local key = name.."-"..realm
         if not DelveTrackerDB.characters then DelveTrackerDB.characters = {} end

@@ -109,3 +109,61 @@ function addonTable.DT_events:GetVisibleEvents()
     end
     return visibleEvents
 end
+-- ============================================================================
+-- ABUNDANCE INTEGRATIE — DelveAbundance module
+-- Detecteert "Abundance" delve modifier + timed events via C_AreaPoiInfo
+-- Gebaseerd op DelveAbundance.lua (upload van DieOuwe, 2026-06-07)
+-- ============================================================================
+local DT_AbundanceData = {
+    active = false,
+    timedEvents = {},
+    lastMapID = nil,
+}
+
+local function IsAbundancePOI(info)
+    if not info then return false end
+    local atlas = info.atlasName and info.atlasName:lower() or ""
+    local desc  = info.description and info.description:lower() or ""
+    return atlas:find("abundance") ~= nil or desc:find("abundance") ~= nil
+end
+
+local function ScanAbundance(mapID)
+    DT_AbundanceData.active = false
+    DT_AbundanceData.timedEvents = {}
+    DT_AbundanceData.lastMapID = mapID
+    if not mapID or not C_AreaPoiInfo then return end
+    local poiIDs = C_AreaPoiInfo.GetAreaPOIForMap(mapID)
+    if not poiIDs then return end
+    for _,poiID in ipairs(poiIDs) do
+        local info = C_AreaPoiInfo.GetAreaPOIInfo(poiID)
+        if info and IsAbundancePOI(info) then
+            DT_AbundanceData.active = true
+            if info.timeRemaining and info.timeRemaining > 0 then
+                table.insert(DT_AbundanceData.timedEvents, {
+                    poiID=poiID, name=info.name, atlas=info.atlasName,
+                    timeRemaining=info.timeRemaining, endTime=info.endTime,
+                })
+            end
+        end
+    end
+end
+
+-- Hook in op bestaande event frame van DT_events
+local _abFrame = CreateFrame("Frame")
+_abFrame:RegisterEvent("AREA_POIS_UPDATED")
+_abFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+_abFrame:SetScript("OnEvent",function()
+    local mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    if mapID then ScanAbundance(mapID) end
+end)
+
+-- Public API voor andere plugins (bijv. QuickSet tile indicator)
+function DT_GetAbundanceData()
+    return DT_AbundanceData
+end
+
+-- Scan direct bij laden
+C_Timer.After(3.0, function()
+    local mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    if mapID then ScanAbundance(mapID) end
+end)
