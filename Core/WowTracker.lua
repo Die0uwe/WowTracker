@@ -98,11 +98,39 @@ TickerClock:SetFont(C_2002,10,"OUTLINE")
 TickerClock:SetPoint("RIGHT",UI,"RIGHT",-8,-(TICKER_H/2))
 TickerClock:SetTextColor(0.80,0.65,1.0,1)
 
-local TickerClip = CreateFrame("Frame",nil,UI)
+local TickerClip = CreateFrame("Button",nil,UI)
 TickerClip:SetPoint("TOPLEFT",UI,"TOPLEFT",4,-1)
 TickerClip:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-78,-1)
 TickerClip:SetHeight(TICKER_H)
 TickerClip:SetClipsChildren(true)
+-- Ticker instellingen in DB
+DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
+    events=true, guild=true, prey=true, time=true,
+}
+-- Klik op ticker opent selectiemenu
+TickerClip:SetScript("OnClick", function(self)
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+    local ts = DelveTrackerDB.tickerShow
+    MenuUtil.CreateContextMenu(self, function(_, root)
+        root:CreateTitle(SA_PURPLE.."Ticker inhoud|r")
+        local function ToggleItem(key, label)
+            local checked = ts[key] ~= false
+            root:CreateCheckbox(label, function() return ts[key]~=false end,
+                function() ts[key] = not (ts[key]~=false); tickerDirty=true end)
+        end
+        ToggleItem("events",  "World Events (actief + aankomend)")
+        ToggleItem("prey",    "Prey Hunt status")
+        ToggleItem("guild",   "Guild online teller")
+        ToggleItem("time",    "Server tijd")
+        root:CreateDivider()
+        root:CreateButton("Alles aan", function()
+            for k in pairs(ts) do ts[k]=true end; tickerDirty=true
+        end)
+        root:CreateButton("Alles uit", function()
+            for k in pairs(ts) do ts[k]=false end; tickerDirty=true
+        end)
+    end)
+end)
 
 local TickerScroll = CreateFrame("Frame",nil,TickerClip)
 TickerScroll:SetHeight(TICKER_H)
@@ -124,25 +152,59 @@ local function FormatHMS(s)
 end
 
 local function BuildTickerStr()
-    if not (addonTable and addonTable.DT_events) then
-        return SA_GREY.."DelveTracker v2.7.0  ·  Slayer Alliance  ·  Midnight 12.0.5|r"
+    local ts = DelveTrackerDB and DelveTrackerDB.tickerShow or {}
+    local parts = {}
+
+    -- World Events
+    if ts.events ~= false and addonTable and addonTable.DT_events then
+        local ev = addonTable.DT_events:GetVisibleEvents()
+        if ev then
+            local list={}
+            for _,e in pairs(ev) do table.insert(list,e) end
+            table.sort(list,function(a,b)
+                if a.isActive~=b.isActive then return a.isActive end
+                return (a.timeRemaining or 0)<(b.timeRemaining or 0)
+            end)
+            for _,e in ipairs(list) do
+                local t=FormatHMS(e.timeRemaining)
+                if e.isActive then
+                    table.insert(parts,"|cff44cc66⬤ "..e.name.."|r  "..SA_GREY.."ACTIEF · "..t.." rem|r")
+                else
+                    table.insert(parts,"|cffccaa00◎ "..e.name.."|r  "..SA_GREY.."over "..t.."|r")
+                end
+            end
+        end
     end
-    local ev = addonTable.DT_events:GetVisibleEvents()
-    if not ev or not next(ev) then return SA_GREY.."Geen events|r" end
-    local list={}
-    for _,e in pairs(ev) do table.insert(list,e) end
-    table.sort(list,function(a,b)
-        if a.isActive~=b.isActive then return a.isActive end
-        return (a.timeRemaining or 0)<(b.timeRemaining or 0)
-    end)
-    local parts={}
-    for _,e in ipairs(list) do
-        local ts=FormatHMS(e.timeRemaining)
-        local col,pfx,sfx
-        if e.isActive then col="|cff44cc66"; pfx="⬤ "; sfx="  ACTIEF · "..ts.." rem"
-        else           col="|cffccaa00"; pfx="◎ "; sfx="  over "..ts end
-        local loc=e.location and ("· "..e.location) or ""
-        table.insert(parts,col..pfx..e.name.."|r  "..SA_GREY..sfx.."  "..loc.."|r")
+
+    -- Prey Hunt status
+    if ts.prey ~= false then
+        local ok,qid = pcall(C_QuestLog.GetActivePreyQuest)
+        if ok and qid and qid ~= 0 then
+            local info = C_QuestLog.GetQuestInfo and C_QuestLog.GetQuestInfo(qid)
+            local qname = info and info.title or ("Quest #"..qid)
+            table.insert(parts,"|cffff4444🎯 Prey Hunt: "..qname.."|r")
+        end
+    end
+
+    -- Guild online teller
+    if ts.guild ~= false and IsInGuild() then
+        local online = 0
+        local total  = GetNumGuildMembers()
+        for i=1,total do
+            local _,_,_,_,_,_,_,_,connected = GetGuildRosterInfo(i)
+            if connected then online = online + 1 end
+        end
+        table.insert(parts,"|cff00ff88👥 Guild online: "..online.."|r")
+    end
+
+    -- Server tijd
+    if ts.time ~= false then
+        local h,m = GetGameTime()
+        table.insert(parts,SA_GOLD.."🕐 Server: "..string.format("%02d:%02d",h,m).."|r")
+    end
+
+    if #parts == 0 then
+        return SA_GREY.."WowTracker v2.7.5 · Slayer Alliance · Midnight 12.0.5 · Klik ticker voor instellingen|r"
     end
     return table.concat(parts,"   |cff2a1040◆|r   ")
 end
@@ -250,22 +312,15 @@ local function ShowTab(id)
 
     if id==1 then
         Tab1:Show()
-        -- GuildRoster() triggert GUILD_ROSTER_UPDATE event en laadt verse data
-        -- GetGuildRosterMOTD() geeft nil totdat dit gedaan is
         if IsInGuild() then
-            GuildRoster()  -- refresh guild data
+            GuildRoster()
             local gName = GetGuildInfo("player")
             Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r")
-            -- MOTD: probeer direct, anders wacht op event
             local motd = GetGuildRosterMOTD() or ""
-            if motd ~= "" then
-                Tab1.motdText:SetText(SA_GREY..motd.."|r")
-            else
-                Tab1.motdText:SetText(SA_GREY.."Laden...|r")
-            end
+            Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY.."Laden...|r")
         else
             Tab1.guildName:SetText(SA_GREY.."Geen guild|r")
-            Tab1.motdText:SetText(SA_GREY.."Je bent geen lid van een guild.|r")
+            Tab1.motdText:SetText(SA_GREY.."Geen guild lid.|r")
         end
         WT_UpdateGuildOnline()
 
@@ -274,8 +329,17 @@ local function ShowTab(id)
         if UpdateCharacterList then UpdateCharacterList() end
 
     elseif id==3 then
-        -- Bounty: volle breedte — QuickSet plugin vult Tab3.PluginArea
         Tab3:Show()
+        Tab3.PluginArea:Show()
+        -- Probeer QuickSet frame te koppelen
+        local qf = _G["DT_QuickSetFrame"]
+        if qf then
+            qf:SetParent(Tab3.PluginArea)
+            qf:ClearAllPoints()
+            qf:SetAllPoints(Tab3.PluginArea)
+            qf:Show()
+        end
+        -- Plugins aanroepen
         for pN,pF in pairs(DelveTracker.Plugins) do
             if DelveTrackerDB.PluginStates and DelveTrackerDB.PluginStates[pN]~=false then
                 pcall(pF,"Tab3",Tab3.PluginArea)
@@ -361,21 +425,21 @@ Tab1.motdText:SetText(SA_GREY.."Laden...|r")
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.img:SetSize(140,140)
 Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",14,8)
-Tab1.img:SetTexture("Interface\AddOns\DelveTracker\Media\kelsey.tga")
+Tab1.img:SetTexture("Interface\\AddOns\DelveTracker\Media\kelsey.tga")
 Tab1.img:SetAlpha(0.80)
 
 -- DieOuwe watermark achtergrond midden-links
 Tab1.dieouwe=Tab1:CreateTexture(nil,"BACKGROUND")
 Tab1.dieouwe:SetSize(160,260)
 Tab1.dieouwe:SetPoint("BOTTOM",Tab1,"BOTTOM",-(GUILD_RIGHT_W/2),-10)
-Tab1.dieouwe:SetTexture("Interface\AddOns\DelveTracker\Media\Dieouwe.tga")
+Tab1.dieouwe:SetTexture("Interface\\AddOns\DelveTracker\Media\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.20)
 
 -- Logo watermark
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
 Tab1.logoWM:SetSize(100,100)
 Tab1.logoWM:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-GUILD_RIGHT_W-10,8)
-Tab1.logoWM:SetTexture("Interface\AddOns\DelveTracker\Media\MijnIcoon.tga")
+Tab1.logoWM:SetTexture("Interface\\AddOns\DelveTracker\Media\MijnIcoon.tga")
 Tab1.logoWM:SetAlpha(0.10)
 
 -- ── RECHTER KOLOM: GUILD ONLINE LEDEN ─────────────────────────────────────
@@ -427,14 +491,28 @@ searchBox:SetScript("OnTextChanged",function(self)
     if UpdateCharacterList then UpdateCharacterList() end
 end)
 
--- ── TAB 3: BOUNTY — volle breedte, geen padding ──────────────────────────
+-- ── TAB 3: BOUNTY — volle breedte ────────────────────────────────────────
 Tab3.PluginArea=CreateFrame("Frame","DT_BountyArea",Tab3)
 Tab3.PluginArea:SetPoint("TOPLEFT",Tab3,"TOPLEFT",0,0)
 Tab3.PluginArea:SetPoint("BOTTOMRIGHT",Tab3,"BOTTOMRIGHT",0,0)
--- Achtergrond voor volle breedte bounty panel
 Tab3.bg=Tab3:CreateTexture(nil,"BACKGROUND")
 Tab3.bg:SetAllPoints()
 Tab3.bg:SetColorTexture(0.05,0.02,0.08,0.6)
+
+-- Bounty fallback: toon QuickSet frame direct als het bestaat
+-- QuickSet maakt zijn eigen frame (DT_QuickSetFrame) — zet het als child van Tab3
+Tab3.PluginArea:SetScript("OnShow", function(self)
+    C_Timer.After(0.1, function()
+        local qf = _G["DT_QuickSetFrame"]
+        if qf then
+            qf:SetParent(self)
+            qf:ClearAllPoints()
+            qf:SetPoint("TOPLEFT",self,"TOPLEFT",0,0)
+            qf:SetPoint("BOTTOMRIGHT",self,"BOTTOMRIGHT",0,0)
+            qf:Show()
+        end
+    end)
+end)
 
 -- ── TAB 4: ROSTER ─────────────────────────────────────────────────────────
 Tab4.PluginArea=CreateFrame("Frame","DT_RosterArea",Tab4)
@@ -496,7 +574,7 @@ local function WT_UpdateRoster()
         local r=Tab4.scroll.content.rows[i]
         if not r then
             r=CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+            r:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
         end
         r:SetSize(ROW_W,ROW_H)
         r:SetPoint("TOPLEFT",0,-(i-1)*(ROW_H+3))
@@ -516,7 +594,7 @@ local function WT_UpdateRoster()
         if data.class then
             local coords=CLASS_ICON_TCOORDS[data.class]
             if coords then
-                r.cIcon:SetTexture("Interface\WorldStateFrame\Icons-Classes")
+                r.cIcon:SetTexture("Interface\\WorldStateFrame\Icons-Classes")
                 r.cIcon:SetTexCoord(unpack(coords))
             end
         end
@@ -601,7 +679,7 @@ local function WT_ShowArmory()
         Tab5.openBtn=Tab5.openBtn or CreateFrame("Button",nil,Tab5,"BackdropTemplate")
         Tab5.openBtn:SetSize(200,28)
         Tab5.openBtn:SetPoint("TOP",Tab5.subhint,"BOTTOM",0,-12)
-        Tab5.openBtn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+        Tab5.openBtn:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
         Tab5.openBtn:SetBackdropColor(0.10,0.04,0.18,1)
         Tab5.openBtn:SetBackdropBorderColor(0.50,0.15,0.80,1)
         local t=Tab5.openBtn:CreateFontString(nil,"OVERLAY")
@@ -672,7 +750,7 @@ local function WT_UpdateCurrency()
         local r=Tab6.scroll.content.crows[i]
         if not r then
             r=CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
-            r:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+            r:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
         end
         r:SetSize(ROW_W,ROW_H)
         r:SetPoint("TOPLEFT",0,-18-(i-1)*(ROW_H+2))
@@ -1024,7 +1102,7 @@ UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:G
 opt.logo=opt:CreateTexture(nil,"ARTWORK")
 opt.logo:SetSize(42,42)
 opt.logo:SetPoint("TOPLEFT",16,-16)
-opt.logo:SetTexture("Interface\AddOns\DelveTracker\Media\MijnIcoon.tga")
+opt.logo:SetTexture("Interface\\AddOns\DelveTracker\Media\MijnIcoon.tga")
 
 -- Titel
 opt.tit=opt:CreateFontString(nil,"OVERLAY")
@@ -1041,7 +1119,7 @@ opt.sub:SetText(SA_GREY.."Slayer Alliance Edition · Midnight 12.0.5.67314|r")
 opt.charImg=opt:CreateTexture(nil,"ARTWORK")
 opt.charImg:SetSize(70,120)
 opt.charImg:SetPoint("TOPRIGHT",-16,-6)
-opt.charImg:SetTexture("Interface\AddOns\DelveTracker\Media\Dieouwe.tga")
+opt.charImg:SetTexture("Interface\\AddOns\DelveTracker\Media\Dieouwe.tga")
 opt.charImg:SetAlpha(0.88)
 
 -- Scheidingslijn onder header
@@ -1071,9 +1149,9 @@ local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,anchorFrame,anchorY
     s:SetMinMaxValues(minV,maxV)
     s:SetValueStep(step)
     s:SetObeyStepOnDrag(true)
-    s:SetThumbTexture("Interface\Buttons\UI-SliderBar-Button-Horizontal")
+    s:SetThumbTexture("Interface\\Buttons\UI-SliderBar-Button-Horizontal")
     local bg=s:CreateTexture(nil,"BACKGROUND")
-    bg:SetTexture("Interface\Buttons\UI-SliderBar-Background"); bg:SetAllPoints()
+    bg:SetTexture("Interface\\Buttons\UI-SliderBar-Background"); bg:SetAllPoints()
 
     local vt=s:CreateFontString(nil,"OVERLAY")
     vt:SetFont(C_2002,9,"")
@@ -1132,7 +1210,7 @@ local function UpdatePluginList()
         if not r then
             r=CreateFrame("Frame",nil,pContent,"BackdropTemplate")
             r:SetSize(498,28)
-            r:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+            r:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
         end
         r:SetPoint("TOPLEFT",0,(i-1)*-31)
         local pinned=(name=="UserInfo")
@@ -1169,7 +1247,7 @@ local function UpdatePluginList()
 
         r.btn=r.btn or CreateFrame("Button",nil,r,"BackdropTemplate")
         r.btn:SetSize(52,20); r.btn:SetPoint("RIGHT",-5,0)
-        r.btn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+        r.btn:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
         r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY")
         r.btn.t:SetFont(C_2002,10,"OUTLINE"); r.btn.t:SetPoint("CENTER")
 
@@ -1205,7 +1283,7 @@ local function MakeOptBtn(parent,lbl,anchorFrame,anchorY,fn)
     local b=CreateFrame("Button",nil,parent,"BackdropTemplate")
     b:SetSize(260,24)
     b:SetPoint("TOPLEFT",anchorFrame,"BOTTOMLEFT",0,anchorY)
-    b:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+    b:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
     b:SetBackdropColor(0.08,0.04,0.12,0.9)
     b:SetBackdropBorderColor(0.25,0.07,0.40,1)
     local t=b:CreateFontString(nil,"OVERLAY")
@@ -1239,7 +1317,7 @@ end)
 opt.afkBtn=CreateFrame("Button",nil,opt,"BackdropTemplate")
 opt.afkBtn:SetSize(200,24)
 opt.afkBtn:SetPoint("TOPLEFT",110,-638)
-opt.afkBtn:SetBackdrop({bgFile="Interface\Buttons\WHITE8x8",edgeFile="Interface\Buttons\WHITE8x8",edgeSize=1})
+opt.afkBtn:SetBackdrop({bgFile="Interface\\Buttons\WHITE8x8",edgeFile="Interface\\Buttons\WHITE8x8",edgeSize=1})
 opt.afkBtn:SetBackdropColor(0.08,0.04,0.12,0.9)
 opt.afkBtn:SetBackdropBorderColor(0.30,0.08,0.50,1)
 opt.afkBtn.t=opt.afkBtn:CreateFontString(nil,"OVERLAY")
