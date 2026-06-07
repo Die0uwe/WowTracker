@@ -592,9 +592,4 @@ _dtInt_DBG:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("Debugger", function() end)
-    local opt = _G["DelveTrackerOptions"]
-    if opt then opt:HookScript("OnShow", function()
-        local en = DelveTrackerDB and DelveTrackerDB.PluginStates["Debugger"] ~= false
-        if DBG_frame then if en then DBG_frame:Show() else DBG_frame:Hide() end end
-    end) end
-end)
+    -- Plugin registratie klaar — geen auto-show

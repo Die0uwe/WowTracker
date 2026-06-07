@@ -410,20 +410,22 @@ local GUILD_LEFT_W  = UI_W - 2 - GUILD_RIGHT_W
 
 -- ── LINKER KOLOM ──────────────────────────────────────────────────────────
 Tab1.guildName=Tab1:CreateFontString(nil,"OVERLAY")
-Tab1.guildName:SetFont(C_2002,16,"OUTLINE")
-Tab1.guildName:SetPoint("TOPLEFT",Tab1,"TOPLEFT",14,-14)
+Tab1.guildName:SetFont(C_2002,18,"OUTLINE")
+Tab1.guildName:SetJustifyH("CENTER")
+Tab1.guildName:SetPoint("TOP",Tab1,"TOPLEFT",(GUILD_LEFT_W/2),-20)
 Tab1.guildName:SetText(SA_GOLD.."Slayer Alliance|r")
 
 Tab1.motdLabel=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdLabel:SetFont(C_2002,9,"OUTLINE")
-Tab1.motdLabel:SetPoint("TOPLEFT",Tab1.guildName,"BOTTOMLEFT",0,-8)
+Tab1.motdLabel:SetJustifyH("CENTER")
+Tab1.motdLabel:SetPoint("TOP",Tab1.guildName,"BOTTOM",0,-10)
 Tab1.motdLabel:SetText(SA_PURPLE.."Bericht van de dag:|r")
 
 Tab1.motdText=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdText:SetFont(C_2002,11,"")
-Tab1.motdText:SetPoint("TOPLEFT",Tab1.motdLabel,"BOTTOMLEFT",0,-4)
-Tab1.motdText:SetWidth(GUILD_LEFT_W - 28)
-Tab1.motdText:SetJustifyH("LEFT")
+Tab1.motdText:SetPoint("TOP",Tab1.motdLabel,"BOTTOM",0,-6)
+Tab1.motdText:SetWidth(GUILD_LEFT_W - 40)
+Tab1.motdText:SetJustifyH("CENTER")
 Tab1.motdText:SetWordWrap(true)
 Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
 Tab1.motdText:SetText(SA_GREY.."Laden...|r")
@@ -959,6 +961,44 @@ MakeScaleBtn("-",-8,function()
     scaleValTxt:SetText(string.format("%.2f",n))
 end)
 
+-- Snelknoppen linksonder: Cloth | Skin | Prey
+local function MakePluginBtn(lbl, col, xOff, fn)
+    local b=CreateFrame("Button",nil,UI,"BackdropTemplate")
+    b:SetSize(60,20)
+    b:SetPoint("BOTTOMLEFT",UI,"BOTTOMLEFT",xOff,8)
+    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    b:SetBackdropColor(0.06,0.03,0.10,0.9)
+    b:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
+    local t=b:CreateFontString(nil,"OVERLAY")
+    t:SetFont(C_2002,9,"OUTLINE")
+    t:SetPoint("CENTER")
+    t:SetText(col..lbl.."|r")
+    b:SetScript("OnClick",fn)
+    b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
+    b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.30,0.08,0.50,0.8) end)
+    return b
+end
+
+-- Links: Cloth, Skin, Prey
+MakePluginBtn("🧵 Cloth","|cff44aaff",530+6,function()
+    if SlashCmdList["CBUDGET"] then SlashCmdList["CBUDGET"]("")
+    elseif SlashCmdList["CBUD"] then SlashCmdList["CBUD"]("") end
+end)
+MakePluginBtn("🐾 Skin","|cff44cc66",530+70,function()
+    if SlashCmdList["MAJESTICTRACKER"] then SlashCmdList["MAJESTICTRACKER"]("")
+    elseif SlashCmdList["SNR"] then SlashCmdList["SNR"]("") end
+end)
+MakePluginBtn("🎯 Prey","|cffff4444",530+134,function()
+    if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
+end)
+
+-- Rechts van Discord: Debug
+MakePluginBtn("🐛 Debug","|cff887799",530+198,function()
+    local f=_G["DT_DebugFrame"]
+    if f then if f:IsShown() then f:Hide() else f:Show() end
+    elseif SlashCmdList["DTDEBUG"] then SlashCmdList["DTDEBUG"]("") end
+end)
+
 -- ── DATA ──────────────────────────────────────────────────────────────────
 local function CheckWeeklyReset()
     local cw=GetServerTime()/(60*60*24*7)
@@ -995,6 +1035,32 @@ ScanDelves = function()
                 table.insert(d.delves,{p=a.progress,t=a.threshold})
                 if a.progress>d.totalDone then d.totalDone=a.progress end
             end
+        end
+    end
+    -- Scan gear voor huidig karakter
+    d.guild   = GetGuildInfo("player") or d.guild or "Geen Guild"
+    d.avgIlvl = select(2, GetAverageItemLevel()) or 0
+    if UnitStat then
+        d.stats = {
+            stamina = UnitStat("player",3),
+            str     = UnitStat("player",1),
+            agi     = UnitStat("player",2),
+            int     = UnitStat("player",4),
+            armor   = select(2, UnitArmor and UnitArmor("player") or 0,0),
+        }
+    end
+    local GEAR_SLOTS = {"HeadSlot","NeckSlot","ShoulderSlot","BackSlot","ChestSlot",
+        "WristSlot","HandsSlot","WaistSlot","LegsSlot","FeetSlot",
+        "Finger0Slot","Finger1Slot","Trinket0Slot","Trinket1Slot",
+        "MainHandSlot","SecondaryHandSlot"}
+    d.gear = d.gear or {}
+    for _,s in ipairs(GEAR_SLOTS) do
+        local link = GetInventoryItemLink("player", GetInventorySlotInfo(s))
+        if link then
+            local ilvl = C_Item and C_Item.GetDetailedItemLevelInfo and C_Item.GetDetailedItemLevelInfo(link)
+            d.gear[s] = {link=link, ilvl=ilvl or 0}
+        else
+            d.gear[s] = nil
         end
     end
 end

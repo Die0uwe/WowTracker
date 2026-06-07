@@ -287,8 +287,13 @@ end
 -- ── Tile factory ──────────────────────────────────────────────────────────────
 local function NewTile(parent, idx)
     local t = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    t:SetSize(SCROLL_W, TILE_H)
-    t:SetPoint("TOPLEFT", 0, -((idx - 1) * (TILE_H + TILE_G)))
+    -- 2-naast-2: oneven links, even rechts
+    local col = (idx - 1) % 2        -- 0=links, 1=rechts
+    local row = math.floor((idx - 1) / 2)
+    local tileW = math.floor((SCROLL_W - TILE_G) / 2)
+    local tileH = math.floor(TILE_H * 1.4)  -- hoger dan voor, meer ruimte voor info
+    t:SetSize(tileW, tileH)
+    t:SetPoint("TOPLEFT", col * (tileW + TILE_G), -(row * (tileH + TILE_G)))
     t:SetBackdrop(BD(1))
 
     -- Art background – alpha 0.50: images are clear, no haze
@@ -809,8 +814,13 @@ local function BuildGrid(container)
         if not pool[idx] then
             pool[idx] = NewTile(parent, idx)
         else
-            pool[idx]:SetPoint("TOPLEFT", 0, -((idx - 1) * (TILE_H + TILE_G)))
-            pool[idx]:SetSize(SCROLL_W, TILE_H)
+            -- 2-naast-2 layout
+        local col2 = (idx - 1) % 2
+        local row2 = math.floor((idx - 1) / 2)
+        local tileW2 = math.floor((SCROLL_W - TILE_G) / 2)
+        local tileH2 = math.floor(TILE_H * 1.4)
+        pool[idx]:SetPoint("TOPLEFT", col2 * (tileW2 + TILE_G), -(row2 * (tileH2 + TILE_G)))
+            pool[idx]:SetSize(tileW2, tileH2)
         end
         return pool[idx]
     end
