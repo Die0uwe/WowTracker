@@ -1,3 +1,5 @@
+![WowTracker Banner](Media/Banners/WowTracker_Banner_1280x640.png)
+
 # WowTracker — Slayer Alliance Edition
 
 > **WoW: Midnight · Interface 120005 · Build 67314**  
