@@ -305,85 +305,7 @@ sIco:SetText(SA_PURPLE.."⚙|r")
 UI.settingsBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.settingsBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
 
--- ── ADMIN PANEL via WoW Settings (exact origineel DelveTracker.lua) ────────
-local opt = CreateFrame("Frame","DelveTrackerOptions")
-opt.name = "WowTracker"
-local _dtCategory = Settings.RegisterCanvasLayoutCategory(opt, opt.name)
-Settings.RegisterAddOnCategory(_dtCategory)
 
-UI.settingsBtn:SetScript("OnClick", function()
-    Settings.OpenToCategory(_dtCategory:GetID())
-end)
-
--- DieOuwe image
-opt.img = opt:CreateTexture(nil,"ARTWORK")
-opt.img:SetSize(120,200); opt.img:SetPoint("TOPLEFT",15,-40)
-opt.img:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
-
--- Titel
-opt.saTitle = opt:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
-opt.saTitle:SetPoint("TOPLEFT",150,-20)
-opt.saTitle:SetText(SA_PURPLE.."WOWTRACKER - CONFIG|r")
-
--- Sliders (geen OptionsSliderTemplate — deprecated in 12.x)
-local function AddSlider(label,minV,maxV,step,y,dbKey,fn)
-    local s = CreateFrame("Slider","DT_Slider_"..dbKey,opt)
-    s:SetPoint("TOPLEFT",150,y); s:SetSize(180,16)
-    s:SetOrientation("HORIZONTAL"); s:SetMinMaxValues(minV,maxV)
-    s:SetValueStep(step); s:SetObeyStepOnDrag(true)
-    s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-    local bg=s:CreateTexture(nil,"BACKGROUND")
-    bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
-    local lbl=s:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-    lbl:SetPoint("BOTTOM",s,"TOP",0,2); lbl:SetText(label)
-    local val=s:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-    val:SetPoint("TOP",s,"BOTTOM",0,-2)
-    local init=DelveTrackerDB[dbKey] or 1; s:SetValue(init); val:SetText(tostring(init))
-    s:SetScript("OnValueChanged",function(self,v)
-        v=math.floor(v*10)/10; fn(v); DelveTrackerDB[dbKey]=v; val:SetText(tostring(v))
-    end)
-end
-AddSlider("UI Scale",0.5,2.0,0.1,-80,"mainScale",function(v) UI:SetScale(v) end)
-AddSlider("Murloc Scale",0.5,2.0,0.1,-130,"mScale",function(v)
-    if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end
-end)
-
--- Plugin lijst
-opt.pScroll = CreateFrame("ScrollFrame","DT_PluginScroll",opt,"UIPanelScrollFrameTemplate")
-opt.pScroll:SetSize(300,150); opt.pScroll:SetPoint("TOPLEFT",150,-200)
-local pContent=CreateFrame("Frame",nil,opt.pScroll)
-pContent:SetSize(280,1); opt.pScroll:SetScrollChild(pContent); pContent.rows={}
-
-local function UpdatePluginList()
-    DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
-    local names={}
-    for name in pairs(DelveTracker.Plugins) do table.insert(names,name) end
-    table.sort(names)
-    for i,name in ipairs(names) do
-        local r=pContent.rows[i] or CreateFrame("Frame",nil,pContent,"BackdropTemplate")
-        r:SetSize(270,30); r:SetPoint("TOPLEFT",0,(i-1)*-35); r:Show()
-        r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8"})
-        r:SetBackdropColor(0.1,0.1,0.1,0.5)
-        r.t=r.t or r:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-        r.t:SetPoint("LEFT",5,0); r.t:SetText(name)
-        r.btn=r.btn or CreateFrame("Button",nil,r,"BackdropTemplate")
-        r.btn:SetSize(45,18); r.btn:SetPoint("RIGHT",-5,0)
-        r.btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-        r.btn.t:SetPoint("CENTER")
-        local function Refresh()
-            local en=DelveTrackerDB.PluginStates[name]~=false
-            r.btn:SetBackdropColor(en and 0 or 0.7, en and 0.7 or 0, 0, 1)
-            r.btn.t:SetText(en and "ON" or "OFF")
-        end
-        r.btn:SetScript("OnClick",function()
-            DelveTrackerDB.PluginStates[name]=not(DelveTrackerDB.PluginStates[name]~=false)
-            Refresh()
-        end)
-        Refresh(); pContent.rows[i]=r
-    end
-end
-opt:SetScript("OnShow",UpdatePluginList)
 
 -- Theme knop
 UI.themeBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
@@ -1286,6 +1208,86 @@ WT_UpdateGuildOnline = function()
     end
     Tab1.onlineScroll.content:SetHeight(#online * ROW_H + 4)
 end
+
+-- ── ADMIN PANEL via WoW Settings (exact origineel DelveTracker.lua) ────────
+local opt = CreateFrame("Frame","DelveTrackerOptions")
+opt.name = "WowTracker"
+local _dtCategory = Settings.RegisterCanvasLayoutCategory(opt, opt.name)
+Settings.RegisterAddOnCategory(_dtCategory)
+
+UI.settingsBtn:SetScript("OnClick", function()
+    Settings.OpenToCategory(_dtCategory:GetID())
+end)
+
+-- DieOuwe image
+opt.img = opt:CreateTexture(nil,"ARTWORK")
+opt.img:SetSize(120,200); opt.img:SetPoint("TOPLEFT",15,-40)
+opt.img:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
+
+-- Titel
+opt.saTitle = opt:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
+opt.saTitle:SetPoint("TOPLEFT",150,-20)
+opt.saTitle:SetText(SA_PURPLE.."WOWTRACKER - CONFIG|r")
+
+-- Sliders (geen OptionsSliderTemplate — deprecated in 12.x)
+local function AddSlider(label,minV,maxV,step,y,dbKey,fn)
+    local s = CreateFrame("Slider","DT_Slider_"..dbKey,opt)
+    s:SetPoint("TOPLEFT",150,y); s:SetSize(180,16)
+    s:SetOrientation("HORIZONTAL"); s:SetMinMaxValues(minV,maxV)
+    s:SetValueStep(step); s:SetObeyStepOnDrag(true)
+    s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
+    local bg=s:CreateTexture(nil,"BACKGROUND")
+    bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
+    local lbl=s:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+    lbl:SetPoint("BOTTOM",s,"TOP",0,2); lbl:SetText(label)
+    local val=s:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+    val:SetPoint("TOP",s,"BOTTOM",0,-2)
+    local init=DelveTrackerDB[dbKey] or 1; s:SetValue(init); val:SetText(tostring(init))
+    s:SetScript("OnValueChanged",function(self,v)
+        v=math.floor(v*10)/10; fn(v); DelveTrackerDB[dbKey]=v; val:SetText(tostring(v))
+    end)
+end
+AddSlider("UI Scale",0.5,2.0,0.1,-80,"mainScale",function(v) UI:SetScale(v) end)
+AddSlider("Murloc Scale",0.5,2.0,0.1,-130,"mScale",function(v)
+    if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end
+end)
+
+-- Plugin lijst
+opt.pScroll = CreateFrame("ScrollFrame","DT_PluginScroll",opt,"UIPanelScrollFrameTemplate")
+opt.pScroll:SetSize(300,150); opt.pScroll:SetPoint("TOPLEFT",150,-200)
+local pContent=CreateFrame("Frame",nil,opt.pScroll)
+pContent:SetSize(280,1); opt.pScroll:SetScrollChild(pContent); pContent.rows={}
+
+local function UpdatePluginList()
+    DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
+    local names={}
+    for name in pairs(DelveTracker.Plugins) do table.insert(names,name) end
+    table.sort(names)
+    for i,name in ipairs(names) do
+        local r=pContent.rows[i] or CreateFrame("Frame",nil,pContent,"BackdropTemplate")
+        r:SetSize(270,30); r:SetPoint("TOPLEFT",0,(i-1)*-35); r:Show()
+        r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8"})
+        r:SetBackdropColor(0.1,0.1,0.1,0.5)
+        r.t=r.t or r:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        r.t:SetPoint("LEFT",5,0); r.t:SetText(name)
+        r.btn=r.btn or CreateFrame("Button",nil,r,"BackdropTemplate")
+        r.btn:SetSize(45,18); r.btn:SetPoint("RIGHT",-5,0)
+        r.btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+        r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        r.btn.t:SetPoint("CENTER")
+        local function Refresh()
+            local en=DelveTrackerDB.PluginStates[name]~=false
+            r.btn:SetBackdropColor(en and 0 or 0.7, en and 0.7 or 0, 0, 1)
+            r.btn.t:SetText(en and "ON" or "OFF")
+        end
+        r.btn:SetScript("OnClick",function()
+            DelveTrackerDB.PluginStates[name]=not(DelveTrackerDB.PluginStates[name]~=false)
+            Refresh()
+        end)
+        Refresh(); pContent.rows[i]=r
+    end
+end
+opt:SetScript("OnShow",UpdatePluginList)
 
 -- ============================================================================
 -- WT_UpdateCurrency — Tab6: currency overzicht alle karakters
