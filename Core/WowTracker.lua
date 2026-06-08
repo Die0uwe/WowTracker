@@ -1734,107 +1734,245 @@ UpdateCharacterList = function()
     local nRows = math.ceil(#sorted / COLS)
     DT_Scroll.content:SetHeight(nRows*(ROW_H+3)+4)
 end
+
 -- ============================================================================
--- MURLOC MINIMAP BUTTON
--- Klik: toggle UI · Rechtermuisklik: context menu · Sleep: herpositioneer
+-- MURLOC MINIMAP BUTTON — volledig origineel menu (4 secties)
+-- Klik links: toggle UI · Rechts: volledig context menu · R-drag: verplaats
 -- ============================================================================
-local DT_MurlockBtn = CreateFrame("Button","DT_MurlockBtn",UIParent,"BackdropTemplate")
-DT_MurlockBtn:SetSize(32,32)
-DT_MurlockBtn:SetFrameStrata("MEDIUM")
-DT_MurlockBtn:SetFrameLevel(8)
-DT_MurlockBtn:SetMovable(true)
-DT_MurlockBtn:EnableMouse(true)
-DT_MurlockBtn:RegisterForClicks("AnyUp")
-DT_MurlockBtn:RegisterForDrag("LeftButton")
-DT_MurlockBtn:SetClampedToScreen(true)
+local MBtn=CreateFrame("Button","DT_MurlocBtn",UIParent)
+MBtn:SetSize(58,58); MBtn:SetPoint("CENTER"); MBtn:SetMovable(true)
+MBtn:EnableMouse(true); MBtn:RegisterForDrag("RightButton"); MBtn:SetClampedToScreen(true)
 
--- Icoon
-local _mbTex = DT_MurlockBtn:CreateTexture(nil,"ARTWORK")
-_mbTex:SetAllPoints()
-_mbTex:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
+MBtn.tex=MBtn:CreateTexture(nil,"ARTWORK")
+MBtn.tex:SetAllPoints()
+MBtn.tex:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
 
--- Highlight ring
-local _mbHL = DT_MurlockBtn:CreateTexture(nil,"OVERLAY")
-_mbHL:SetSize(40,40)
-_mbHL:SetPoint("CENTER")
-_mbHL:SetTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-_mbHL:SetAlpha(0)
-
--- Tooltip
-DT_MurlockBtn:SetScript("OnEnter",function(self)
-    _mbHL:SetAlpha(0.5)
-    GameTooltip:SetOwner(self,"ANCHOR_LEFT")
-    GameTooltip:SetText(SA_PURPLE.."WowTracker|r  "..SA_GOLD.."v2.9.9|r")
-    GameTooltip:AddLine(SA_GREY.."Klik: open/sluit|r")
-    GameTooltip:AddLine(SA_GREY.."Rechts: menu|r")
-    GameTooltip:AddLine(SA_GREY.."Sleep: verplaats|r")
+MBtn:SetScript("OnEnter",function(self)
+    GameTooltip:SetOwner(self,"ANCHOR_TOP")
+    GameTooltip:ClearLines()
+    GameTooltip:AddLine("|cffa335eeSlayer Alliance|r  |cff887799WowTracker v2.9.9|r")
+    GameTooltip:AddLine("|cff44aacc[Links]|r  |cff887799Open/Sluit tracker|r")
+    GameTooltip:AddLine("|cff44aacc[Rechts]|r  |cff887799Menu|r")
+    GameTooltip:AddLine("|cff44aacc[R-drag]|r  |cff887799Verplaats knop|r")
     GameTooltip:Show()
 end)
-DT_MurlockBtn:SetScript("OnLeave",function()
-    _mbHL:SetAlpha(0)
-    GameTooltip:Hide()
-end)
+MBtn:SetScript("OnLeave",function() GameTooltip:Hide() end)
 
--- Klik links: toggle UI
-DT_MurlockBtn:SetScript("OnClick",function(self,btn)
-    if btn=="LeftButton" then
-        if UI:IsShown() then UI:Hide()
-        else UI:Show(); ShowTab(activeTabID or 1) end
-    elseif btn=="RightButton" then
-        -- Murloc context menu
-        if MenuUtil and MenuUtil.CreateContextMenu then
-            MenuUtil.CreateContextMenu(self,function(_,root)
-                root:CreateTitle(SA_PURPLE.."WowTracker|r")
-                root:CreateDivider()
-                root:CreateButton("🏰  Guild",     function() UI:Show(); ShowTab(1) end)
-                root:CreateButton("⚔  Delves",    function() UI:Show(); ShowTab(2) end)
-                root:CreateButton("🎯  Bounty",    function() UI:Show(); ShowTab(3) end)
-                root:CreateButton("📋  Roster",    function() UI:Show(); ShowTab(4) end)
-                root:CreateButton("🛡  Armory",    function() UI:Show(); ShowTab(5) end)
-                root:CreateButton("💰  Currency",  function() UI:Show(); ShowTab(6) end)
-                root:CreateDivider()
-                root:CreateButton("⚙  Instellingen", function()
-                    local opt=_G["DelveTrackerOptions"]
-                    if opt then if opt:IsShown() then opt:Hide() else opt:Show() end end
-                end)
-                root:CreateButton("↺  Reload UI",  function() ReloadUI() end)
-                root:CreateButton("✕  Sluit",       function() UI:Hide() end)
+local function DT_OpenMurlocMenu(owner)
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+    MenuUtil.CreateContextMenu(owner, function(_, root)
+        root:CreateTitle(SA_PURPLE.."Slayer Alliance|r  "..SA_GREY.."WowTracker|r")
+
+        -- ── CHARACTERS ───────────────────────────────────────────────────
+        root:CreateTitle(SA_GOLD.."Characters|r")
+        root:CreateButton("|cffffffff⚔  Delves|r  "..SA_GREY.."(lijstoverzicht)|r",
+            function() UI:Show(); ShowTab(2) end)
+        root:CreateButton("|cffffffff📖  Registry|r  "..SA_GREY.."(XL karakter index)|r",
+            function()
+                local reg = _G["DT_RegistryFrame"]
+                if reg then if reg:IsShown() then reg:Hide() else reg:Show() end
+                else print(SA_GREY.."[WowTracker] Registry niet geladen|r") end
             end)
-        end
-    end
-end)
+        root:CreateButton("|cffffffff🏛  Armory|r  "..SA_GREY.."(huidige karakter)|r",
+            function()
+                local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+                local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
+                if DT_Armory_ShowCharacter and data then
+                    data.name=UnitName("player"); DT_Armory_ShowCharacter(data)
+                end
+            end)
+        root:CreateButton("|cffffffff👥  Guild|r  "..SA_GREY.."(guild tab)|r",
+            function() UI:Show(); ShowTab(1) end)
 
--- Sleep
-DT_MurlockBtn:SetScript("OnDragStart",function(self)
-    if InCombatLockdown() then return end
-    self:StartMoving()
-end)
-DT_MurlockBtn:SetScript("OnDragStop",function(self)
-    self:StopMovingOrSizing()
-    -- Sla positie op
-    local pt,_,rpt,x,y = self:GetPoint()
-    if DelveTrackerDB then
-        DelveTrackerDB.murlockPos = {pt=pt,rpt=rpt,x=x,y=y}
-    end
-end)
+        -- ── TRACKERS ─────────────────────────────────────────────────────
+        root:CreateTitle(SA_BLUE.."Trackers|r")
+        root:CreateButton("|cffffffff🎯  Prey Tracker|r  "..SA_GREY.."(/prey toggle)|r",
+            function()
+                if addonTable.PreyTrackerEnable and addonTable.PreyTrackerDisable then
+                    local PreyUI=_G["DT_PreyUI"]
+                    if PreyUI and PreyUI:IsShown() then addonTable.PreyTrackerDisable()
+                    else addonTable.PreyTrackerEnable() end
+                elseif SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
+            end)
+        root:CreateButton("|cffffffff📦  Bounty|r  "..SA_GREY.."(delve bounty tab)|r",
+            function() UI:Show(); ShowTab(3) end)
+        root:CreateButton("|cffffffff🗓  Events|r  "..SA_GREY.."(/dtevents toggle)|r",
+            function()
+                if SlashCmdList["DTEVENTS"] then SlashCmdList["DTEVENTS"]()
+                else print(SA_GREY.."[WowTracker] Events niet geladen|r") end
+            end)
+        root:CreateButton("|cffffffff🧵  Cloth Counter|r  "..SA_GREY.."(/cbud toggle)|r",
+            function()
+                if SlashCmdList["CBUDGET"] then SlashCmdList["CBUDGET"]("")
+                elseif SlashCmdList["CBUD"] then SlashCmdList["CBUD"]("") end
+            end)
+        root:CreateButton("|cffffffff🐾  Skin & Rare|r  "..SA_GREY.."(Majestic Tracker)|r",
+            function()
+                local f=_G["MajesticTrackerFrame"]
+                if f then if f:IsShown() then f:Hide() else f:Show() end
+                elseif SlashCmdList["SNR"] then SlashCmdList["SNR"]("") end
+            end)
+        root:CreateButton("|cffffffff🔒  Lockout|r  "..SA_GREY.."(/dtlockout toggle)|r",
+            function()
+                if SlashCmdList["DTLOCKOUT"] then SlashCmdList["DTLOCKOUT"]()
+                else print(SA_GREY.."[WowTracker] Lockout niet geladen|r") end
+            end)
+        root:CreateButton("|cffffffff📋  Roster|r  "..SA_GREY.."(karakter kaartjes)|r",
+            function() UI:Show(); ShowTab(4) end)
+        root:CreateButton("|cffffffff💰  Currency|r  "..SA_GREY.."(warband valuta)|r",
+            function() UI:Show(); ShowTab(6) end)
 
--- Herstel positie uit DB, anders naast minimap
-local function RestoreMurlockPos()
-    local pos = DelveTrackerDB and DelveTrackerDB.murlockPos
-    if pos then
-        DT_MurlockBtn:ClearAllPoints()
-        DT_MurlockBtn:SetPoint(pos.pt, UIParent, pos.rpt, pos.x, pos.y)
-    else
-        DT_MurlockBtn:ClearAllPoints()
-        DT_MurlockBtn:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -220, -5)
-    end
+        -- ── SETTINGS ─────────────────────────────────────────────────────
+        root:CreateTitle(SA_PURPLE.."Settings|r")
+        root:CreateButton("|cffffffff⚙  Admin Panel|r  "..SA_GREY.."(alle instellingen)|r",
+            function()
+                local opt=_G["DelveTrackerOptions"]
+                if opt then if opt:IsShown() then opt:Hide() else opt:Show() end end
+            end)
+        root:CreateButton("|cffffffff🔧  Debug Console|r  "..SA_GREY.."(/dtdebug toggle)|r",
+            function()
+                local f=_G["DT_DebugFrame"]
+                if f then if f:IsShown() then f:Hide() else f:Show() end
+                elseif SlashCmdList["DTDEBUG"] then SlashCmdList["DTDEBUG"]("") end
+            end)
+        root:CreateButton("|cffffffff💬  Exchange Bot|r  "..SA_GREY.."(/cbot toggle)|r",
+            function()
+                local f=_G["DT_ExchangeFrame"]
+                if f then if f:IsShown() then f:Hide() else f:Show() end
+                elseif SlashCmdList["CBOT"] then SlashCmdList["CBOT"]("") end
+            end)
+        root:CreateButton("|cffffffff📬  Mail Attach|r  "..SA_GREY.."(/dtmail toggle)|r",
+            function()
+                local f=_G["DT_MailAttachFrame"]
+                if f then if f:IsShown() then f:Hide() else f:Show() end
+                elseif SlashCmdList["DTMAIL"] then SlashCmdList["DTMAIL"]("") end
+            end)
+
+        -- ── SYSTEEM ───────────────────────────────────────────────────────
+        root:CreateTitle(SA_GREY.."Systeem|r")
+        root:CreateButton("Herpositioneer venster",
+            function() UI:ClearAllPoints(); UI:SetPoint("CENTER") end)
+        root:CreateButton("Herpositioneer Murloc",
+            function() MBtn:ClearAllPoints(); MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-220,-5) end)
+        root:CreateButton("Reload UI",
+            function() ReloadUI() end)
+        root:CreateButton("Sluit venster",
+            function() UI:Hide() end)
+    end)
 end
 
--- Herstel na login
-local _mbFrame = CreateFrame("Frame")
-_mbFrame:RegisterEvent("PLAYER_LOGIN")
-_mbFrame:SetScript("OnEvent",function()
-    _mbFrame:UnregisterAllEvents()
-    C_Timer.After(0.5, RestoreMurlockPos)
+MBtn:SetScript("OnClick",function(self,btn)
+    if btn=="LeftButton" then
+        PlaySound(6449)
+        if UI:IsShown() then UI:Hide() else UI:Show(); ShowTab(activeTabID or 1) end
+    else DT_OpenMurlocMenu(self) end
+end)
+MBtn:SetScript("OnDragStart",MBtn.StartMoving)
+MBtn:SetScript("OnDragStop",function(self)
+    self:StopMovingOrSizing()
+    local _,_,_,x,y=self:GetPoint()
+    DelveTrackerDB.murlocPos={x=x,y=y}
 end)
 
+-- ============================================================================
+-- SLASH COMMANDS
+-- ============================================================================
+SLASH_WTMAIN1="/wt"; SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/dt"; SLASH_WTMAIN4="/delves"
+SLASH_WTAB11="/wt1"; SLASH_WTAB12="/wt guild";    SLASH_WTAB13="/dt1"; SLASH_WTAB14="/tb1"
+SLASH_WTAB21="/wt2"; SLASH_WTAB22="/wt delves";   SLASH_WTAB23="/dt2"; SLASH_WTAB24="/tb2"
+SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty";   SLASH_WTAB33="/dt3"; SLASH_WTAB34="/tb3"
+SLASH_WTAB41="/wt4"; SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
+SLASH_WTAB51="/wt5"; SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
+SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
+SLASH_WTRELOAD1="/wt-reload"; SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
+
+SlashCmdList["WTMAIN"]=function(msg)
+    msg=(msg or ""):lower():gsub("^%s+",""):gsub("%s+$","")
+    if     msg=="1" or msg=="guild"    then ShowTab(1)
+    elseif msg=="2" or msg=="delves"   then ShowTab(2)
+    elseif msg=="3" or msg=="bounty"   then ShowTab(3)
+    elseif msg=="4" or msg=="roster"   then ShowTab(4)
+    elseif msg=="5" or msg=="armory"   then ShowTab(5)
+    elseif msg=="6" or msg=="currency" then ShowTab(6)
+    elseif UI:IsShown() then UI:Hide()
+    else ShowTab(activeTabID or 1) end
+end
+SlashCmdList["WTAB1"]=function() UI:Show(); ShowTab(1) end
+SlashCmdList["WTAB2"]=function() UI:Show(); ShowTab(2) end
+SlashCmdList["WTAB3"]=function() UI:Show(); ShowTab(3) end
+SlashCmdList["WTAB4"]=function() UI:Show(); ShowTab(4) end
+SlashCmdList["WTAB5"]=function() UI:Show(); ShowTab(5) end
+SlashCmdList["WTAB6"]=function() UI:Show(); ShowTab(6) end
+SlashCmdList["WTRELOAD"]=function() ReloadUI() end
+SlashCmdList["WTMEM"]=function()
+    if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then C_AddOns.UpdateAddOnMemoryUsage() end
+    local m=(C_AddOns and C_AddOns.GetAddOnMemoryUsage and C_AddOns.GetAddOnMemoryUsage("WowTracker")) or 0
+    print(string.format(SA_PURPLE.."[WowTracker]|r Geheugen: %.1f KB",m))
+end
+SlashCmdList["WTCOMBAT"]=function()
+    DelveTrackerDB.enableCombatAlert=not DelveTrackerDB.enableCombatAlert
+    print(SA_PURPLE.."[WowTracker]|r Combat alert: "
+        ..(DelveTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))
+end
+
+-- ============================================================================
+-- EVENTS
+-- ============================================================================
+UI:RegisterEvent("PLAYER_LOGIN")
+UI:RegisterEvent("PLAYER_ENTERING_WORLD")
+UI:RegisterEvent("WEEKLY_REWARDS_UPDATE")
+UI:RegisterEvent("PLAYER_MONEY")
+UI:RegisterEvent("GUILD_ROSTER_UPDATE")
+
+UI:SetScript("OnEvent",function(self,event)
+    DelveTrackerDB.characters    = DelveTrackerDB.characters    or {}
+    DelveTrackerDB.PluginStates  = DelveTrackerDB.PluginStates  or {}
+    if event=="PLAYER_LOGIN" then
+        -- Herstel schaal
+        if DelveTrackerDB.mainScale then
+            UI:SetScale(DelveTrackerDB.mainScale)
+            scaleValTxt:SetText(string.format("%.2f",DelveTrackerDB.mainScale))
+        end
+        -- Herstel murloc schaal
+        if DelveTrackerDB.mScale then MBtn:SetScale(DelveTrackerDB.mScale) end
+        -- Herstel murloc positie
+        if DelveTrackerDB.murlocPos then
+            local p=DelveTrackerDB.murlocPos
+            MBtn:ClearAllPoints()
+            MBtn:SetPoint("CENTER",UIParent,"CENTER",p.x or 0,p.y or 0)
+        else
+            MBtn:ClearAllPoints()
+            MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-220,-5)
+        end
+        -- Herstel UI positie
+        if DelveTrackerDB.mainPos then
+            local p=DelveTrackerDB.mainPos
+            UI:ClearAllPoints()
+            UI:SetPoint(p.pt or "CENTER",UIParent,p.rpt or "CENTER",p.x or 0,p.y or 0)
+        end
+        -- Herstel thema
+        if DelveTrackerDB.theme then
+            local t=DelveTrackerDB.theme
+            if t.bg then UI:SetBackdropColor(t.bg[1],t.bg[2],t.bg[3],t.bg[4] or 0.97) end
+            if t.border then UI:SetBackdropBorderColor(t.border[1],t.border[2],t.border[3],1) end
+        end
+        tickerLastT=GetTime(); tickerDirty=true
+        TickerClock:SetText(string.format(SA_GOLD.."%s|r",date("%H:%M:%S")))
+        -- Pre-fetch guild data
+        if IsInGuild() then GuildRoster() end
+    end
+    if event=="GUILD_ROSTER_UPDATE" then
+        if Tab1:IsShown() then
+            local gName=GetGuildInfo("player")
+            if gName and Tab1.guildName then Tab1.guildName:SetText(SA_GOLD..gName.."|r") end
+            WT_UpdateGuildOnline()
+        end
+    end
+    if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
+    or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
+        ScanDelves()
+        if Tab2:IsShown() then UpdateCharacterList() end
+        tickerDirty=true
+        if event=="PLAYER_LOGIN" and IsInGuild() then GuildRoster() end
+    end
+end)
