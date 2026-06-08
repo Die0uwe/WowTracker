@@ -1,0 +1,811 @@
+# WowTracker Kennisbank — v3.0.8
+> Volledig archief van geverifieerde feiten, bugs, lessen en beslissingen
+> Bijgewerkt: 2026-06-08
+
+---
+
+---
+name: wow-oudedoos
+description: >
+  De Oude Doos — Centrale Kennisbank voor Project WowTracker (Retail 12.0.5 Midnight).
+  Bevat het COMPLETE archief van geverifieerde feiten, API-data, mapIDs, questIDs,
+  spellIDs, bronlinks, debugging-lessen, en historische beslissingen voor WowTracker
+  en alle sub-plugins. Bijgewerkt t/m v3.0.8 (2026-06-08).
+
+  Gebruik ALTIJD deze skill ALS EERSTE STAP bij: mapID opzoeken, questID valideren,
+  spellID controleren, currency ID checken, zone coördinaten opzoeken, API-gedrag
+  verifiëren, bekende bugs checken, NPC database raadplegen, prey data opzoeken,
+  zone routing valideren, Midnight content data, addon bronnen checken,
+  "wat was ook alweer X", "klopt deze ID", "welke mapID is Y", "bestaat API Z nog",
+  "wat hebben we eerder geleerd over X", historische sessie-lessen raadplegen.
+
+  Alle andere WoW skills raadplegen deze skill EERST voordat ze zelf onderzoek doen.
+  Goedkoper, sneller, en betrouwbaarder dan opnieuw zoeken.
+---
+
+# De Oude Doos — WowTracker Centrale Kennisbank
+## Versie: v3.0.8 · Bijgewerkt: 2026-06-08
+
+## Gebruik
+
+Dit is het **totaalarchief** van alles wat het team heeft geleerd, geverifieerd,
+gedebugd en besloten tijdens de ontwikkeling van Project WowTracker.
+
+**Elke skill leest dit EERST.** Alleen als het antwoord hier niet staat, ga je
+elders zoeken (web, wowhead, github).
+
+### Hoe te navigeren
+
+| Vraag | Lees |
+|---|---|
+| Map/zone IDs, portalen, routing | `references/maps-and-zones.md` |
+| Quest IDs, NPC database, prey data | `references/prey-database.md` |
+| Spell IDs, aura's, affix data | `references/spells-and-auras.md` |
+| Currency IDs, reward systemen | `references/currencies-and-rewards.md` |
+| Blizzard API calls, events, gedrag | `references/blizzard-api.md` |
+| Bekende bugs, fouten, regressions | `references/known-bugs.md` |
+| Kompas wiskunde, hoekberekening | `references/compass-math.md` |
+| Addon bronnen, referentie addons | `references/addon-sources.md` |
+| Historische sessie-beslissingen | `references/session-history.md` |
+
+---
+
+## Kritieke Harde Regels (altijd van kracht)
+
+```
+VERBODEN in Midnight 12.0.5:
+  OptionsSliderTemplate   → stille crash, blokkeert hele bestand
+  Fonts\FRIZQT__.TTF      → bestaat niet meer → gebruik Fonts\2002.ttf
+  UIDropDownMenu_* / EasyMenu → MenuUtil.CreateContextMenu()
+  getglobal()             → _G["naam"]
+  OnTooltipSetItem        → TooltipDataProcessor.AddTooltipPostCall
+  GetCurrencyInfo(id)     → C_CurrencyInfo.GetCurrencyInfo(id)
+  GetSpellInfo(id)        → C_Spell.GetSpellInfo(id)
+  OnUpdate polling        → C_Timer.NewTicker(interval, fn)
+  InterfaceOptionsFrame_OpenToCategory → Settings.OpenToCategory()
+  SetAtlas() zonder validatie → altijd C_Texture.GetAtlasInfo() eerst
+
+ALTIJD VERPLICHT:
+  local addonName, addonTable = ...   bovenaan elk bestand
+  frame:SetClampedToScreen(true)      alle verplaatsbare frames
+  InCombatLockdown() guard            alle drag/move functies
+  C_Timer.NewTicker(0.02, ...)        50 FPS animaties
+  C_Map.GetWorldPosFromMapPos()       cross-zone coördinaten
+  pcall() om alle C_* calls           crash-safe API aanroepen
+```
+
+---
+
+## Race Icon Systeem (KRITIEK — geverifieerd v3.0.8)
+
+```lua
+-- UnitRace() geeft TWO returns:
+local displayName, raceTag = UnitRace("player")
+-- raceTag = "BloodElf", "ZandalariTroll", "Scourge" (CamelCase, geen spaties)
+
+-- Gender ALTIJD als getal:
+d.gender = UnitSex("player")  -- 2=male, 3=female
+
+-- SetAtlas ALTIJD valideren:
+local atlas = "raceicon128-"..shortName.."-"..gStr
+if C_Texture.GetAtlasInfo(atlas) then texture:SetAtlas(atlas) end
+
+-- BEKENDE UITZONDERINGEN:
+["Scourge"] = "scourge"        -- Undead/Forsaken (NIET "undead")
+["HighmountainTauren"] = "highmountain"  -- (NIET "highmountaintauren")
+["ZandalariTroll"] = "zandalari"         -- (NIET "zandalaritroll")
+["Haranir"] = "AlliedRace-Crest-Haranir" -- geen raceicon128 in 12.0.5
+```
+
+---
+
+## Kompas Formule (HEILIG — nooit wijzigen)
+
+```lua
+local angle = math.atan2(dx, -dy)           -- dx = tx-px, dy = ty-py
+local relative = angle - GetPlayerFacing()
+relative = relative % (math.pi * 2)
+needle:SetRotation(-relative + needleOffset)
+```
+
+Compass_Arrow.tga moet punt OMHOOG (North) hebben.
+
+---
+
+## Slayer Alliance Visuele Identiteit
+
+| Element | Waarde |
+|---|---|
+| Primair neon | `\|cffa335ee` (Paars) |
+| Secundair neon | `\|cff00ccff` (Blauw) |
+| Gold accent | `\|cffccaa00` |
+| Font | `Fonts\\2002.ttf` + `OUTLINE` |
+| Media pad | `Interface\\AddOns\\WowTracker\\Media\\` |
+| Addon map | `WowTracker` (NIET DelveTracker) |
+| SavedVariables | `DelveTrackerDB` (→ WowTrackerDB bij v4.0) |
+| Frame strata | `MEDIUM` (HUD) / `HIGH` (Registry) |
+
+---
+
+## WowTracker Bestandsstructuur (v3.0.8)
+
+```
+WowTracker/
+  Core/WowTracker.lua       (2482 regels — main UI + 6 tabs)
+  Plugins/
+    Charmory/               3D armory popup
+    ClothCounter/           Stof tracker warband-breed
+    CombatAnnouncer/        Combat tekst
+    ContentManager/         Content kalender
+    CustomAFK/              AFK scherm
+    Debugger/               In-game log + DB viewer
+    Events/                 World events + Abundance scanner
+    Exchangebot/            Currency exchange
+    HelpGuide/              Help scherm
+    Lockout/                Raid/dungeon lockouts
+    MailAttach/             Mail attachment helper
+    Media/                  Zone media manager
+    Overlay/                UI overlay
+    PreyTracker/            Prey Hunt kompas HUD
+    QuickSet/               Bounty delve tracker
+    Registry/               XL karakter index (1320×750)
+    SkinNRare/              Skin & rare tracker
+    SystemTools/            Memory + reload tools
+    TooltipExtra/           Extra tooltip info
+    UserInfo/               Karakter info (3448 regels)
+  Media/
+    Banners/, Headers/, Icons/, Avatars/
+    MijnIcoon.tga, MijnIcoon2.tga, kelsey.tga
+    Dieouwe.tga, UCdieouwe.tga, AMT.tga
+    Compass_Arrow.tga, Background_Ring.tga
+    Shield.tga, Smoke_BG.tga
+  WowTracker.toc, WowTracker.xml
+```
+
+
+---
+
+# Bekende Bugs (excerpts)
+
+# Bekende Bugs, Fouten & Regressions — DelveTracker
+
+## KRITIEKE Stille Crashes (12.0.5)
+
+### OptionsSliderTemplate
+```
+BUG:    Gebruik van OptionsSliderTemplate in CreateFrame()
+EFFECT: Stille Lua crash — het HELE bestand laadt niet
+        Slash commands werken niet, tickers starten niet, geen error output
+FIX:    Handmatige Slider met SetThumbTexture:
+        local sl = CreateFrame("Slider", nil, parent)
+        sl:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
+GEVONDEN: V1/V2 DT_prey_ui.lua — veroorzaakte volledige UI-blackout
+```
+
+### Fonts\FRIZQT__.TTF
+```
+BUG:    Font path "Fonts\\FRIZQT__.TTF" in SetFont()
+EFFECT: Tekst onzichtbaar, geen Lua error output
+FIX:    Gebruik altijd "Fonts\\2002.ttf"
+GEVONDEN: Meerdere versies DT_prey_ui.lua
+```
+
+## Locatie & Kompas Bugs
+
+### Cross-Zone FracToYards (V3.5 → V3.6)
+```
+BUG:    WorldAngle() gebruikte FracToYards subtractie cross-zone
+        FracToYards(mapA) - FracToYards(mapB) = garbage
+        Elke map heeft eigen lokale oorsprong (0,0)
+EFFECT: Naald wees verkeerde richting bij cross-zone hunts
+        Bijv. speler in Silvermoon → naald wijst willekeurig bij Voidstorm hunt
+FIX:    C_Map.GetWorldPosFromMapPos() voor continent world-space coords
+        Beide punten in zelfde coördinatenstelsel → correcte delta
+DATUM:  Gecorrigeerd V3.6, 2026-06-02
+```
+
+### Zul'Aman mapID 2394 vs 2437 (V3.5 → V3.6)
+```
+BUG:    PREY_DB had mapID=2394 voor alle Zul'Aman NPCs
+        GetNextWaypointForMap() geeft waypoints op 2437, niet 2394
+        TryCandidate vergelijkt cand.mapID — match faalde altijd
+EFFECT: Zul'Aman hunts: Tier 1 waypoints nooit gevonden
+        Altijd Tier 3 (zone entry) → minder accurate richting
+FIX:    PREY_DB Zul'Aman entries: mapID=2437
+        2394 = outdoor fly-through zone
+        2437 = echte Midnight prey combat zone
+DATUM:  Gecorrigeerd V3.6, 2026-06-02
+```
+
+### POI String Matching "prey" (V3.5 → V3.6)
+```
+BUG:    CollectWaypointCandidates gebruikte title:find("prey")
+        om world quests te identificeren als prey quests
+EFFECT: Elke willekeurige quest met "prey" in naam werd als waypoint ingevoegd
+        found=true → Tier 3 (zone entry) nooit bereikt
+        Valse waypoints → naald wijst verkeerde richting
+FIX:    questID range check: poi.questID >= 91095 and poi.questID <= 91400
+DATUM:  Gecorrigeerd V3.6, 2026-06-02
+```
+
+### Zone Naam uit Player Location (V3.1 fix)
+```
+BUG:    prey.zoneName = C_Map.GetMapInfo(playerMapID).name
+        Speler staat bij Astalor's Table in Silvermoon bij acceptatie
+EFFECT: zoneName = "Silvermoon City" in plaats van "Voidstorm" etc.
+FIX:    prey.zoneName = PREY_DB[questID].zone (uit contract, niet player)
+DATUM:  Gecorrigeerd V3.1
+```
+
+### Widget shownState Check (V3.5 fix)
+```
+BUG:    if wi.shownState ~= 0 then  -- semantisch onduidelijk
+CORRECT: if wi.shownState == WIDGET_SHOWN then  -- WIDGET_SHOWN = 1
+         shownState=0 = geen hunt, shownState=1 = hunt actief
+DATUM:  Gecorrigeerd V3.5
+```
+
+### GetActivePreyQuest() als Placeholder (vroeg V3.x)
+```
+BUG:    API werd ten onrechte vervangen door custom quest scanner
+        omdat het als "placeholder" werd beschouwd
+EFFECT: Prey detectie werkte niet in-game (productie failure)
+FIX:    C_QuestLog.GetActivePreyQuest() is ECHTE Blizzard API
+        Geverifieerd via WindTools/World-Quest-Tracker broncode
+LES:    Nooit Blizzard API vervangen zonder verificatie
+```
+
+## Bekende Conflictpatronen
+
+| Patroon | Oorzaak | Signaal |
+|---------|---------|---------|
+| Naald → verkeerde zone | FracToYards cross-zone delta fout | angleSource = "zone_entry[X]" vanuit verkeerde zone |
+| Zul'Aman Tier 1 altijd nil | mapID=2394 i.p.v. 2437 | T1_waypoints=0 bij Zul'Aman hunt |
+| Valse POI waypoints | string matching "prey" | POI_worldq met vreemde mapID |
+| WindTools spam | Dubbele SuperTrack aanroep | Chat spam "Start tracking Prey" |
+| Waypoint nil Cold/Warm | Game design (intentioneel) | progressState < 2 |
+| PREY_DB miss | questID niet in tabel | dbEntry=nil, npcName="Unknown Prey" |
+| Slider crash | OptionsSliderTemplate | Stille crash, geen slash commands |
+| Tekst onzichtbaar | FRIZQT font | Geen error, tekst simpelweg weg |
+
+## NPC Locatie Verificaties (specifiek)
+
+```
+Executor Kaenius = VOIDSTORM (mapID 2405) — NIET Harandar, NIET Silvermoon
+                   Eerder incorrect geclassificeerd in debug sessies
+```
+
+## Plugin Versie Historie (DelveTracker Prey)
+
+```
+V1:   OptionsSliderTemplate → stille crash
+V2:   Stille crash opgelost, basis kompas
+V3:   Naald fix (race condition), Engels, 120px naald
+V3.1: Correcte PREY_DB (91095-91269), zone uit contract niet player
+V3.2: Cross-map TryCandidate (WorldAngle via FracToYards)
+V3.3: Zone-center fallback Tier 3
+V3.4: Volledige quest lifecycle events, affix detectie
+V3.5: ZONE_ENTRY echte coördinaten, shownState fix, dual quest scan
+      Silvermoon portaal-routing, worldPosCache, windTools check
+V3.6: WorldAngle fix (GetWorldPosFromMapPos), Zul'Aman mapID 2437,
+      POI range filter, worldPosCache clear op zone change
+V4 (UI): Settings panel, scaling, ticker, badge grid, difficulty badge in ring
+```
+
+## Race Icon Bugs (v3.0.x fixes)
+
+### Undead/Forsaken toont rode vraagteken (OPGELOST v3.0.7)
+```
+BUG:    RACE_ICON_MAP had ["Undead"] = "undead"
+        Atlas in 12.x heet raceicon128-scourge-*, NIET raceicon128-undead-*
+        UnitRace("player") geeft ("Undead", "Scourge") — tweede return is "Scourge"
+EFFECT: Alle Undead/Forsaken karakters toonden rode ? in Roster
+FIX:    RACE_ICON_MAP: ["Scourge"]="scourge", ["Undead"]="scourge", ["Forsaken"]="scourge"
+        DT_SetRaceIcon() met C_Texture.GetAtlasInfo() validatie voor SetAtlas aanroep
+GEVONDEN: v3.0.7 sessie 2026-06-08
+```
+
+### HighmountainTauren toont rode vraagteken (OPGELOST v3.0.8)
+```
+BUG:    RACE_ICON_MAP had ["HighmountainTauren"] = "highmountaintauren"
+        Atlas heet raceicon128-highmountain-*, NIET highmountaintauren
+EFFECT: Highmountain Tauren karakters toonden rode ? in Roster
+FIX:    RACE_ICON_MAP: ["HighmountainTauren"] = "highmountain"
+GEVONDEN: v3.0.8 sessie 2026-06-08
+```
+
+### SetAtlas zonder GetAtlasInfo validatie = stille mislukking
+```
+BUG:    texture:SetAtlas("atlas-naam") aanroepen zonder validatie
+        Als de atlas niet bestaat: geen error, texture blijft leeg
+EFFECT: Rode vraagtekens bij alle rassen zonder exacte atlas match
+FIX:    Altijd valideren:
+        if C_Texture.GetAtlasInfo(atlasName) then texture:SetAtlas(atlasName) end
+        EXACT zoals PB Constants.lua C:SetRaceIcon() doet
+BRON:   ProfessionBuddy Constants.lua v3.5.1 SetRaceIcon implementatie
+```
+
+### Gender als string vs getal mismatch
+```
+BUG:    d.gender opgeslagen als "male"/"female" string
+        C:SetRaceIcon() vergelijking doet (gender == 3) — string geeft altijd false
+EFFECT: Alle vrouwelijke karakters kregen male atlas → foute portrait
+FIX:    d.gender = UnitSex("player")  -- getal: 2=male, 3=female
+        DB auto-migratie bij PLAYER_LOGIN: "male"→2, "female"→3
+BRON:   ProfessionBuddy Scanner.lua regel 280
+```
+
+## Addon Map Naam vs Media Paden
+
+### DelveTracker paden na hernoemen naar WowTracker
+```
+BUG:    Na hernoemen addon map DelveTracker→WowTracker bleven paden fout
+        Code: "Interface\AddOns\DelveTracker\Media\MijnIcoon.tga"
+        Map:  Interface/AddOns/WowTracker/
+EFFECT: Alle textures (murloc, kelsey, dieouwe, logo) onzichtbaar
+FIX:    Alle 21 occurrences vervangen: DelveTracker\Media → WowTracker\Media
+        Verificatie: grep -r "DelveTracker\\Media" → moet 0 teruggeven
+DATUM:  Opgelost v3.0.x sessie 2026-06-08
+```
+
+## Admin Panel Crashes
+
+### Admin panel veroorzaakte nil crash op ShowTab (OPGELOST v3.0.6)
+```
+BUG:    Admin panel code stond TUSSEN forward declares en functie definities
+        WT_UpdateGuildOnline was forward declared maar nog nil
+        ShowTab(1) riep WT_UpdateGuildOnline() aan → crash
+ERROR:  attempt to call a nil value (L417 in geïnstalleerde file)
+FIX:    Admin panel verplaatst naar NA alle WT_* functie definities
+        Volgorde: forward declares → functies → admin panel → murloc → events
+DATUM:  Opgelost v3.0.6 sessie 2026-06-08
+```
+
+
+---
+
+# Blizzard API (excerpts)
+
+# Blizzard API Reference — Midnight 12.0.5 (geverifieerd)
+
+## Prey Hunt API
+
+```lua
+-- Actieve prey quest
+C_QuestLog.GetActivePreyQuest()                  -- → questID of nil
+
+-- Afstand
+C_QuestLog.GetDistanceSqToQuest(questID)         -- → number (yards²) of nil
+
+-- Waypoints — ALTIJD multi-map proben!
+C_QuestLog.GetNextWaypoint(questID)              -- → (mapID, x, y) — geeft ook mapID!
+C_QuestLog.GetNextWaypointForMap(questID, mapID) -- → (x, y) per map of nil
+
+-- Kaart & positie
+C_Map.GetBestMapForUnit("player")                -- → mapID
+C_Map.GetPlayerMapPosition(mapID, "player")      -- → {x, y} of nil
+C_Map.GetMapInfo(mapID)                          -- → {name, parentMapID, ...}
+C_Map.GetMapChildrenInfo(parentMapID)            -- → array van child map info
+C_Map.GetMapWorldSize(mapID)                     -- → (width, height) in yards
+C_Map.GetWorldPosFromMapPos(mapID, vector2D)     -- → (wx, wy) continent world-space
+
+-- Spelerrichting
+GetPlayerFacing()                                -- → float 0-2π (0=Noord, CCW)
+
+-- SuperTrack (extra waypoint bron)
+C_SuperTrack.GetSuperTrackedQuestID()            -- → questID of nil
+C_SuperTrack.SetSuperTrackedQuestID(id)          -- → void
+C_SuperTrack.GetNextWaypointForMap(mapID)        -- → (x, y) of nil
+
+-- World quest locatie
+C_TaskQuest.GetQuestLocation(questID, mapID)     -- → (x, y) of nil
+
+-- Quest POIs op kaart
+C_QuestLog.GetQuestsOnMap(mapID)                 -- → array van {questID, x, y}
+
+-- Quest metadata
+C_QuestLog.GetTitleForQuestID(questID)           -- → string of nil
+C_QuestLog.GetQuestTagInfo(questID)              -- → {tagName, ...} of nil
+C_QuestLog.IsWorldQuest(questID)                 -- → boolean
+C_QuestLog.AddQuestWatch(questID)                -- → void
+C_QuestLog.AddWorldQuestWatch(questID, type)     -- → void
+```
+
+## Widget API (ProgressState)
+
+```lua
+-- progressState: 0=Cold, 1=Warm, 2=Hot, 3=Final
+-- Blizzard geeft ALLEEN stage-transities, GEEN echte percentages
+
+local ok, setID = pcall(C_UIWidgetManager.GetPowerBarWidgetSetID)
+local ok2, widgets = pcall(C_UIWidgetManager.GetAllWidgetsBySetID, setID)
+local PREY_TYPE = Enum.UIWidgetVisualizationType.PreyHuntProgress
+for _, info in ipairs(widgets) do
+    if info.widgetType == PREY_TYPE then widgetID = info.widgetID end
+end
+local ok3, wi = pcall(
+    C_UIWidgetManager.GetPreyHuntProgressWidgetVisualizationInfo, widgetID)
+
+-- CORRECT shownState check:
+local WIDGET_SHOWN = 1  -- Enum.WidgetShownState.Shown
+if wi.shownState == WIDGET_SHOWN then  -- NIET ~= 0
+    local ps = wi.progressState  -- 0/1/2/3
+end
+```
+
+## Vignette API
+
+```lua
+C_VignetteInfo.GetVignettes()                    -- → array van GUIDs
+C_VignetteInfo.GetVignetteInfo(guid)             -- → {vignetteID, name, ...}
+C_VignetteInfo.GetVignettePosition(guid, mapID)  -- → {x, y} of nil (preferred!)
+
+-- Prey vignette IDs:
+VIGNETTE_TRAP    = 7667   -- disarmable trap (atlas: "Vehicle-Trap-Gold")
+VIGNETTE_ANGUISH = 7443   -- Coalesced Anguish mob (atlas: "poi-prey")
+```
+
+## Aura API
+
+```lua
+C_UnitAuras.GetPlayerAuraBySpellID(spellID)      -- → auraData of nil
+-- Gebruik via pcall:
+local ok, a = pcall(C_UnitAuras.GetPlayerAuraBySpellID, spellID)
+local hasAura = ok and a ~= nil
+```
+
+## Tooltip API (Midnight 12.x)
+
+```lua
+-- VERBODEN (verwijderd in 12.x):
+-- frame:HookScript("OnTooltipSetItem", ...)
+
+-- CORRECT:
+TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
+    -- tooltip verwerking hier
+end)
+```
+
+## UI Events (Prey-relevant)
+
+| Event                    | Gebruik                                        |
+|--------------------------|------------------------------------------------|
+| `PLAYER_LOGIN`           | Initialisatie, eerste check                    |
+| `PLAYER_ENTERING_WORLD`  | Na laadscherm, herinitialisatie                |
+| `ZONE_CHANGED_NEW_AREA`  | Mapwisseling → clear caches, herinitialiseer   |
+| `QUEST_LOG_UPDATE`       | Prey quest gewijzigd                           |
+| `QUEST_ACCEPTED`         | Contract geaccepteerd                          |
+| `QUEST_TURNED_IN`        | Hunt voltooid → reset state (check arg1!)      |
+| `QUEST_REMOVED`          | Hunt abandoned → reset state (check arg1!)     |
+| `SUPER_TRACKING_CHANGED` | Nieuwe waypoint bron                           |
+| `UPDATE_UI_WIDGET`       | ProgressState gewijzigd                        |
+| `UPDATE_ALL_UI_WIDGETS`  | Bulk widget update                             |
+| `VIGNETTE_MINIMAP_UPDATED`| Nieuwe trap/anguish vignette                  |
+| `UNIT_AURA`              | Affix detectie (check: arg1 == "player")       |
+| `PLAYER_REGEN_DISABLED`  | Combat fade activeren                          |
+| `PLAYER_REGEN_ENABLED`   | Combat fade deactiveren                        |
+
+## Cross-Zone Coördinaten (V3.6 fix)
+
+```lua
+-- FOUT (V3.5 en eerder): FracToYards cross-zone subtractie
+-- Elke map heeft lokale oorsprong (0,0) → dx/dy was garbage cross-zone
+
+-- CORRECT (V3.6): continent world-space via GetWorldPosFromMapPos
+local function GetWorldPos(mapID, fx, fy)
+    if C_Map.GetWorldPosFromMapPos then
+        local vec = CreateVector2D and CreateVector2D(fx, fy)
+        if vec then
+            local ok, wx, wy = pcall(C_Map.GetWorldPosFromMapPos, mapID, vec)
+            if ok and wx and wy then return wx, wy end
+        end
+    end
+    -- Fallback: FracToYards (correct als pMapID == tMapID)
+    local w, h = C_Map.GetMapWorldSize(mapID)
+    if not w then return nil, nil end
+    return fx*w, fy*h
+end
+-- Gebruik GetWorldPos voor BEIDE punten → correcte cross-zone delta
+```
+
+## Verboden API's (12.0.5)
+
+```lua
+-- VERWIJDERD / GEWIJZIGD in Midnight:
+OptionsSliderTemplate     -- verwijderd → stille crash hele bestand
+Fonts\FRIZQT__.TTF        -- verwijderd → gebruik Fonts\2002.ttf
+UIDropDownMenu_*          -- legacy → MenuUtil.CreateContextMenu()
+EasyMenu()                -- legacy → MenuUtil
+getglobal("naam")         -- legacy → _G["naam"]
+GetAddOnMemoryUsage()     -- niet beschikbaar zonder wrapper
+GetCurrencyInfo(id)       -- → C_CurrencyInfo.GetCurrencyInfo(id)
+GetSpellInfo(id)          -- → C_Spell.GetSpellInfo(id)
+CastSpellByName()         -- vereist SecureActionButton wrapper
+OnTooltipSetItem          -- verwijderd → TooltipDataProcessor
+frame:OnUpdate(...)       -- polling → C_Timer.NewTicker(interval, fn)
+StaticPopup .editBox      -- lowercase → .EditBox (PascalCase in 12.x)
+```
+
+---
+
+## Race & Gender API (geverifieerd 2026-06-08)
+
+### UnitRace()
+```lua
+local displayName, raceTag = UnitRace("player")
+-- displayName: "Blood Elf", "Zandalari Troll" (met spaties, voor UI)
+-- raceTag:     "BloodElf", "ZandalariTroll"   (CamelCase, voor atlas lookup)
+-- ALTIJD raceTag gebruiken voor atlas namen
+```
+
+### UnitSex()
+```lua
+local gender = UnitSex("player")
+-- 1 = unknown/neutral
+-- 2 = male
+-- 3 = female
+-- OPSLAAN ALS GETAL, niet als string
+-- Vergelijking: (gender == 3) and "female" or "male"
+```
+
+### C_Texture.GetAtlasInfo() — Validatie voor SetAtlas
+```lua
+-- ALTIJD valideren voor SetAtlas aanroep
+if C_Texture and C_Texture.GetAtlasInfo then
+    if C_Texture.GetAtlasInfo(atlasName) then
+        texture:SetAtlas(atlasName)
+        return true
+    end
+end
+-- Geen validatie = stille mislukking (lege texture, geen error)
+```
+
+### Race Icon Atlas Namen (12.0.5 geverifieerd)
+```
+Formaat: raceicon128-{shortName}-{gender}
+         raceicon-{shortName}-{gender}     (fallback 64px)
+
+Correcte shortNames:
+  human, orc, dwarf, nightelf, scourge (NIET undead!),
+  tauren, gnome, troll, bloodelf, draenei, goblin, worgen,
+  pandaren, nightborne, highmountain (NIET highmountaintauren!),
+  voidelf, lightforged, zandalari (NIET zandalaritroll!),
+  kultiran, darkirondwarf, magharorc, mechagnome, vulpera,
+  dracthyr, earthen
+
+Haranir/Harronir: gebruik AlliedRace-Crest-Haranir (geen raceicon128 in 12.0.5)
+```
+
+### Settings API (12.x admin panels)
+```lua
+-- Registreer addon settings panel
+local panel = CreateFrame("Frame", "MyAddonOptions")
+panel.name = "MyAddon"
+local category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
+Settings.RegisterAddOnCategory(category)
+
+-- Open programmatisch
+Settings.OpenToCategory(category:GetID())
+
+-- NOOIT: InterfaceOptionsFrame_OpenToCategory() → verwijderd in 12.x
+-- NOOIT: OptionsSliderTemplate → stille crash in 12.x
+```
+
+
+---
+
+# Sessie Geschiedenis (laatste)
+
+# Sessie Historie & Geleerde Lessen — Project WowTracker
+
+## 2026-06-02 — Prey Tracker V3.6 Hotfix
+
+**Probleem:** Na herstel van NPC locaties ging het opnieuw fout — NPC's startten
+in verkeerde zones.
+
+**Root causes gevonden (BigBoss + POI Auditor):**
+
+1. `WorldAngle()` gebruikte `FracToYards` subtractie cross-zone — elke map heeft
+   eigen lokale oorsprong, dx/dy garbage cross-zone. Fix: `GetWorldPosFromMapPos()`.
+
+2. Zul'Aman PREY_DB had `mapID=2394` maar waypoints komen op `mapID=2437` (echte
+   combat zone). 2394 = outdoor fly-through zone.
+
+3. POI world quest filter gebruikte `title:lower():find("prey")` — matcht willekeurige
+   quests, injecteert valse waypoints. Fix: questID range 91095-91400.
+
+**Lessen:**
+- Cross-zone coördinaten vereisen `C_Map.GetWorldPosFromMapPos()`, nooit FracToYards subtractie
+- Blizzard zonekaarten hebben elk hun eigen lokale coordinaatoorsprong
+- String matching op quest titels is altijd gevaarlijk — gebruik ID ranges
+- `worldPosCache` clearen bij `ZONE_CHANGED_NEW_AREA` (verouderde coords na teleport)
+- DT_prey_ui.lua was CORRECT — alleen DT_preytracker.lua had de fouten
+
+---
+
+## 2026-05-31 — Prey Tracker V3.5 (Zone Entry & Silvermoon Routing)
+
+**Probleem:** Kompas wees verkeerde kant op vanuit Silvermoon City.
+
+**Lessen:**
+- Silvermoon (2444, 2536) heeft eigen routing-logica: wijst naar Eversong portaalplaza
+- Zul'Aman heeft GEEN portaal vanuit Silvermoon — speler moet vliegen via Eversong
+- Zone naam moet altijd uit CONTRACT (PREY_DB), nooit uit `C_Map.GetMapInfo(playerMapID)`
+- `widget.shownState == 1` is semantisch correcter dan `~= 0`
+- Dual quest ID lagen bevestigd: contract quest ≠ prey world quest in zone
+
+---
+
+## 2026-05-xx — Prey Tracker V3.x Rebuild (API Verificatie)
+
+**Probleem:** Prey detectie werkte niet in productie. `GetActivePreyQuest()` was
+vervangen door custom quest scanner omdat het als "placeholder" werd beschouwd.
+
+**Lessen:**
+- `C_QuestLog.GetActivePreyQuest()` is ECHTE Blizzard API — niet vervangen!
+- Verificeer altijd API's via WindTools/World-Quest-Tracker broncode
+- WindTools' `PreyHunt.lua` implementeert GEEN kompas — alleen stage tracking
+- Compass is custom werk zonder directe referentie-implementatie om te kopiëren
+- Geverifieerd via: WindTools GitHub + World-Quest-Tracker GitHub
+
+---
+
+## Fundamentele Principes (uit alle sessies)
+
+```
+1. LIVE API > STATIC DATABASE altijd
+   Prioriteit: Live Blizzard API > Runtime logica > Widget data > Static DB
+   Static data = FALLBACK, nooit authoritatief voor locatie
+
+2. Cross-zone coördinaten vereisen continent world-space
+   GetWorldPosFromMapPos() = enige correcte methode voor cross-zone deltas
+   FracToYards subtractie = alleen correct als pMapID == tMapID
+
+3. Nooit string matching op Blizzard content
+   Quest titels, NPC namen → altijd ID-based checks
+   String matching = valse positieven → verkeerde data → verkeerde richting
+
+4. Blizzard game design vs. bugs onderscheiden
+   Geen waypoint bij Cold/Warm = INTENTIONEEL game design
+   Niet proberen te "fixen" via workarounds — Tier 3 is de juiste aanpak
+
+5. Zone naam uit contract, nooit uit player location
+   Speler staat in Silvermoon bij acceptatie → player location = misleidend
+
+6. Stille crashes in WoW Lua zijn de gevaarlijkste
+   OptionsSliderTemplate, FRIZQT font → geen error, gewoon niets werkt
+   Altijd testen met /console scriptErrors 1
+
+7. Regressions: terug naar laatste werkende staat als baseline
+   DieOuwe's voorkeur: working state herstellen > experimenteren
+   Bewaar altijd backup voor grote wijzigingen
+
+8. naaldrichting formule is heilig
+   math.atan2(-dx, dy) met facingCW = TWO_PI - facingCCW
+   Elke alternatieve formulering breekt de richting in-game
+   In-game test = enige ground truth
+```
+
+## Technische Schulden & Openstaande Items
+
+```
+- Globale lekkages in DT_Registry.lua:
+    DT_Registry_Update, DT_TooltipModules, DT_Armory_ShowCharacter
+  → Moet naar addonTable namespace
+
+- PREY_DB Zul'Aman coördinaten (zone entry) zijn benaderd, niet datamined
+  → Valideren via in-game /way coördinaten
+
+- WowTracker namespace migratie gepland:
+  DelveTracker → WowTracker
+  DelveTrackerDB → WowTrackerDB (via wow-db-migrator)
+```
+
+---
+
+## Sessie 2026-06-08 — v3.0.0 t/m v3.0.8 (Grote WowTracker Rename Sessie)
+
+### Wat is bereikt
+- Volledige rename van DelveTracker → WowTracker afgerond
+- 21 media paden gecorrigeerd over 8 lua files
+- Race icon systeem volledig herbouwd op PBRoster methode
+- Admin panel hersteld uit v2.8.9 + uitgebreid met thema/taal
+- Warband stats in header (totaal chars + totaal gold)
+- WowTracker Community banner gepusht naar GitHub
+- Currency icons 33px + muiswiel horizontaal scrollen
+
+### Race Icon Systeem — Geleerde Lessen
+
+**KRITIEK: UnitRace() geeft twee returns**
+```lua
+local displayName, raceTag = UnitRace("player")
+-- displayName = "Blood Elf" (met spaties)
+-- raceTag     = "BloodElf"  (CamelCase, geen spaties) ← GEBRUIK DIT
+```
+
+**KRITIEK: Undead atlas heet "scourge" niet "undead"**
+```
+UnitRace("player") op Undead/Forsaken geeft raceTag = "Scourge"
+Atlas: raceicon128-scourge-male/female
+NOOIT: raceicon128-undead-* want die bestaat niet
+```
+
+**KRITIEK: SetAtlas altijd valideren**
+```lua
+-- GOED (PB methode):
+if C_Texture.GetAtlasInfo(atlasName) then
+    texture:SetAtlas(atlasName)
+end
+-- FOUT: texture:SetAtlas(atlasName) blind aanroepen
+```
+
+**KRITIEK: Gender als getal opslaan**
+```lua
+-- GOED:
+d.gender = UnitSex("player")  -- 2=male, 3=female
+-- FOUT:
+d.gender = "male"  -- string vergelijking met == 3 geeft altijd false
+```
+
+**Correcte atlas namen (geverifieerd 2026-06-08):**
+```
+scourge         → Undead/Forsaken (NIET "undead")
+highmountain    → Highmountain Tauren (NIET "highmountaintauren")
+zandalari       → Zandalari Troll
+lightforged     → Lightforged Draenei
+darkirondwarf   → Dark Iron Dwarf
+kultiran        → Kul Tiran
+magharorc       → Mag'har Orc
+```
+
+**Haranir fallback:**
+```lua
+DT_AlliedRaceCrest["Harronir"] = "AlliedRace-Crest-Haranir"
+DT_AlliedRaceCrest["Haranir"]  = "AlliedRace-Crest-Haranir"
+-- raceicon128 bestaat nog niet voor Haranir in 12.0.5
+```
+
+### Admin Panel — Volgorde Kritiek
+```
+CORRECT volgorde in WowTracker.lua:
+  1. local vars + UI frame setup
+  2. Forward declares (local WT_UpdateGuildOnline etc)
+  3. Tab definities + ShowTab functie
+  4. Tab content (Tab1..Tab6)
+  5. WT_UpdateRoster / WT_UpdateCurrency / WT_UpdateGuildOnline DEFINITIES
+  6. Admin panel (HIER, niet eerder)
+  7. Murloc button
+  8. Slash commands
+  9. Events
+
+FOUT: Admin panel voor de functie definities → nil crash
+```
+
+### Header Warband Stats
+```lua
+-- UpdateWarbandStats telt alle chars + gold
+-- Wordt aangeroepen na elke ScanDelves()
+-- Gold formatting: K/M suffix voor leesbaarheid
+-- Aangemaakt als addonTable.UpdateWarbandStats
+```
+
+### ProfessionBuddy Referentie Bestanden (geanalyseerd)
+```
+PBRoster.lua    → SetRaceIcon aanroep + kaartje layout
+Constants.lua   → C:SetRaceIcon() implementatie (3-staps fallback)
+Scanner.lua     → d.gender = UnitSex(), d.race = select(2,UnitRace())
+```
+
+### Commits deze sessie
+```
+v3.0.0  Race icon SetAtlas PBRoster methode
+v3.0.1  DT_SetRaceIcon exact Constants.lua v3.5.1
+v3.0.2  DB cleanup lege entries
+v3.0.3  Gender als getal exact PB Scanner
+v3.0.4  DB auto-migratie gender+race bij login
+v3.0.5  Admin panel terug via Settings API
+v3.0.6  Admin panel na functie definities (nil crash fix)
+v3.0.7  Undead icon fix + volledig admin panel
+v3.0.8  Header warband stats + thema/taal admin + HighmountainTauren fix
+```
+
