@@ -796,7 +796,8 @@ local DT_AlliedRaceCrest = {
 
 local function DT_SetRaceIcon(texture, raceName, gender)
     if not texture then return end
-    local gStr = (gender == "female") and "female" or "male"
+    -- gender is getal: 2=male, 3=female (exact zoals PB Scanner + C:SetRaceIcon)
+    local gStr = (gender == 3) and "female" or "male"
     local shortName = DT_RaceIconShortName[raceName]
     if not shortName then
         shortName = (raceName or "human"):lower():gsub("[%s'%-]+","")
@@ -1719,9 +1720,7 @@ ScanDelves = function()
     -- bijv "BloodElf", "ZandalariTroll", "LightforgedDraenei"
     local _,raceFile = UnitRace("player")
     d.race    = raceFile or d.race
-    -- Gender: "male" of "female" string voor atlas
-    local sex = UnitSex("player")
-    d.gender  = (sex==3) and "female" or "male"
+    d.gender = UnitSex("player")  -- getal: 2=male, 3=female (zoals PB Scanner)
     d.faction = UnitFactionGroup("player") or d.faction
 end
 
