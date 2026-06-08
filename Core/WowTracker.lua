@@ -2015,12 +2015,21 @@ UI:SetScript("OnEvent",function(self,event)
     DelveTrackerDB.characters    = DelveTrackerDB.characters    or {}
     DelveTrackerDB.PluginStates  = DelveTrackerDB.PluginStates  or {}
     if event=="PLAYER_LOGIN" then
-        -- Opruimen: verwijder duplicate/lege karakter entries (level 0 of geen class)
+        -- Opruimen: verwijder duplicate/lege karakter entries
         if DelveTrackerDB.characters then
             local toRemove = {}
             for key, data in pairs(DelveTrackerDB.characters) do
                 if (not data.class) or (not data.level) or (data.level == 0 and not data.ilvl) then
                     table.insert(toRemove, key)
+                else
+                    -- Migreer oude gender strings naar getallen (PB Scanner formaat)
+                    if data.gender == "male"   then data.gender = 2 end
+                    if data.gender == "female" then data.gender = 3 end
+                    -- Migreer oude race display namen naar CamelCase
+                    -- "Blood Elf" → "BloodElf", "Night Elf" → "NightElf" etc
+                    if data.race and data.race:find(" ") then
+                        data.race = data.race:gsub(" ","")
+                    end
                 end
             end
             for _, key in ipairs(toRemove) do
