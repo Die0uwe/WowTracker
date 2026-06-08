@@ -135,7 +135,19 @@ local DT_AbundanceData = {
     lastScan     = 0,
 }
 
-local ABUNDANCE_MAPS = {2393, 2395, 2437, 2405, 2413, 2444}  -- alle Midnight mapIDs
+-- Alle Midnight mapIDs waar Abundance actief kan zijn
+-- Abundance roteert elke 8 uur over 4 caves: Eversong, Zul'Aman, Harandar, Voidstorm
+-- Silvermoon en Sunfury Spire zijn hubs maar kunnen ook abundance events hebben
+local ABUNDANCE_MAPS = {
+    2393,  -- Eversong Woods (outdoor)
+    2395,  -- Eversong Woods (alt/instanced)
+    2437,  -- Zul'Aman (combat zone — abundance roots hier)
+    2413,  -- Harandar
+    2405,  -- Voidstorm
+    2444,  -- Silvermoon City (hub)
+    2536,  -- Sunfury Spire
+    2394,  -- Eversong fly-through (ook checken)
+}
 
 local function IsAbundancePOI(info)
     if not info then return false end
@@ -145,46 +157,44 @@ local function IsAbundancePOI(info)
     return atlas:find("abundance") or name:find("abundance") or desc:find("abundant")
 end
 
+-- ScanAbundanceOnMap: geeft true terug als gevonden, false als niet
+-- Schrijft NOOIT active=false — dat doet ScanAllMidnightMaps pas na alle maps
 local function ScanAbundanceOnMap(mapID)
-    if not (mapID and C_AreaPoiInfo) then return end
+    if not (mapID and C_AreaPoiInfo) then return false end
 
-    -- Primair: GetDelvesForMap voor delve-specifieke POIs
+    -- Probeer beide API's: GetDelvesForMap is specifieker
     local poiIDs = nil
     if C_AreaPoiInfo.GetDelvesForMap then
-        poiIDs = C_AreaPoiInfo.GetDelvesForMap(mapID)
+        local ok, result = pcall(C_AreaPoiInfo.GetDelvesForMap, mapID)
+        if ok and result and #result > 0 then poiIDs = result end
     end
-    -- Fallback: alle area POIs
     if not poiIDs or #poiIDs == 0 then
-        poiIDs = C_AreaPoiInfo.GetAreaPOIForMap(mapID)
+        local ok, result = pcall(C_AreaPoiInfo.GetAreaPOIForMap, mapID)
+        if ok then poiIDs = result end
     end
-    if not poiIDs then return end
+    if not poiIDs then return false end
 
     for _,poiID in ipairs(poiIDs) do
-        -- GetAreaPOIInfo accepteert optioneel mapID als eerste arg
         local info
-        if C_AreaPoiInfo.GetAreaPOIInfo then
-            local ok, result = pcall(C_AreaPoiInfo.GetAreaPOIInfo, mapID, poiID)
-            if not ok or not result then
-                ok, result = pcall(C_AreaPoiInfo.GetAreaPOIInfo, poiID)
-            end
-            info = result
+        local ok1, r1 = pcall(C_AreaPoiInfo.GetAreaPOIInfo, mapID, poiID)
+        if ok1 and r1 then info = r1
+        else
+            local ok2, r2 = pcall(C_AreaPoiInfo.GetAreaPOIInfo, poiID)
+            if ok2 then info = r2 end
         end
 
         if info and IsAbundancePOI(info) then
-            -- Haal exacte timer op
             local secsLeft = 0
             if C_AreaPoiInfo.GetAreaPOISecondsLeft then
-                local ok2, secs = pcall(C_AreaPoiInfo.GetAreaPOISecondsLeft, poiID)
-                if ok2 and secs and secs > 0 then secsLeft = secs end
-            elseif info.timeRemaining then
-                secsLeft = info.timeRemaining
+                local ok3, secs = pcall(C_AreaPoiInfo.GetAreaPOISecondsLeft, poiID)
+                if ok3 and secs and secs > 0 then secsLeft = secs end
             end
+            if secsLeft == 0 and info.timeRemaining then secsLeft = info.timeRemaining end
 
-            -- Check of het getimed is (= Abundant Harvest, niet gewone abundance)
             local isTimed = false
             if C_AreaPoiInfo.IsAreaPOITimed then
-                local ok3, timed = pcall(C_AreaPoiInfo.IsAreaPOITimed, poiID)
-                if ok3 then isTimed = timed end
+                local ok4, timed = pcall(C_AreaPoiInfo.IsAreaPOITimed, poiID)
+                if ok4 then isTimed = timed end
             end
 
             DT_AbundanceData.active      = true
@@ -196,31 +206,34 @@ local function ScanAbundanceOnMap(mapID)
             DT_AbundanceData.isTimed     = isTimed
             DT_AbundanceData.lastScan    = GetTime()
 
-            -- Shard of Dundun count (ID 3376)
             if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyInfo then
                 local cok, cinfo = pcall(C_CurrencyInfo.GetCurrencyInfo, 3376)
                 if cok and cinfo then DT_AbundanceData.shards = cinfo.quantity or 0 end
             end
-            return  -- eerste abundance gevonden — stop
+            return true  -- gevonden — stop zoeken
         end
     end
-    -- Niets gevonden op deze map
-    DT_AbundanceData.active = false
+    return false  -- niet gevonden op deze map, maar active NIET overschrijven
 end
 
 local function ScanAllMidnightMaps()
+    -- Reset eerst
     DT_AbundanceData.active = false
-    -- Scan eerst huidige map
+    DT_AbundanceData.lastScan = GetTime()
+
+    -- Scan huidige map eerst (snelste pad)
     local currentMap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-    if currentMap then ScanAbundanceOnMap(currentMap) end
-    if DT_AbundanceData.active then return end
-    -- Dan alle andere Midnight maps
+    if currentMap and ScanAbundanceOnMap(currentMap) then return end
+
+    -- Scan alle bekende Midnight maps
+    -- Abundance kan actief zijn in: Eversong, Zul'Aman, Harandar, Voidstorm, Silvermoon
     for _,mapID in ipairs(ABUNDANCE_MAPS) do
         if mapID ~= currentMap then
-            ScanAbundanceOnMap(mapID)
-            if DT_AbundanceData.active then return end
+            if ScanAbundanceOnMap(mapID) then return end
         end
     end
+    -- Geen abundance gevonden op alle maps
+    DT_AbundanceData.active = false
 end
 
 local _abFrame = CreateFrame("Frame")
