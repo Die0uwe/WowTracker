@@ -264,7 +264,7 @@ HdrLine:SetColorTexture(0.45,0.10,0.70,0.8)
 UI.logo = UI:CreateTexture(nil,"OVERLAY")
 UI.logo:SetSize(56,56)
 UI.logo:SetPoint("TOPLEFT",UI,"TOPLEFT",10,-(TICKER_H+7))
-UI.logo:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
+UI.logo:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
 
 UI.title = UI:CreateFontString(nil,"OVERLAY")
 UI.title:SetFont(C_2002,16,"OUTLINE")
@@ -537,14 +537,14 @@ Tab1.motdText:SetMaxLines(4)
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.img:SetSize(140,140)  -- was 220, nu kleiner
 Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",20,30)
-Tab1.img:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\kelsey.tga")
+Tab1.img:SetTexture("Interface\\AddOns\\WowTracker\\Media\\kelsey.tga")
 Tab1.img:SetAlpha(0.90)
 
 -- DieOuwe: klein, rechterhoek van linker kolom, gespiegeld (wijst naar binnen)
 Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.dieouwe:SetSize(80,138)  -- proportioneel kleiner
 Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
-Tab1.dieouwe:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
+Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.75)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
 -- Origineel kijkt rechts → gespiegeld kijkt naar links (naar binnen)
@@ -554,7 +554,7 @@ Tab1.dieouwe:SetTexCoord(1,0,0,1)
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
 Tab1.logoWM:SetSize(90,90)
 Tab1.logoWM:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",8,8)
-Tab1.logoWM:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
+Tab1.logoWM:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
 Tab1.logoWM:SetAlpha(0.12)
 
 -- ── RECHTER KOLOM: GUILD ONLINE LEDEN ─────────────────────────────────────
@@ -1739,13 +1739,30 @@ end
 -- MURLOC MINIMAP BUTTON — volledig origineel menu (4 secties)
 -- Klik links: toggle UI · Rechts: volledig context menu · R-drag: verplaats
 -- ============================================================================
-local MBtn=CreateFrame("Button","DT_MurlocBtn",UIParent)
-MBtn:SetSize(58,58); MBtn:SetPoint("CENTER"); MBtn:SetMovable(true)
-MBtn:EnableMouse(true); MBtn:RegisterForDrag("RightButton"); MBtn:SetClampedToScreen(true)
+local MBtn=CreateFrame("Button","DT_MurlocBtn",UIParent,"BackdropTemplate")
+MBtn:SetSize(58,58)
+MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-225,-5)
+MBtn:SetMovable(true)
+MBtn:EnableMouse(true)
+MBtn:RegisterForDrag("LeftButton","RightButton")
+MBtn:SetClampedToScreen(true)
+MBtn:SetFrameStrata("HIGH")
+MBtn:SetFrameLevel(10)
+MBtn:Show()
+
+-- Achtergrond cirkel (altijd zichtbaar als texture mist)
+MBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=2})
+MBtn:SetBackdropColor(0.04,0.02,0.08,0.9)
+MBtn:SetBackdropBorderColor(0.55,0.15,0.85,1)
 
 MBtn.tex=MBtn:CreateTexture(nil,"ARTWORK")
 MBtn.tex:SetAllPoints()
-MBtn.tex:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
+MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
+-- Fallback tekst als texture ontbreekt
+MBtn.fallback=MBtn:CreateFontString(nil,"OVERLAY")
+MBtn.fallback:SetFont("Fonts\\2002.ttf",14,"OUTLINE")
+MBtn.fallback:SetPoint("CENTER")
+MBtn.fallback:SetText("|cffa335eeWT|r")
 
 MBtn:SetScript("OnEnter",function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
@@ -1864,14 +1881,21 @@ end
 MBtn:SetScript("OnClick",function(self,btn)
     if btn=="LeftButton" then
         PlaySound(6449)
-        if UI:IsShown() then UI:Hide() else UI:Show(); ShowTab(activeTabID or 1) end
-    else DT_OpenMurlocMenu(self) end
+        if UI:IsShown() then UI:Hide()
+        else UI:Show(); ShowTab(activeTabID or 1) end
+    elseif btn=="RightButton" then
+        DT_OpenMurlocMenu(self)
+    end
 end)
-MBtn:SetScript("OnDragStart",MBtn.StartMoving)
+MBtn:SetScript("OnDragStart",function(self,btn)
+    if btn=="LeftButton" or btn=="RightButton" then self:StartMoving() end
+end)
 MBtn:SetScript("OnDragStop",function(self)
     self:StopMovingOrSizing()
-    local _,_,_,x,y=self:GetPoint()
-    DelveTrackerDB.murlocPos={x=x,y=y}
+    local pt,_,rpt,x,y=self:GetPoint()
+    if DelveTrackerDB then
+        DelveTrackerDB.murlocPos={pt=pt,rpt=rpt,x=x,y=y}
+    end
 end)
 
 -- ============================================================================
@@ -1936,14 +1960,18 @@ UI:SetScript("OnEvent",function(self,event)
         -- Herstel murloc schaal
         if DelveTrackerDB.mScale then MBtn:SetScale(DelveTrackerDB.mScale) end
         -- Herstel murloc positie
-        if DelveTrackerDB.murlocPos then
-            local p=DelveTrackerDB.murlocPos
-            MBtn:ClearAllPoints()
-            MBtn:SetPoint("CENTER",UIParent,"CENTER",p.x or 0,p.y or 0)
-        else
-            MBtn:ClearAllPoints()
-            MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-220,-5)
-        end
+        -- Murloc positie herstel
+        C_Timer.After(0.2, function()
+            if DelveTrackerDB.murlocPos then
+                local p=DelveTrackerDB.murlocPos
+                MBtn:ClearAllPoints()
+                MBtn:SetPoint(p.pt or "TOPRIGHT",UIParent,p.rpt or "TOPRIGHT",p.x or -225,p.y or -5)
+            else
+                MBtn:ClearAllPoints()
+                MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-225,-5)
+            end
+            MBtn:Show()
+        end)
         -- Herstel UI positie
         if DelveTrackerDB.mainPos then
             local p=DelveTrackerDB.mainPos
