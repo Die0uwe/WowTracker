@@ -835,19 +835,22 @@ WT_UpdateRoster = function()
         card.rIcon = card.rIcon or card:CreateTexture(nil,"ARTWORK")
         card.rIcon:SetSize(52,52)
         card.rIcon:SetPoint("TOPLEFT",4,-4)
-        local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s+","")
-        local facKey  = (data.faction=="Horde") and "horde" or "alliance"
-        -- Klasse kleur achtergrond (altijd zichtbaar)
+        -- Klasse kleur achtergrond altijd zichtbaar
         if not card.rIconBg then
             card.rIconBg=card:CreateTexture(nil,"BACKGROUND")
             card.rIconBg:SetSize(52,52)
             card.rIconBg:SetPoint("TOPLEFT",4,-4)
         end
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
-        -- Race icoon (achievement texture)
-        local racePath="Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey
-        card.rIcon:SetTexture(racePath)
-        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+        -- Race icoon via SetAtlas — werkt in 12.x (PBRoster methode)
+        local raceAtlas = (data.race or "human"):lower():gsub("%s","")
+        local genderStr = (data.gender==3) and "female" or "male"
+        local atlasName = "raceicon-"..raceAtlas.."-"..genderStr
+        local ok = pcall(function() card.rIcon:SetAtlas(atlasName) end)
+        if not ok or not card.rIcon:GetTexture() then
+            -- Fallback: klasse kleur, geen crash
+            card.rIcon:SetColorTexture(cc.r*0.4,cc.g*0.4,cc.b*0.4,1)
+        end
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
@@ -1649,7 +1652,8 @@ ScanDelves = function()
         local specID = GetSpecializationInfo(specIndex)
         d.specID = specID
     end
-    d.race = UnitRace("player") or d.race
+    d.race    = UnitRace("player") or d.race
+    d.gender  = UnitSex("player") or d.gender  -- 2=male, 3=female
     d.faction = UnitFactionGroup("player") or d.faction
 end
 
