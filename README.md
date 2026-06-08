@@ -1,11 +1,11 @@
-![WowTracker Banner](Media/Banners/WowTracker_Banner_1280x640.png)
+![WowTracker Community Banner](Media/Banners/WowTracker_Banner_1280x640.png)
 
 # WowTracker — Slayer Alliance Edition
 
 > **WoW: Midnight · Interface 120005 · Build 67314**  
 > Multi-plugin warband tracker for World of Warcraft Midnight (12.0.5)
 
-[![Version](https://img.shields.io/badge/version-v2.9.7-a335ee?style=flat-square)](https://github.com/Die0uwe/WowTracker)
+[![Version](https://img.shields.io/badge/version-v3.0.7-a335ee?style=flat-square)](https://github.com/Die0uwe/WowTracker)
 [![WoW](https://img.shields.io/badge/WoW-Midnight%2012.0.5-00ccff?style=flat-square)](https://worldofwarcraft.com)
 [![Guild](https://img.shields.io/badge/Guild-Slayer%20Alliance-ccaa00?style=flat-square)](https://slayeralliance.com)
 [![Themes](https://img.shields.io/badge/Themes-fork%20welcome-44cc66?style=flat-square)](https://github.com/Die0uwe/WowTracker-Themes)
@@ -17,10 +17,11 @@
 
 ### Main Interface
 - **6-tab UI** — Guild · Delves · Bounty · Roster · Armory · Currency
-- **Scrolling event ticker** bovenaan met live klok, world events, Prey Hunt en Abundance
+- **Scrolling event ticker** met live klok, world events, Prey Hunt en Abundance
 - **Theme selector** (🎨) — SA Dark · ProfBuddy Purple · MailVault Blue · Night Black
 - **Language selector** (🌐) — NL · EN · DE · FR · ES
-- **Registry B button** — XL karakter index popup
+- **Murloc button** — sleep vrij, volledig context menu met 4 secties
+- **Admin panel** — via ⚙ WoW Settings, sliders, plugin on/off
 - **Scale knoppen** (+/−) — UI schaal 0.5× tot 2.0×
 
 ### Tab 1 — Guild
@@ -29,33 +30,53 @@
 - Guild emblem · Kelsey · DieOuwe afbeeldingen
 
 ### Tab 2 — Delves
-- **2-koloms layout** — warband karakters alphabetisch verdeeld
+- **2-koloms layout** — warband karakters alphabetisch
 - Live zoekbalk met **letter-suggesties dropdown**
-- Per karakter: faction · klasse icoon · naam · spec · iLvl · delve voortgang (0/2 0/4 0/8) · gold
-- Klik → opent Charmory Armory
+- Per karakter: faction · klasse icoon · naam · spec · iLvl · delve voortgang · gold
+- Uniforme opmaak en tooltips beide kolommen
 
 ### Tab 3 — Bounty
 - **Nemesis** subtab: actieve Nemesis delve + Required Items
-- **Abundance info blok**: actieve zone · timer (7h 12m) · Shard of Dundun count
-- **Bountiful** subtab: live bountiful detectie via C_AreaPoiInfo
+- **Abundance info blok**: actieve zone · timer · Shard of Dundun count
+- **Bountiful** subtab: live detectie via C_AreaPoiInfo
 - **Normal** subtab: alle normale delves
 
 ### Tab 4 — Roster
 - **ProfessionBuddy-stijl kaartjes** (3 kolommen)
-- Per kaartje: groot race portrait (52×52) + spec icoon in hoek
-- Naam in klasse kleur · Lvl · Spec · iLvl · delve voortgang · gold · profession iconen
+- Race portrait via `raceicon128-{race}-{gender}` atlas (alle rassen inclusief Midnight)
+- Spec icoon in hoek van race portrait
+- Naam in klasse kleur · Lvl · Spec · iLvl · delve voortgang · professions
 
 ### Tab 5 — Armory
-- **3D model viewer** links (Charmory)
-- **Stats panel** rechts: Karakter · Stats · Currencies · Delves · Goud
+- **3D model viewer** embedded (Charmory)
+- **Stats panel** rechts: gear · stats · currencies · gold
 - `/charmory` of `/armory` voor standalone popup
-- Gear slots met iLvl badges · gold/token count
 
 ### Tab 6 — Currency
 - Warband currency overzicht per karakter
+- **Horizontale scroll** per karakter rij met ◀ ▶ pijlen
 - Live iconen via `C_CurrencyInfo.GetCurrencyInfo()`
-- **Filter op currency naam** of expansie
-- Expansies: Midnight → The War Within → Dragonflight → Shadowlands → PvP
+- **28 currencies**: Midnight → War Within → Dragonflight → Shadowlands → BfA → PvP
+- Filter op currency naam of expansie
+
+---
+
+## Race Icons
+Alle speelbare rassen ondersteund via de `raceicon128-*` atlas:
+
+| Ras | Atlas key | Status |
+|---|---|---|
+| Human, Orc, Dwarf, NightElf | `human`, `orc`, `dwarf`, `nightelf` | ✅ |
+| Undead/Forsaken/Scourge | `scourge` | ✅ fixed v3.0.7 |
+| Tauren, Gnome, Troll, BloodElf | `tauren`, `gnome`, `troll`, `bloodelf` | ✅ |
+| Draenei, Goblin, Worgen, Pandaren | `draenei`, `goblin`, `worgen`, `pandaren` | ✅ |
+| Nightborne, HighmountainTauren | `nightborne`, `highmountain` | ✅ |
+| VoidElf, LightforgedDraenei | `voidelf`, `lightforged` | ✅ |
+| ZandalariTroll, KulTiran | `zandalari`, `kultiran` | ✅ |
+| DarkIronDwarf, MagharOrc | `darkirondwarf`, `magharorc` | ✅ |
+| Mechagnome, Vulpera, Dracthyr | `mechagnome`, `vulpera`, `dracthyr` | ✅ |
+| Earthen | `earthen` | ✅ |
+| Harronir/Haranir (Midnight) | `AlliedRace-Crest-Haranir` fallback | ✅ |
 
 ---
 
@@ -69,9 +90,9 @@
 | **ContentManager** | — | Content kalender |
 | **CustomAFK** | `/dtafk` `/dtgrid` | AFK scherm layout |
 | **Debugger** | `/dtdebug` | In-game log & DB viewer |
-| **Events** | — | World events + Abundance scanner |
+| **Events** | — | World events + Abundance scanner v2.0 |
 | **ExchangeBot** | `/cbot` | Currency exchange tool |
-| **HelpGuide** | `/dthelp` | Dit help scherm |
+| **HelpGuide** | `/dthelp` | Help scherm |
 | **Lockout** | `/dtlockout` | Raid & dungeon lockouts |
 | **MailAttach** | `/dtmail` | Quick Attach bij mailbox |
 | **Media** | — | Zone media manager |
@@ -82,7 +103,7 @@
 | **SkinNRare** | `/snr` `/mt` | Skin & rare tracker |
 | **SystemTools** | `/wt-mem` `/wt-reload` | Systeem tools |
 | **TooltipExtra** | — | Extra tooltip informatie |
-| **UserInfo** | — | Karakter armory & model viewer |
+| **UserInfo** | — | Karakter info |
 
 ---
 
@@ -112,22 +133,47 @@
 
 1. Download de [laatste release](https://github.com/Die0uwe/WowTracker/releases)
 2. Pak uit in `World of Warcraft/_retail_/Interface/AddOns/`
-3. Zorg dat de map `WowTracker/` heet
+3. Map moet `WowTracker` heten
 4. Log in → `/reload`
 
-**Media folder** (`WowTracker/Media/`) bevat custom TGA bestanden — **niet overschrijven** bij update tenzij expliciet aangegeven.
+**Eerste gebruik:** Log 1x in op elk karakter zodat race/gender data wordt opgeslagen.
 
 ---
 
-## Community & Customization
+## Community
 
-### 🎨 Maak je eigen guild theme
-Fork **[WowTracker-Themes](https://github.com/Die0uwe/WowTracker-Themes)**  
-Kopieer `themes/template.lua`, pas kleuren aan, stuur een PR!
+### 🎨 Guild theme maken
+Fork **[WowTracker-Themes](https://github.com/Die0uwe/WowTracker-Themes)**
 
-### 🌐 Voeg een vertaling toe
-Fork **[WowTracker-i18n](https://github.com/Die0uwe/WowTracker-i18n)**  
-Kopieer `locales/enUS.lua`, vertaal naar jouw taal, stuur een PR!
+### 🌐 Vertaling toevoegen
+Fork **[WowTracker-i18n](https://github.com/Die0uwe/WowTracker-i18n)**
+
+---
+
+## Roadmap
+
+### v3.1 (volgende)
+- [ ] L[] lokalisatie systeem in addon
+- [ ] Bounty Nemesis centrering fix
+- [ ] Test framework `/wt test`
+
+### v3.0 (huidig — Midnight launch)
+- [x] Race icons alle rassen via `raceicon128` atlas
+- [x] Undead/Forsaken fix (`scourge` atlas)
+- [x] Admin panel volledig hersteld
+- [x] DB auto-migratie gender + race bij login
+- [x] WowTracker Community banner + branding
+- [x] Currency 28 currencies + horizontale scroll
+- [x] Abundance Scanner v2.0
+- [x] Roster ProfBuddy stijl kaartjes
+- [x] Murloc menu 4 secties
+
+### v2.9 (vorige sprint)
+- [x] 6-tab UI volledig
+- [x] Delves 2-koloms uniforme opmaak
+- [x] Armory embedded Tab5
+- [x] PreyTracker kompas V3.x
+- [x] Media paden WowTracker
 
 ---
 
@@ -140,22 +186,6 @@ Kopieer `locales/enUS.lua`, vertaal naar jouw taal, stuur een PR!
 | Expansie | Midnight (12.0.5) |
 | Lua | 5.1 compatible |
 | Bestanden | 23 Lua · 1 TOC · 1 XML |
-| Code | ~16.000 regels |
-| Afhankelijkheden | Geen externe libs vereist |
-
-### Kritieke API's (Midnight 12.x)
-- `C_AreaPoiInfo.GetDelvesForMap()` — abundance & bountiful detectie
-- `C_AreaPoiInfo.GetAreaPOISecondsLeft()` — exacte event timer
-- `C_CurrencyInfo.GetCurrencyInfo()` — live currency iconen
-- `GetSpecializationInfoByID()` — spec iconen
-- `MenuUtil.CreateContextMenu()` — context menus (vervangt UIDropDownMenu)
-- `C_Container.*` — bag API (Midnight)
-
-### Verboden in Midnight 12.x
-- ~~`OptionsSliderTemplate`~~ → `CreateFrame("Slider")` + `SetThumbTexture()`
-- ~~`Fonts\FRIZQT__.TTF`~~ → `Fonts2.ttf`
-- ~~`UIDropDownMenu_*`~~ → `MenuUtil.CreateContextMenu()`
-- ~~`GetAddOnMemoryUsage`~~ → `C_AddOns.GetAddOnMemoryUsage()`
 
 ---
 
@@ -165,9 +195,8 @@ Kopieer `locales/enUS.lua`, vertaal naar jouw taal, stuur een PR!
 - 💬 **Discord**: [slayeralliance.com/discord](https://slayeralliance.com/discord)
 - 🎨 **Themes**: [WowTracker-Themes](https://github.com/Die0uwe/WowTracker-Themes)
 - 🌐 **i18n**: [WowTracker-i18n](https://github.com/Die0uwe/WowTracker-i18n)
-- 📦 **CurseForge**: [Die0uwe](https://www.curseforge.com/members/dieouwe)
 
 ---
 
 *WowTracker is gebouwd door DieOuwe voor Slayer Alliance — Sporeggar EU*  
-*Midnight ready · Updated 2026-06-08*
+*Midnight ready · Updated 2026-06-08 · v3.0.7*

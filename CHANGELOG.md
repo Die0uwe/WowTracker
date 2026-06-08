@@ -1,5 +1,57 @@
 # CHANGELOG — WowTracker (Slayer Alliance Edition)
 
+## [v3.0.7] — 2026-06-08
+### Fixed
+- Undead/Forsaken race icon: atlas heet `raceicon128-scourge-*` niet `undead`
+  Scourge + Undead + Forsaken mappen nu allemaal correct naar `scourge`
+- Admin panel volledig hersteld uit v2.8.9:
+  Header logo + titel + DieOuwe image
+  UI Scale + Murloc Scale sliders
+  Plugin on/off lijst met scroll
+  Extra opties sectie
+
+## [v3.0.6] — 2026-06-08
+### Fixed
+- Admin panel verplaatst naar na alle functie definities
+  Was: admin panel stond voor functies → WT_UpdateGuildOnline nil crash op L417
+
+## [v3.0.5] — 2026-06-08
+### Added
+- Admin panel terug via Settings.RegisterCanvasLayoutCategory
+  ⚙ knop → WoW Settings → WowTracker
+
+## [v3.0.4] — 2026-06-08
+### Fixed
+- DB auto-migratie bij PLAYER_LOGIN:
+  gender string ("male"/"female") → getal (2/3)
+  race met spaties ("Blood Elf") → CamelCase ("BloodElf")
+
+## [v3.0.3] — 2026-06-08
+### Fixed
+- Gender opgeslagen als getal (UnitSex() = 2 of 3) exact PB Scanner
+- DT_SetRaceIcon: gender check `== 3` i.p.v. `== "female"`
+
+## [v3.0.2] — 2026-06-08
+### Fixed
+- DB cleanup bij login: lege/duplicate karakter entries verwijderd
+
+## [v3.0.1] — 2026-06-08
+### Added
+- DT_SetRaceIcon() exact PBRoster Constants.lua v3.5.1
+  RaceIconShortName tabel alle rassen inclusief Midnight
+  3-staps fallback: raceicon128 → raceicon → AlliedRace-Crest
+
+## [v3.0.0] — 2026-06-08
+### Added
+- Race icon via SetAtlas: PBRoster methode
+  UnitRace() 2e return = CamelCase, UnitSex() = getal
+- WowTracker Community banner gepusht naar GitHub
+  Media/Banners/WowTracker_Banner_1280x640.png
+  Media/Banners/WowTracker_Banner_1920x480.png
+  Media/Headers/WowTracker_Header_800x200.png
+
+---
+
 ## [v2.9.7] — 2026-06-08
 ### Fixed
 - Delves kolom 2: exact zelfde structuur als kolom 1 (font, icon grootte, kleur, iLvl badge)
