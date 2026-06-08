@@ -851,7 +851,7 @@ local RACE_ICON_MAP = {
     ["KulTiran"]    = "kultiran",
     ["Mechagnome"]  = "mechagnome",
     ["Orc"]         = "orc",
-    ["Undead"]      = "undead",
+    ["Undead"]      = "scourge",  -- fix: atlas heet scourge
     ["Tauren"]      = "tauren",
     ["Troll"]       = "troll",
     ["BloodElf"]    = "bloodelf",
@@ -1209,85 +1209,274 @@ WT_UpdateGuildOnline = function()
     Tab1.onlineScroll.content:SetHeight(#online * ROW_H + 4)
 end
 
--- ── ADMIN PANEL via WoW Settings (exact origineel DelveTracker.lua) ────────
+-- ── ADMIN PANEL — volledig (hersteld uit v2.8.9) ─────────────────────────
 local opt = CreateFrame("Frame","DelveTrackerOptions")
-opt.name = "WowTracker"
-local _dtCategory = Settings.RegisterCanvasLayoutCategory(opt, opt.name)
-Settings.RegisterAddOnCategory(_dtCategory)
+opt.name="WowTracker"
+local category=Settings.RegisterCanvasLayoutCategory(opt,opt.name)
+Settings.RegisterAddOnCategory(category)
+UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
 
-UI.settingsBtn:SetScript("OnClick", function()
-    Settings.OpenToCategory(_dtCategory:GetID())
-end)
+-- ── HEADER (vaste posities — geen anchor chain) ──────────────────────────
+opt.logo=opt:CreateTexture(nil,"ARTWORK")
+opt.logo:SetSize(40,40)
+opt.logo:SetPoint("TOPLEFT",16,-16)
+opt.logo:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
 
--- DieOuwe image
-opt.img = opt:CreateTexture(nil,"ARTWORK")
-opt.img:SetSize(120,200); opt.img:SetPoint("TOPLEFT",15,-40)
-opt.img:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
+opt.tit=opt:CreateFontString(nil,"OVERLAY")
+opt.tit:SetFont(C_2002,15,"OUTLINE")
+opt.tit:SetPoint("TOPLEFT",62,-18)
+opt.tit:SetText(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v3.0.6|r")
 
--- Titel
-opt.saTitle = opt:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
-opt.saTitle:SetPoint("TOPLEFT",150,-20)
-opt.saTitle:SetText(SA_PURPLE.."WOWTRACKER - CONFIG|r")
+opt.sub=opt:CreateFontString(nil,"OVERLAY")
+opt.sub:SetFont(C_2002,9,"")
+opt.sub:SetPoint("TOPLEFT",62,-38)
+opt.sub:SetText(SA_GREY.."Slayer Alliance · Midnight 12.0.5.67314|r")
 
--- Sliders (geen OptionsSliderTemplate — deprecated in 12.x)
-local function AddSlider(label,minV,maxV,step,y,dbKey,fn)
-    local s = CreateFrame("Slider","DT_Slider_"..dbKey,opt)
-    s:SetPoint("TOPLEFT",150,y); s:SetSize(180,16)
-    s:SetOrientation("HORIZONTAL"); s:SetMinMaxValues(minV,maxV)
-    s:SetValueStep(step); s:SetObeyStepOnDrag(true)
+opt.charImg=opt:CreateTexture(nil,"ARTWORK")
+opt.charImg:SetSize(60,105)
+opt.charImg:SetPoint("TOPRIGHT",-14,-4)
+opt.charImg:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
+opt.charImg:SetAlpha(0.85)
+
+-- Lijn Y=60
+opt.hdrLine=opt:CreateTexture(nil,"OVERLAY")
+opt.hdrLine:SetHeight(1)
+opt.hdrLine:SetPoint("TOPLEFT",8,-60)
+opt.hdrLine:SetPoint("TOPRIGHT",-8,-60)
+opt.hdrLine:SetColorTexture(0.35,0.10,0.55,0.7)
+
+-- ── UI SCHAAL Y=70 ────────────────────────────────────────────────────────
+opt.scaleHdr=opt:CreateFontString(nil,"OVERLAY")
+opt.scaleHdr:SetFont(C_2002,10,"OUTLINE")
+opt.scaleHdr:SetPoint("TOPLEFT",8,-70)
+opt.scaleHdr:SetText(SA_PURPLE.."UI SCHAAL|r")
+
+local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,y)
+    local l=parent:CreateFontString(nil,"OVERLAY")
+    l:SetFont(C_2002,10,"")
+    l:SetPoint("TOPLEFT",8,y)
+    l:SetText(SA_GREY..lbl.."|r")
+
+    local s=CreateFrame("Slider","DT_Slider_"..dbKey,parent)
+    s:SetSize(260,14)
+    s:SetPoint("TOPLEFT",8,y-14)
+    s:SetOrientation("HORIZONTAL")
+    s:SetMinMaxValues(minV,maxV)
+    s:SetValueStep(step)
+    s:SetObeyStepOnDrag(true)
     s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
     local bg=s:CreateTexture(nil,"BACKGROUND")
     bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
-    local lbl=s:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-    lbl:SetPoint("BOTTOM",s,"TOP",0,2); lbl:SetText(label)
-    local val=s:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-    val:SetPoint("TOP",s,"BOTTOM",0,-2)
-    local init=DelveTrackerDB[dbKey] or 1; s:SetValue(init); val:SetText(tostring(init))
-    s:SetScript("OnValueChanged",function(self,v)
-        v=math.floor(v*10)/10; fn(v); DelveTrackerDB[dbKey]=v; val:SetText(tostring(v))
+
+    local vt=s:CreateFontString(nil,"OVERLAY")
+    vt:SetFont(C_2002,10,"")
+    vt:SetPoint("LEFT",s,"RIGHT",6,0)
+    vt:SetTextColor(0.8,0.6,1,1)
+
+    local init=DelveTrackerDB[dbKey] or 1.0
+    s:SetValue(init); vt:SetText(string.format("%.2f",init))
+    s:SetScript("OnValueChanged",function(_,v)
+        v=math.floor(v*100+0.5)/100
+        DelveTrackerDB[dbKey]=v
+        vt:SetText(string.format("%.2f",v))
+        fn(v)
     end)
 end
-AddSlider("UI Scale",0.5,2.0,0.1,-80,"mainScale",function(v) UI:SetScale(v) end)
-AddSlider("Murloc Scale",0.5,2.0,0.1,-130,"mScale",function(v)
-    if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end
-end)
 
--- Plugin lijst
-opt.pScroll = CreateFrame("ScrollFrame","DT_PluginScroll",opt,"UIPanelScrollFrameTemplate")
-opt.pScroll:SetSize(300,150); opt.pScroll:SetPoint("TOPLEFT",150,-200)
+MakeSlider(opt,"Main window scale",0.5,2.0,0.05,"scale",
+    function(v) UI:SetScale(v) end,-82)
+MakeSlider(opt,"Murloc button scale",0.5,2.0,0.05,"mScale",
+    function(v) if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end end,-114)
+
+-- Lijn Y=145
+opt.scaleLine=opt:CreateTexture(nil,"OVERLAY")
+opt.scaleLine:SetHeight(1)
+opt.scaleLine:SetPoint("TOPLEFT",8,-145)
+opt.scaleLine:SetPoint("TOPRIGHT",-8,-145)
+opt.scaleLine:SetColorTexture(0.20,0.05,0.35,0.5)
+
+-- ── PLUGINS Y=155 ─────────────────────────────────────────────────────────
+opt.plbl=opt:CreateFontString(nil,"OVERLAY")
+opt.plbl:SetFont(C_2002,10,"OUTLINE")
+opt.plbl:SetPoint("TOPLEFT",8,-155)
+opt.plbl:SetText(SA_PURPLE.."PLUGINS|r  "..SA_GREY.."(toggle = direct effect)|r")
+
+opt.pScroll=CreateFrame("ScrollFrame","DT_PluginScroll",opt,"UIPanelScrollFrameTemplate")
+opt.pScroll:SetSize(550,310)
+opt.pScroll:SetPoint("TOPLEFT",8,-170)
 local pContent=CreateFrame("Frame",nil,opt.pScroll)
-pContent:SetSize(280,1); opt.pScroll:SetScrollChild(pContent); pContent.rows={}
+pContent:SetSize(500,1); opt.pScroll:SetScrollChild(pContent); pContent.rows={}
 
 local function UpdatePluginList()
-    DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
+    DelveTrackerDB.PluginStates=DelveTrackerDB.PluginStates or {}
     local names={}
-    for name in pairs(DelveTracker.Plugins) do table.insert(names,name) end
-    table.sort(names)
+    for n in pairs(DelveTracker.Plugins) do table.insert(names,n) end
+    table.sort(names,function(a,b)
+        if a=="UserInfo" then return true end
+        if b=="UserInfo" then return false end
+        return a<b
+    end)
     for i,name in ipairs(names) do
-        local r=pContent.rows[i] or CreateFrame("Frame",nil,pContent,"BackdropTemplate")
-        r:SetSize(270,30); r:SetPoint("TOPLEFT",0,(i-1)*-35); r:Show()
-        r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8"})
-        r:SetBackdropColor(0.1,0.1,0.1,0.5)
-        r.t=r.t or r:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-        r.t:SetPoint("LEFT",5,0); r.t:SetText(name)
+        local r=pContent.rows[i]
+        if not r then
+            r=CreateFrame("Frame",nil,pContent,"BackdropTemplate")
+            r:SetSize(498,28)
+            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+        end
+        r:SetPoint("TOPLEFT",0,(i-1)*-31)
+        local pinned=(name=="UserInfo")
+        r:SetBackdropColor(pinned and 0.12 or 0.07, 0.04, pinned and 0.18 or 0.11, 0.9)
+        r:SetBackdropBorderColor(pinned and 0.55 or 0.18, 0.05, pinned and 0.85 or 0.28, 1)
+        r:Show()
+
+        r.t=r.t or r:CreateFontString(nil,"OVERLAY")
+        r.t:SetFont(C_2002,11,"")
+        r.t:SetPoint("LEFT",8,0)
+        r.t:SetText((pinned and SA_PURPLE or SA_GREY)..name.."|r")
+
+        -- Beschrijving
+        r.desc=r.desc or r:CreateFontString(nil,"OVERLAY")
+        r.desc:SetFont(C_2002,9,"")
+        r.desc:SetPoint("LEFT",r.t,"RIGHT",10,0)
+        local descs={
+            UserInfo="Karakter armory & model viewer",
+            PreyTracker="Kompas HUD voor Prey Hunts",
+            ClothCounter="Stof tracker warband-breed",
+            SkinNRare="Rare beast waypoints",
+            Registry="XL karakter index (/crew)",
+            Lockout="Raid & dungeon lockouts",
+            ExchangeBot="Currency exchange",
+            Debugger="In-game log & DB viewer",
+            CombatAnnounce="Combat tekst aankondigingen",
+            HelpGuide="Help scherm (/dthelp)",
+            Charmory="Armory popup",
+            QuickSet="Bounty delve tracker",
+            Media="Zone media manager",
+            CustomAFK="AFK scherm",
+        }
+        r.desc:SetText(SA_GREY..(descs[name] or "").."|r")
+
         r.btn=r.btn or CreateFrame("Button",nil,r,"BackdropTemplate")
-        r.btn:SetSize(45,18); r.btn:SetPoint("RIGHT",-5,0)
+        r.btn:SetSize(52,20); r.btn:SetPoint("RIGHT",-5,0)
         r.btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
-        r.btn.t:SetPoint("CENTER")
-        local function Refresh()
+        r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY")
+        r.btn.t:SetFont(C_2002,10,"OUTLINE"); r.btn.t:SetPoint("CENTER")
+
+        local function Rfsh()
             local en=DelveTrackerDB.PluginStates[name]~=false
-            r.btn:SetBackdropColor(en and 0 or 0.7, en and 0.7 or 0, 0, 1)
-            r.btn.t:SetText(en and "ON" or "OFF")
+            r.btn:SetBackdropColor(en and 0.04 or 0.22,en and 0.16 or 0.04,0.04,1)
+            r.btn:SetBackdropBorderColor(en and 0.10 or 0.55,en and 0.55 or 0.10,0.05,1)
+            r.btn.t:SetText(en and "|cff44cc66ON|r" or "|cffcc4444OFF|r")
         end
         r.btn:SetScript("OnClick",function()
-            DelveTrackerDB.PluginStates[name]=not(DelveTrackerDB.PluginStates[name]~=false)
-            Refresh()
+            DelveTrackerDB.PluginStates[name]=not(DelveTrackerDB.PluginStates[name]~=false); Rfsh()
         end)
-        Refresh(); pContent.rows[i]=r
+        Rfsh(); pContent.rows[i]=r
     end
+    pContent:SetHeight(#names*31+4)
 end
 opt:SetScript("OnShow",UpdatePluginList)
+
+-- Lijn Y=490 (170 start + 310 hoogte + 10 gap)
+-- ─────────────────────────────────────────────────────────────────────────
+-- EXTRA OPTIES — verankerd ONDER de scrolllijst, nooit erin
+-- pScroll start Y=-170, hoogte=310px → eindigt bij Y=-480
+-- Extra opties: Y=-492 (12px marge)
+-- ─────────────────────────────────────────────────────────────────────────
+opt.plugLine=opt:CreateTexture(nil,"OVERLAY")
+opt.plugLine:SetHeight(1)
+opt.plugLine:SetPoint("TOPLEFT",opt.pScroll,"BOTTOMLEFT",0,-8)
+opt.plugLine:SetWidth(540)
+opt.plugLine:SetColorTexture(0.20,0.05,0.35,0.5)
+
+opt.extraHdr=opt:CreateFontString(nil,"OVERLAY")
+opt.extraHdr:SetFont(C_2002,10,"OUTLINE")
+opt.extraHdr:SetPoint("TOPLEFT",opt.plugLine,"BOTTOMLEFT",0,-8)
+opt.extraHdr:SetText(SA_PURPLE.."EXTRA OPTIES|r")
+
+local function MakeOptBtn(lbl,anchorFrame,fn)
+    local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
+    b:SetSize(280,24)
+    b:SetPoint("TOPLEFT",anchorFrame,"BOTTOMLEFT",0,-4)
+    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    b:SetBackdropColor(0.08,0.04,0.12,0.9)
+    b:SetBackdropBorderColor(0.25,0.07,0.40,1)
+    local t=b:CreateFontString(nil,"OVERLAY")
+    t:SetFont(C_2002,10,"")
+    t:SetPoint("LEFT",8,0)
+    t:SetText(SA_GREY..lbl.."|r")
+    b:SetScript("OnClick",fn)
+    b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.55,0.15,0.85,1) end)
+    b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.25,0.07,0.40,1) end)
+    return b  -- teruggeven voor anchoring
+end
+
+local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",opt.extraHdr,function()
+    if SlashCmdList["CSET"] then SlashCmdList["CSET"]("")
+    elseif SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("") end
+end)
+local eb2=MakeOptBtn("⊞  AFK Screen layout (/dtgrid)",eb1,function()
+    if SlashCmdList["DTGRID"] then SlashCmdList["DTGRID"]("") end
+end)
+local eb3=MakeOptBtn("▶  Preview AFK scherm (/dtafk)",eb2,function()
+    if SlashCmdList["DTAFK"] then SlashCmdList["DTAFK"]("") end
+end)
+MakeOptBtn("⚠  Wipe Character DB",eb3,function()
+    if DelveTrackerDB then
+        DelveTrackerDB.characters={}
+        print(SA_PURPLE.."[WowTracker]|r DB gewist.|r")
+    end
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────
+-- ACTIE KNOPPEN: Reload UI | Wipe DB | Del Char
+-- NAAST Extra opties (rechter kolom van het admin panel)
+-- ─────────────────────────────────────────────────────────────────────────
+local function MakeActionBtn(lbl,col,x,anchorFrame,fn)
+    local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
+    b:SetSize(120,26)
+    b:SetPoint("TOPLEFT",anchorFrame,"TOPRIGHT",x,0)
+    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    b:SetBackdropColor(col[1],col[2],col[3],0.9)
+    b:SetBackdropBorderColor(col[1]+0.2,col[2]+0.1,col[3]+0.1,1)
+    local t=b:CreateFontString(nil,"OVERLAY")
+    t:SetFont(C_2002,10,"OUTLINE")
+    t:SetPoint("CENTER")
+    t:SetText(lbl)
+    b:SetScript("OnClick",fn)
+    b:SetScript("OnEnter",function(s)
+        s:SetBackdropBorderColor(1,0.9,0.2,1)
+    end)
+    b:SetScript("OnLeave",function(s)
+        s:SetBackdropBorderColor(col[1]+0.2,col[2]+0.1,col[3]+0.1,1)
+    end)
+    return b
+end
+
+-- Reload UI
+local abReload=MakeActionBtn("|cffffffff⟳  Reload UI|r",{0.08,0.12,0.20},12,opt.extraHdr,
+    function() ReloadUI() end)
+-- Wipe DB
+local abWipe=MakeActionBtn("|cffff6644⚠  Wipe DB|r",{0.20,0.05,0.05},0,abReload,
+    function()
+        if DelveTrackerDB then
+            DelveTrackerDB.characters={}
+            print(SA_PURPLE.."[WowTracker]|r "..SA_GREY.."Character DB gewist.|r")
+        end
+    end)
+-- Del Char (huidig karakter)
+MakeActionBtn("|cffccaa00✕  Del Char|r",{0.15,0.10,0.02},0,abWipe,
+    function()
+        local key=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
+        if DelveTrackerDB and DelveTrackerDB.characters then
+            DelveTrackerDB.characters[key]=nil
+            print(SA_PURPLE.."[WowTracker]|r "..SA_GREY..key.." verwijderd.|r")
+        end
+    end)
+
+-- [stale afkBtn verwijderd]
+
+-- ── MURLOC ────────────────────────────────────────────────────────────────
 
 -- ============================================================================
 -- WT_UpdateCurrency — Tab6: currency overzicht alle karakters
