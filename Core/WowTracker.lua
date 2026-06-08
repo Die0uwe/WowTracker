@@ -766,7 +766,7 @@ Tab6.scroll.content.crows={}
 -- Roster ProfessionBuddy-stijl: kaartjes per karakter v2.0
 -- Race portrait + spec icoon + iLvl groot + professions onderaan
 local ROSTER_CARD_W = 220
-local ROSTER_CARD_H = 115
+local ROSTER_CARD_H = 130  -- hoger voor profession rij + spec in hoek
 local ROSTER_COLS   = 4
 local ROSTER_GAP    = 8
 
@@ -836,55 +836,55 @@ WT_UpdateRoster = function()
         card:SetBackdropBorderColor(cc.r*0.65, cc.g*0.65, cc.b*0.65, 0.9)
         card:Show()
 
-        -- ── Race portrait linksboven (32x32) ─────────────────────────
+        -- ── Race portrait groot linksboven (52x52) ───────────────────
+        -- Spec icoon klein in hoek rechtsonder van race portrait
+        -- Layout zelfde als ProfessionBuddy: groot race links, tekst rechts
         card.rIcon = card.rIcon or card:CreateTexture(nil,"ARTWORK")
-        card.rIcon:SetSize(32,32)
+        card.rIcon:SetSize(52,52)
         card.rIcon:SetPoint("TOPLEFT",4,-4)
         local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s","")
         local facKey  = ((data.faction or ""):lower()=="horde") and "horde" or "alliance"
         card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey)
         card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
 
-        -- ── Klasse icoon naast race (20x20) ─────────────────────────
-        card.cIcon = card.cIcon or card:CreateTexture(nil,"ARTWORK")
-        card.cIcon:SetSize(20,20)
-        card.cIcon:SetPoint("TOPLEFT",card.rIcon,"TOPRIGHT",2,0)
-        local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
-        if coords then
-            card.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
-            card.cIcon:SetTexCoord(unpack(coords))
-        end
-
-        -- ── Spec icoon naast klasse (20x20) ──────────────────────────
-        card.sIcon = card.sIcon or card:CreateTexture(nil,"ARTWORK")
-        card.sIcon:SetSize(20,20)
-        card.sIcon:SetPoint("TOPLEFT",card.cIcon,"TOPRIGHT",2,0)
+        -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
+        card.sIcon = card.sIcon or card:CreateTexture(nil,"OVERLAY")
+        card.sIcon:SetSize(18,18)
+        -- BOTTOMRIGHT van race portrait, -1px overlap voor hoek-effect
+        card.sIcon:SetPoint("BOTTOMRIGHT",card.rIcon,"BOTTOMRIGHT",1,1)
         if data.specID then
             local ok,_,_,_,iconID = pcall(GetSpecializationInfoByID, data.specID)
             if ok and iconID then card.sIcon:SetTexture(iconID) end
         end
         card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
 
-        -- ── Naam (klasse kleur) ───────────────────────────────────────
+        -- ── Spec icoon border (kleine donkere rand voor leesbaarheid) ──
+        card.sIconBorder = card.sIconBorder or card:CreateTexture(nil,"ARTWORK")
+        card.sIconBorder:SetSize(20,20)
+        card.sIconBorder:SetPoint("CENTER",card.sIcon,"CENTER",0,0)
+        card.sIconBorder:SetColorTexture(0,0,0,0.6)
+        card.sIconBorder:SetDrawLayer("ARTWORK",-1)
+
+        -- ── Naam (klasse kleur) rechts van race portrait ──────────────
         card.nm = card.nm or card:CreateFontString(nil,"OVERLAY")
         card.nm:SetFont(C_2002,12,"OUTLINE")
-        card.nm:SetPoint("TOPLEFT",card.rIcon,"BOTTOMLEFT",0,-4)
+        card.nm:SetPoint("TOPLEFT",card.rIcon,"TOPRIGHT",6,-2)
         card.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255), shortName))
 
-        -- ── Spec tekst ────────────────────────────────────────────────
+        -- ── Lvl + iLvl rechts van portrait, onder naam ────────────────
         card.sp = card.sp or card:CreateFontString(nil,"OVERLAY")
         card.sp:SetFont(C_2002,9,"")
-        card.sp:SetPoint("TOPLEFT",card.nm,"BOTTOMLEFT",0,-2)
-        card.sp:SetText(SA_GREY..(data.spec or "??").."|r")
+        card.sp:SetPoint("TOPLEFT",card.nm,"BOTTOMLEFT",0,-1)
+        card.sp:SetText(SA_GREY.."Lvl "..(data.level or "?").." · "..(data.spec or "??").."|r")
 
-        -- ── iLvl groot rechtsboven ────────────────────────────────────
+        -- ── iLvl groot rechtsboven kaartje ────────────────────────────
         card.ilvlTxt = card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
-        card.ilvlTxt:SetFont(C_2002,22,"OUTLINE")
+        card.ilvlTxt:SetFont(C_2002,16,"OUTLINE")
         card.ilvlTxt:SetPoint("TOPRIGHT",-4,-4)
         local ilvl = data.ilvl or 0
         local ilvlCol = ilvl>=270 and "|cffff8800" or ilvl>=250 and "|cff00ff00" or "|cffffffff"
-        card.ilvlTxt:SetText(ilvlCol..ilvl.."|r")
+        card.ilvlTxt:SetText(ilvlCol..ilvl.." ilv|r")
 
         -- ── Delve progress ────────────────────────────────────────────
         card.prgr = card.prgr or card:CreateFontString(nil,"OVERLAY")
