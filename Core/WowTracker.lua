@@ -1165,13 +1165,16 @@ WT_UpdateCurrency = function()
         if t ~= "Filter karakter..." then filter = t:lower() end
     end
 
-    -- Verberg alle oude frames
+    -- Verberg alle oude frames (veilig: check elk element apart)
     for k,v in pairs(Tab6.scroll.content.crows or {}) do
         if type(v)=="table" then
-            for _,c in pairs(v) do if type(c)=="table" or type(c)=="userdata" then
-                if c.Hide then c:Hide() end
-            end end
-        elseif type(v)=="userdata" and v.Hide then v:Hide() end
+            -- cards_N is een table van frames
+            for _,c in ipairs(v) do
+                if type(c)=="userdata" and c.Hide then c:Hide() end
+            end
+        elseif type(v)=="userdata" and v.Hide then
+            v:Hide()
+        end
     end
     Tab6.scroll.content.crows = {}
 

@@ -593,3 +593,4 @@ _dtInt_DBG:SetScript("OnEvent", function(self)
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("Debugger", function() end)
     -- Plugin registratie klaar — geen auto-show
+end)
