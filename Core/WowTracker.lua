@@ -2016,6 +2016,18 @@ UI:SetScript("OnEvent",function(self,event)
     DelveTrackerDB.characters    = DelveTrackerDB.characters    or {}
     DelveTrackerDB.PluginStates  = DelveTrackerDB.PluginStates  or {}
     if event=="PLAYER_LOGIN" then
+        -- Opruimen: verwijder duplicate/lege karakter entries (level 0 of geen class)
+        if DelveTrackerDB.characters then
+            local toRemove = {}
+            for key, data in pairs(DelveTrackerDB.characters) do
+                if (not data.class) or (not data.level) or (data.level == 0 and not data.ilvl) then
+                    table.insert(toRemove, key)
+                end
+            end
+            for _, key in ipairs(toRemove) do
+                DelveTrackerDB.characters[key] = nil
+            end
+        end
         -- Herstel schaal
         if DelveTrackerDB.mainScale then
             UI:SetScale(DelveTrackerDB.mainScale)
