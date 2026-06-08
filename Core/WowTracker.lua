@@ -753,6 +753,76 @@ Tab6.scroll.content:SetSize(UI_W-40,1)
 Tab6.scroll:SetScrollChild(Tab6.scroll.content)
 Tab6.scroll.content.crows={}
 
+
+-- ============================================================================
+-- RACE ICON HELPER — exact overgenomen uit ProfessionBuddy Constants.lua v3.5.1
+-- Bron: SetRaceIcon() + RaceIconShortName tabel (geverifieerd in 12.0.5)
+-- ============================================================================
+local DT_RaceIconShortName = {
+    ["Human"]              = "human",
+    ["Orc"]                = "orc",
+    ["Dwarf"]              = "dwarf",
+    ["NightElf"]           = "nightelf",
+    ["Scourge"]            = "scourge",
+    ["Undead"]             = "scourge",
+    ["Tauren"]             = "tauren",
+    ["Gnome"]              = "gnome",
+    ["Troll"]              = "troll",
+    ["BloodElf"]           = "bloodelf",
+    ["Draenei"]            = "draenei",
+    ["Goblin"]             = "goblin",
+    ["Worgen"]             = "worgen",
+    ["Pandaren"]           = "pandaren",
+    ["Nightborne"]         = "nightborne",
+    ["HighmountainTauren"] = "highmountain",
+    ["VoidElf"]            = "voidelf",
+    ["LightforgedDraenei"] = "lightforged",
+    ["ZandalariTroll"]     = "zandalari",
+    ["KulTiran"]           = "kultiran",
+    ["DarkIronDwarf"]      = "darkirondwarf",
+    ["MagharOrc"]          = "magharorc",
+    ["Mechagnome"]         = "mechagnome",
+    ["Vulpera"]            = "vulpera",
+    ["Dracthyr"]           = "dracthyr",
+    ["Earthen"]            = "earthen",
+    ["Harronir"]           = "haranir",
+    ["Haranir"]            = "haranir",
+}
+
+local DT_AlliedRaceCrest = {
+    ["Harronir"] = "AlliedRace-Crest-Haranir",
+    ["Haranir"]  = "AlliedRace-Crest-Haranir",
+}
+
+local function DT_SetRaceIcon(texture, raceName, gender)
+    if not texture then return end
+    local gStr = (gender == "female") and "female" or "male"
+    local shortName = DT_RaceIconShortName[raceName]
+    if not shortName then
+        shortName = (raceName or "human"):lower():gsub("[%s'%-]+","")
+    end
+    -- Stap 1: raceicon128 (128px, alle rassen, 12.x)
+    local atlas128 = "raceicon128-"..shortName.."-"..gStr
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas128) then
+        texture:SetAtlas(atlas128)
+        return
+    end
+    -- Stap 2: raceicon (64px, basis rassen)
+    local atlas64 = "raceicon-"..shortName.."-"..gStr
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas64) then
+        texture:SetAtlas(atlas64)
+        return
+    end
+    -- Stap 3: AlliedRace crest (Haranir etc)
+    local crest = DT_AlliedRaceCrest[raceName]
+    if crest and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(crest) then
+        texture:SetAtlas(crest)
+        return
+    end
+    -- Stap 4: vraagteken fallback
+    texture:SetTexture(134400)
+end
+
 -- ============================================================================
 -- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
 -- ============================================================================
@@ -842,12 +912,8 @@ WT_UpdateRoster = function()
             card.rIconBg:SetPoint("TOPLEFT",4,-4)
         end
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
-        -- Race icon: exact PBRoster methode
-        -- data.race is CamelCase (2e return UnitRace): "BloodElf","ZandalariTroll" etc
-        -- data.gender is "male"/"female" string
-        -- atlas: "raceicon-bloodelf-male"
-        local raceAtlas = "raceicon-"..(data.race or "human"):lower().."-"..(data.gender or "male")
-        card.rIcon:SetAtlas(raceAtlas)
+        -- Race icon via DT_SetRaceIcon (exact PBRoster methode, 3-staps fallback)
+        DT_SetRaceIcon(card.rIcon, data.race or "Human", data.gender or "male")
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
