@@ -763,19 +763,49 @@ Tab6.scroll.content.crows={}
 -- ============================================================================
 -- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
 -- ============================================================================
--- Roster ProfessionBuddy-stijl: kaartjes per karakter
-local ROSTER_CARD_W = 170
-local ROSTER_CARD_H = 100  -- hoger voor profession iconen rij
-local ROSTER_COLS   = 4  -- 4 naast elkaar bij 760px breed: 4*170 + 3*10 = 710px
-local ROSTER_GAP    = 10
+-- Roster ProfessionBuddy-stijl: kaartjes per karakter v2.0
+-- Race portrait + spec icoon + iLvl groot + professions onderaan
+local ROSTER_CARD_W = 220
+local ROSTER_CARD_H = 115
+local ROSTER_COLS   = 4
+local ROSTER_GAP    = 8
+
+-- Race icon lookup (Achievement_Character_{race}_{faction})
+local RACE_ICON_MAP = {
+    ["Human"]       = "human",
+    ["Dwarf"]       = "dwarf",
+    ["NightElf"]    = "nightelf",
+    ["Gnome"]       = "gnome",
+    ["Draenei"]     = "draenei",
+    ["Worgen"]      = "worgen",
+    ["Pandaren"]    = "pandaren",
+    ["VoidElf"]     = "voidelf",
+    ["LightforgedDraenei"] = "lightforgeddraenei",
+    ["DarkIronDwarf"] = "darkirondwarf",
+    ["KulTiran"]    = "kultiran",
+    ["Mechagnome"]  = "mechagnome",
+    ["Orc"]         = "orc",
+    ["Undead"]      = "undead",
+    ["Tauren"]      = "tauren",
+    ["Troll"]       = "troll",
+    ["BloodElf"]    = "bloodelf",
+    ["Goblin"]      = "goblin",
+    ["Nightborne"]  = "nightborne",
+    ["HighmountainTauren"] = "highmountaintauren",
+    ["MagharOrc"]   = "magharorc",
+    ["ZandalariTroll"] = "zandalaritroll",
+    ["Vulpera"]     = "vulpera",
+    ["Dracthyr"]    = "dracthyr",
+    ["Haranir"]     = "haranir",
+}
 
 WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
 
     -- Verberg oude kaartjes
     for _,row in pairs(Tab4.scroll.content.rows or {}) do
-        if type(row)=="table" then for _,c in pairs(row) do if c.Hide then c:Hide() end end
-        elseif row.Hide then row:Hide() end
+        if type(row)=="table" then for _,c in pairs(row) do if c and c.Hide then c:Hide() end end
+        elseif row and row.Hide then row:Hide() end
     end
     Tab4.scroll.content.rows = {}
 
@@ -790,7 +820,6 @@ WT_UpdateRoster = function()
         local shortName=key:match("([^-]+)") or key
         local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
 
-        -- Grid positie
         local col = (i-1) % ROSTER_COLS
         local row = math.floor((i-1) / ROSTER_COLS)
         local xPos = col * (ROSTER_CARD_W + ROSTER_GAP)
@@ -801,69 +830,66 @@ WT_UpdateRoster = function()
             card = CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
             card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         end
-        card:SetSize(ROSTER_CARD_W,ROSTER_CARD_H)
+        card:SetSize(ROSTER_CARD_W, ROSTER_CARD_H)
         card:SetPoint("TOPLEFT",xPos,yPos)
-
-        -- Klasse kleur border
-        card:SetBackdropColor(
-            cc.r*0.08, cc.g*0.08, cc.b*0.08, 0.95)
-        card:SetBackdropBorderColor(cc.r*0.7,cc.g*0.7,cc.b*0.7,1)
+        card:SetBackdropColor(cc.r*0.10, cc.g*0.10, cc.b*0.10, 0.95)
+        card:SetBackdropBorderColor(cc.r*0.65, cc.g*0.65, cc.b*0.65, 0.9)
         card:Show()
 
-        -- Klasse icoon linksboven
-        card.cIcon=card.cIcon or card:CreateTexture(nil,"ARTWORK")
-        card.cIcon:SetSize(28,28)
-        card.cIcon:SetPoint("TOPLEFT",4,-4)
-        local coords=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+        -- ── Race portrait linksboven (32x32) ─────────────────────────
+        card.rIcon = card.rIcon or card:CreateTexture(nil,"ARTWORK")
+        card.rIcon:SetSize(32,32)
+        card.rIcon:SetPoint("TOPLEFT",4,-4)
+        local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s","")
+        local facKey  = ((data.faction or ""):lower()=="horde") and "horde" or "alliance"
+        card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey)
+        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+
+        -- ── Klasse icoon naast race (20x20) ─────────────────────────
+        card.cIcon = card.cIcon or card:CreateTexture(nil,"ARTWORK")
+        card.cIcon:SetSize(20,20)
+        card.cIcon:SetPoint("TOPLEFT",card.rIcon,"TOPRIGHT",2,0)
+        local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
         if coords then
             card.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
             card.cIcon:SetTexCoord(unpack(coords))
         end
 
-        -- Race icoon naast klasse icoon
-        card.rIcon=card.rIcon or card:CreateTexture(nil,"ARTWORK")
-        card.rIcon:SetSize(20,20)
-        card.rIcon:SetPoint("TOPLEFT",card.cIcon,"TOPRIGHT",2,0)
-        -- Race icon via SetPortraitToTexture patroon (12.x)
-        local raceKey=(data.race or ""):gsub("%s+",""):lower()
-        local fac=((data.faction or ""):lower()=="horde") and "horde" or "alliance"
-        card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..fac)
-        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
-
-        -- Spec icoon rechtsboven (als spec ID beschikbaar)
-        card.sIcon=card.sIcon or card:CreateTexture(nil,"ARTWORK")
+        -- ── Spec icoon naast klasse (20x20) ──────────────────────────
+        card.sIcon = card.sIcon or card:CreateTexture(nil,"ARTWORK")
         card.sIcon:SetSize(20,20)
-        card.sIcon:SetPoint("TOPRIGHT",-2,-2)
+        card.sIcon:SetPoint("TOPLEFT",card.cIcon,"TOPRIGHT",2,0)
         if data.specID then
-            local _,_,_,specIconID=GetSpecializationInfoByID(data.specID)
-            if specIconID then card.sIcon:SetTexture(specIconID) end
+            local ok,_,_,_,iconID = pcall(GetSpecializationInfoByID, data.specID)
+            if ok and iconID then card.sIcon:SetTexture(iconID) end
         end
         card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
 
-        -- iLvl rechts groot
-        card.ilvlTxt=card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
-        card.ilvlTxt:SetFont(C_2002,20,"OUTLINE")
-        card.ilvlTxt:SetPoint("TOPRIGHT",-4,-4)
-        card.ilvlTxt:SetText("|cff00ff00"..(data.ilvl or 0).."|r")
-
-        -- Naam
-        card.nm=card.nm or card:CreateFontString(nil,"OVERLAY")
+        -- ── Naam (klasse kleur) ───────────────────────────────────────
+        card.nm = card.nm or card:CreateFontString(nil,"OVERLAY")
         card.nm:SetFont(C_2002,12,"OUTLINE")
-        card.nm:SetPoint("TOPLEFT",36,-6)
+        card.nm:SetPoint("TOPLEFT",card.rIcon,"BOTTOMLEFT",0,-4)
         card.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
-            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
-            shortName))
+            math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255), shortName))
 
-        -- Spec
-        card.sp=card.sp or card:CreateFontString(nil,"OVERLAY")
+        -- ── Spec tekst ────────────────────────────────────────────────
+        card.sp = card.sp or card:CreateFontString(nil,"OVERLAY")
         card.sp:SetFont(C_2002,9,"")
-        card.sp:SetPoint("TOPLEFT",36,-20)
+        card.sp:SetPoint("TOPLEFT",card.nm,"BOTTOMLEFT",0,-2)
         card.sp:SetText(SA_GREY..(data.spec or "??").."|r")
 
-        -- Delve progress
-        card.prgr=card.prgr or card:CreateFontString(nil,"OVERLAY")
+        -- ── iLvl groot rechtsboven ────────────────────────────────────
+        card.ilvlTxt = card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
+        card.ilvlTxt:SetFont(C_2002,22,"OUTLINE")
+        card.ilvlTxt:SetPoint("TOPRIGHT",-4,-4)
+        local ilvl = data.ilvl or 0
+        local ilvlCol = ilvl>=270 and "|cffff8800" or ilvl>=250 and "|cff00ff00" or "|cffffffff"
+        card.ilvlTxt:SetText(ilvlCol..ilvl.."|r")
+
+        -- ── Delve progress ────────────────────────────────────────────
+        card.prgr = card.prgr or card:CreateFontString(nil,"OVERLAY")
         card.prgr:SetFont(C_2002,9,"OUTLINE")
-        card.prgr:SetPoint("BOTTOMLEFT",4,20)
+        card.prgr:SetPoint("TOPLEFT",card.sp,"BOTTOMLEFT",0,-3)
         local st=""
         if data.delves then
             for _,v in ipairs(data.delves) do
@@ -872,90 +898,72 @@ WT_UpdateRoster = function()
         end
         card.prgr:SetText(st~="" and st or SA_GREY.."—|r")
 
-        -- Gold
-        card.gld=card.gld or card:CreateFontString(nil,"OVERLAY")
+        -- ── Gold onderaan rechts ──────────────────────────────────────
+        card.gld = card.gld or card:CreateFontString(nil,"OVERLAY")
         card.gld:SetFont(C_2002,10,"OUTLINE")
         card.gld:SetPoint("BOTTOMRIGHT",-4,4)
         card.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
 
-        -- Professions rij (max 4 iconen onderaan, 20x20)
-        if not card.profRow then card.profRow = {} end
-        for _,p in ipairs(card.profRow) do if p.Hide then p:Hide() end end
-        card.profRow = {}
-        if data.professions then
+        -- ── Faction dot linksonder ────────────────────────────────────
+        card.fac = card.fac or card:CreateTexture(nil,"OVERLAY")
+        card.fac:SetSize(8,8)
+        card.fac:SetPoint("BOTTOMLEFT",4,6)
+        if data.faction=="Horde" then card.fac:SetColorTexture(0.8,0.1,0.1,1)
+        else card.fac:SetColorTexture(0.1,0.4,0.9,1) end
+
+        -- ── Professions iconen onderaan ───────────────────────────────
+        if not card.profRow then card.profRow={} end
+        for _,p in ipairs(card.profRow) do if p and p.Hide then p:Hide() end end
+        card.profRow={}
+        if data.professions and #data.professions>0 then
             for pi,prof in ipairs(data.professions) do
-                if pi > 4 then break end
-                local px = 4 + (pi-1)*20
-                local pico = card:CreateTexture(nil,"OVERLAY")
-                pico:SetSize(16,16)
-                pico:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,22)
+                if pi>4 then break end
+                local px = 4+(pi-1)*20
+                local pico=card:CreateTexture(nil,"OVERLAY")
+                pico:SetSize(18,18)
+                pico:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,20)
                 if prof.icon then pico:SetTexture(prof.icon) end
                 pico:SetTexCoord(0.08,0.92,0.08,0.92)
                 pico:Show()
-                table.insert(card.profRow,pico)
-            end
-        end
-
-        -- Faction dot
-        card.fac=card.fac or card:CreateTexture(nil,"OVERLAY")
-        card.fac:SetSize(8,8)
-        card.fac:SetPoint("BOTTOMLEFT",4,6)
-        if data.faction=="Horde" then
-            card.fac:SetColorTexture(0.8,0.1,0.1,1)
-        else
-            card.fac:SetColorTexture(0.1,0.4,0.9,1)
-        end
-
-        -- Beroepen onderaan het kaartje
-        if card.profIcons then
-            for _,ico in ipairs(card.profIcons) do ico:Hide() end
-        end
-        card.profIcons = {}
-        if data.professions and #data.professions > 0 then
-            for pi, prof in ipairs(data.professions) do
-                if pi > 3 then break end  -- max 3 iconen
-                local pIco = card:CreateTexture(nil,"ARTWORK")
-                pIco:SetSize(16,16)
-                pIco:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",4+(pi-1)*20,24)
-                if prof.icon then pIco:SetTexture(prof.icon) end
-                pIco:SetTexCoord(0.08,0.92,0.08,0.92)
-                pIco:Show()
-                -- Tooltip
-                local pBtn = CreateFrame("Button",nil,card)
-                pBtn:SetSize(16,16)
-                pBtn:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",4+(pi-1)*20,24)
-                pBtn._prof = prof
-                pBtn:SetScript("OnEnter",function(s)
+                -- Profession tekst tooltip knopje
+                local pb=CreateFrame("Button",nil,card)
+                pb:SetSize(18,18)
+                pb:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,20)
+                pb._prof=prof
+                pb._rank=prof.rank or 0
+                pb._max=prof.maxRank or 0
+                pb:SetScript("OnEnter",function(s)
                     GameTooltip:SetOwner(s,"ANCHOR_RIGHT")
                     GameTooltip:SetText(SA_GOLD..(s._prof.name or "?"))
-                    GameTooltip:AddLine(SA_GREY..(s._prof.rank or 0).."/".. (s._prof.maxRank or 0).."|r")
+                    GameTooltip:AddLine(SA_GREY..s._rank.."/"..s._max.."|r")
                     GameTooltip:Show()
                 end)
-                pBtn:SetScript("OnLeave",function() GameTooltip:Hide() end)
-                table.insert(card.profIcons, pIco)
-                table.insert(card.profIcons, pBtn)
+                pb:SetScript("OnLeave",function() GameTooltip:Hide() end)
+                table.insert(card.profRow,pico)
+                table.insert(card.profRow,pb)
             end
         end
 
-        -- Hover + click
+        -- ── Hover + click ─────────────────────────────────────────────
+        local sn,d=shortName,data
         card:SetScript("OnEnter",function(self)
-            self:SetBackdropBorderColor(1.0,0.85,0,1)
+            self:SetBackdropBorderColor(1.0,0.85,0.0,1)
             GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
-            GameTooltip:SetText(SA_GOLD..shortName)
-            for pN,pF in pairs(DelveTracker.Plugins) do
-                if DelveTrackerDB.PluginStates[pN]~=false then
-                    pcall(pF,"Tooltip",data,key)
-                end
+            GameTooltip:SetText(SA_GOLD..sn)
+            GameTooltip:AddLine(SA_GREY..(d.class or "?").." · "..(d.spec or "??").."|r")
+            GameTooltip:AddLine(SA_GREY.."iLvl "..(d.ilvl or 0).."|r")
+            if d.guild and d.guild~="Geen Guild" then
+                GameTooltip:AddLine(SA_BLUE..d.guild.."|r")
             end
             GameTooltip:Show()
         end)
         card:SetScript("OnLeave",function(self)
-            self:SetBackdropBorderColor(cc.r*0.7,cc.g*0.7,cc.b*0.7,1)
+            self:SetBackdropBorderColor(cc.r*0.65,cc.g*0.65,cc.b*0.65,0.9)
             GameTooltip:Hide()
         end)
         card:SetScript("OnClick",function()
             if DT_Armory_ShowCharacter then
-                data.name=shortName; DT_Armory_ShowCharacter(data); PlaySound(852)
+                d.name=sn; DT_Armory_ShowCharacter(d); PlaySound(852)
             end
         end)
 

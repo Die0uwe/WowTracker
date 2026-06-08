@@ -110,63 +110,144 @@ function addonTable.DT_events:GetVisibleEvents()
     return visibleEvents
 end
 -- ============================================================================
--- ABUNDANCE INTEGRATIE — DelveAbundance module
--- Detecteert "Abundance" delve modifier + timed events via C_AreaPoiInfo
--- Gebaseerd op DelveAbundance.lua (upload van DieOuwe, 2026-06-07)
+-- ABUNDANCE SCANNER v2.0 — geverifieerde API (2026-06-07)
+-- Bronnen: warcraft.wiki.gg, EverythingDelves (Wheelbarrel00), Waxus tracker
 -- ============================================================================
+-- HOE HET WERKT:
+-- Abundance roteert elke 8 uur over 4 caves (één per Midnight zone)
+-- API flow:
+--   1. C_AreaPoiInfo.GetDelvesForMap(mapID) → delve POI IDs
+--   2. C_AreaPoiInfo.GetAreaPOIInfo([mapID], poiID) → info incl atlasName
+--   3. C_AreaPoiInfo.GetAreaPOISecondsLeft(poiID) → exacte timer in seconden
+--   4. C_AreaPoiInfo.IsAreaPOITimed(poiID) → is het getimed (Abundant Harvest)?
+-- Abundant Harvest = atlasName:find("abundance") = ACTIEVE cave met Dundun vendor
+-- Shard of Dundun (ID 3376) = vereiste key voor Abundant Harvest
+-- ============================================================================
+
 local DT_AbundanceData = {
-    active = false,
-    timedEvents = {},
-    lastMapID = nil,
+    active       = false,   -- is er een Abundant Harvest actief?
+    zone         = nil,     -- naam van de actieve zone/delve
+    atlas        = nil,     -- atlasName van de actieve POI
+    secondsLeft  = 0,       -- exacte seconden over (via GetAreaPOISecondsLeft)
+    poiID        = nil,     -- actieve POI ID
+    mapID        = nil,     -- map waarop gescand is
+    shards       = 0,       -- Shard of Dundun beschikbaar
+    lastScan     = 0,
 }
+
+local ABUNDANCE_MAPS = {2393, 2395, 2437, 2405, 2413, 2444}  -- alle Midnight mapIDs
 
 local function IsAbundancePOI(info)
     if not info then return false end
-    local atlas = info.atlasName and info.atlasName:lower() or ""
-    local desc  = info.description and info.description:lower() or ""
-    return atlas:find("abundance") ~= nil or desc:find("abundance") ~= nil
+    local atlas = (info.atlasName or ""):lower()
+    local name  = (info.name      or ""):lower()
+    local desc  = (info.description or ""):lower()
+    return atlas:find("abundance") or name:find("abundance") or desc:find("abundant")
 end
 
-local function ScanAbundance(mapID)
-    DT_AbundanceData.active = false
-    DT_AbundanceData.timedEvents = {}
-    DT_AbundanceData.lastMapID = mapID
-    if not mapID or not C_AreaPoiInfo then return end
-    local poiIDs = C_AreaPoiInfo.GetAreaPOIForMap(mapID)
+local function ScanAbundanceOnMap(mapID)
+    if not (mapID and C_AreaPoiInfo) then return end
+
+    -- Primair: GetDelvesForMap voor delve-specifieke POIs
+    local poiIDs = nil
+    if C_AreaPoiInfo.GetDelvesForMap then
+        poiIDs = C_AreaPoiInfo.GetDelvesForMap(mapID)
+    end
+    -- Fallback: alle area POIs
+    if not poiIDs or #poiIDs == 0 then
+        poiIDs = C_AreaPoiInfo.GetAreaPOIForMap(mapID)
+    end
     if not poiIDs then return end
+
     for _,poiID in ipairs(poiIDs) do
-        local info = C_AreaPoiInfo.GetAreaPOIInfo(poiID)
-        if info and IsAbundancePOI(info) then
-            DT_AbundanceData.active = true
-            if info.timeRemaining and info.timeRemaining > 0 then
-                table.insert(DT_AbundanceData.timedEvents, {
-                    poiID=poiID, name=info.name, atlas=info.atlasName,
-                    timeRemaining=info.timeRemaining, endTime=info.endTime,
-                })
+        -- GetAreaPOIInfo accepteert optioneel mapID als eerste arg
+        local info
+        if C_AreaPoiInfo.GetAreaPOIInfo then
+            local ok, result = pcall(C_AreaPoiInfo.GetAreaPOIInfo, mapID, poiID)
+            if not ok or not result then
+                ok, result = pcall(C_AreaPoiInfo.GetAreaPOIInfo, poiID)
             end
+            info = result
+        end
+
+        if info and IsAbundancePOI(info) then
+            -- Haal exacte timer op
+            local secsLeft = 0
+            if C_AreaPoiInfo.GetAreaPOISecondsLeft then
+                local ok2, secs = pcall(C_AreaPoiInfo.GetAreaPOISecondsLeft, poiID)
+                if ok2 and secs and secs > 0 then secsLeft = secs end
+            elseif info.timeRemaining then
+                secsLeft = info.timeRemaining
+            end
+
+            -- Check of het getimed is (= Abundant Harvest, niet gewone abundance)
+            local isTimed = false
+            if C_AreaPoiInfo.IsAreaPOITimed then
+                local ok3, timed = pcall(C_AreaPoiInfo.IsAreaPOITimed, poiID)
+                if ok3 then isTimed = timed end
+            end
+
+            DT_AbundanceData.active      = true
+            DT_AbundanceData.zone        = info.name or "?"
+            DT_AbundanceData.atlas       = info.atlasName or ""
+            DT_AbundanceData.secondsLeft = secsLeft
+            DT_AbundanceData.poiID       = poiID
+            DT_AbundanceData.mapID       = mapID
+            DT_AbundanceData.isTimed     = isTimed
+            DT_AbundanceData.lastScan    = GetTime()
+
+            -- Shard of Dundun count (ID 3376)
+            if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyInfo then
+                local cok, cinfo = pcall(C_CurrencyInfo.GetCurrencyInfo, 3376)
+                if cok and cinfo then DT_AbundanceData.shards = cinfo.quantity or 0 end
+            end
+            return  -- eerste abundance gevonden — stop
+        end
+    end
+    -- Niets gevonden op deze map
+    DT_AbundanceData.active = false
+end
+
+local function ScanAllMidnightMaps()
+    DT_AbundanceData.active = false
+    -- Scan eerst huidige map
+    local currentMap = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    if currentMap then ScanAbundanceOnMap(currentMap) end
+    if DT_AbundanceData.active then return end
+    -- Dan alle andere Midnight maps
+    for _,mapID in ipairs(ABUNDANCE_MAPS) do
+        if mapID ~= currentMap then
+            ScanAbundanceOnMap(mapID)
+            if DT_AbundanceData.active then return end
         end
     end
 end
 
--- Hook in op bestaande event frame van DT_events
 local _abFrame = CreateFrame("Frame")
 _abFrame:RegisterEvent("AREA_POIS_UPDATED")
 _abFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-_abFrame:SetScript("OnEvent",function()
-    local mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-    if mapID then ScanAbundance(mapID) end
+_abFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+_abFrame:SetScript("OnEvent", function(self, event)
+    -- Throttle: max 1x per 30 sec
+    if GetTime() - DT_AbundanceData.lastScan < 30 and event ~= "PLAYER_ENTERING_WORLD" then return end
+    ScanAllMidnightMaps()
 end)
 
--- Public API voor andere plugins (bijv. QuickSet tile indicator)
+-- Public API
 function DT_GetAbundanceData()
     return DT_AbundanceData
 end
 
--- Scan direct bij laden
-C_Timer.After(3.0, function()
-    local mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-    if mapID then ScanAbundance(mapID) end
-end)
+function DT_FormatAbundanceTime(seconds)
+    if not seconds or seconds <= 0 then return "?" end
+    local h = math.floor(seconds / 3600)
+    local m = math.floor((seconds % 3600) / 60)
+    if h > 0 then return string.format("%dh %dm", h, m)
+    else return string.format("%dm", m) end
+end
+
+-- Initiële scan na 4 seconden (DB moet geladen zijn)
+C_Timer.After(4.0, ScanAllMidnightMaps)
 
 -- ============================================================================
 -- KENNISBANK REFERENTIE (data-grinder archief voor oudedoos)
