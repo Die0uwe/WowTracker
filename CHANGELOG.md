@@ -1,72 +1,148 @@
-# WowTracker — Changelog
+# CHANGELOG — WowTracker (Slayer Alliance Edition)
 
-## v2.7.0 — 2026-06-07
+## [v2.9.7] — 2026-06-08
+### Fixed
+- Delves kolom 2: exact zelfde structuur als kolom 1 (font, icon grootte, kleur, iLvl badge)
+- Guild tab: Kelsey kleiner (140px), guildnaam groter (26pt)
+- Roster: 4→3 kolommen zodat kaartjes passen binnen UI breedte
+- Currency tiles kleiner (68→56px)
+- Bountiful tab kleur: oranje→SA blauw
 
-### Core (WowTracker.lua — voorheen DelveTracker.lua)
-- **[NEW]** Breedte vergroot van 420px naar 760px — ruimer, professioneler
-- **[NEW]** Event ticker bovenaan — scrollende balk met live world events + live klok
-- **[NEW]** Murloc rechtermuisklik menu uitgebreid naar 4 secties: Characters · Trackers · Settings · Systeem
-- **[NEW]** Scaling via +/− knoppen in footer (stap 0.05 — traag genoeg voor controle)
-- **[NEW]** Positie murloc button en hoofdscherm opgeslagen in DelveTrackerDB
-- **[FIX]** GetMoney() — goud nu correct geschreven naar `characters[key].money`
-- **[FIX]** PLAYER_MONEY event geregistreerd voor live goud updates
-- **[FIX]** UserInfo gepind bovenaan plugin lijst in admin panel
-- **[FIX]** Race conditions in DT_SystemTools en DT_HelpGuide (DelveTrackerOptions op load-time)
-- **[FIX]** MenuUtil.CreateContextMenu — UIDropDownMenu volledig vervangen
-- **[FIX]** Slayer Alliance donker paars thema consistent door hele UI
-- **[FIX]** DieOuwe karakter image (Dieouwe.tga) verwerkt in admin panel en guild tab
-- **[FIX]** Logo watermark in guild tab rechtsonder
-
-### FRIZQT__.TTF — 67 crashes gefixt
-- DT_ClothCounter.lua — 33×
-- DT_userinfo.lua — 26×
-- DT_Debugger.lua — 3×
-- DT_ContentManager.lua — 3×
-- DT_CombatAnnouncer.lua — 1×
-- DT_QuickSet.lua — 1×
-
-### RegisterPlugin toegevoegd (5 plugins nu zichtbaar in admin panel)
-- DT_ClothCounter.lua
-- DT_SkinNRare.lua
-- DT_CustomAFK.lua
-- DT_Debugger.lua
-- DT_Lockout.lua
-
-### Prey Tracker (DT_prey_ui.lua)
-- **[FIX]** AutoShow verbergt niet meer automatisch — `/prey` toggle werkt altijd, quest of niet
-- **[FIX]** CheckAutoShow gebruikt alleen live `GetActivePreyQuest()` API — geen stale `prey.active` check
-
-### Structuur
-- **[NEW]** Naam: DelveTracker → WowTracker
-- **[NEW]** TOC versie 2.7.0 · Interface 120005
-- **[NEW]** XML load volgorde geoptimaliseerd met commentaar secties
-- **[NEW]** Media plugin toegevoegd als eigen Plugins/Media/DT_Media.lua
+### Added
+- Bounty Nemesis: Abundance info blok onder Required Items
+  - Toont actieve zone, timer, Shard of Dundun count
+  - Groen als actief, grijs als geen Abundant Harvest
 
 ---
 
-## v2.6.1 — 2026-06-01 (DelveTracker)
-
-### DT_preytracker.lua — V3.6
-- Cross-zone coordinate conversie via `C_Map.GetWorldPosFromMapPos()`
-- Zul'Aman mapID gecorrigeerd: 2437 (was 2394 — outdoor fly-through)
-- POI world quest filtering op questID range 91095–91400
-- `worldPosCache` cleared op ZONE_CHANGED_NEW_AREA
-
-### DT_Registry.lua — v8.1
-- XL frame 1320×750 · karakter index gegroepeerd per klasse
-- Currency tooltip: Restored Coffer Keys · Coffer Key Shards · Shard of Dundun · Dawnlight Manaflux
-- DT_TooltipModules plugin hook systeem
+## [v2.9.6] — 2026-06-08
+### Changed
+- Roster kaartjes: race portrait groot (52×52px) als hoofdicoon
+- Spec icoon (18×18px) in rechtsonder hoek van race portrait (ProfBuddy stijl)
+- Kaartje hoogte 130px voor meer ruimte
 
 ---
 
-## v2.6.0 — 2026-05-31 (DelveTracker)
-
-### Initiële release WowTracker repo
-- Core DelveTracker suite gemigreerd
-- 22 plugins geïntegreerd
-- Midnight 12.0.5 compatibiliteit
+## [v2.9.5] — 2026-06-08
+### Added
+- Abundance Scanner v2.0 — correcte API geverifieerd:
+  - `GetDelvesForMap()` als primaire bron
+  - `GetAreaPOISecondsLeft()` voor exacte timer in seconden
+  - `IsAreaPOITimed()` onderscheid Abundant Harvest vs gewone abundance
+  - Scant alle 6 Midnight mapIDs
+  - Throttle 30 seconden
+  - `DT_FormatAbundanceTime()` helper
+- Roster v2.0: race portrait + klasse + spec iconen per kaartje
+- Profession iconen onderaan roster kaartjes (max 4, met tooltip)
+- Volledige RACE_ICON_MAP voor alle rassen
 
 ---
 
-*WowTracker wordt actief ontwikkeld door DieOuwe · Slayer Alliance · Sporeggar-EU*  
-*Zie README.md voor volledige feature beschrijving en installatie instructies.*
+## [v2.9.4] — 2026-06-08
+### Fixed
+- DieOuwe texture correct gespiegeld: `SetTexCoord(1,0,0,1)` (was 8-arg variant)
+- Admin panel overlappende Reload/Wipe/Del knoppen verwijderd
+- Delves kolom 2: delve progress en tooltips toegevoegd
+
+---
+
+## [v2.9.3] — 2026-06-08
+### Added
+- Header knoppen op één lijn: B · 🌐 · 🎨 · ⚙ · X (alle 22×22px)
+- Thema selector (🎨): SA Dark / ProfBuddy Paars / MailVault Blauw / Nacht Zwart
+- Taal selector (🌐): NL / EN / DE / FR / ES
+- Abundance in scrollende ticker
+
+### Fixed
+- Armory standalone (/charmory): altijd gecentreerd op scherm
+- Delves kolom 2: OnEnter/OnLeave/OnClick tooltips
+
+---
+
+## [v2.9.2] — 2026-06-08
+### Fixed
+- Guild tab images: Kelsey centraal, DieOuwe gespiegeld rechtsonder, logo watermark
+
+---
+
+## [v2.9.1] — 2026-06-08
+### Fixed
+- Charmory standalone: /charmory werkt weer correct
+- Armory shield: BACKGROUND laag -2, achter gear/model/tekst
+- Debug knop buiten interface
+- Currency filter: zoekt op currency naam (niet karakter)
+
+### Added
+- Volledige currency lijst alle expansies (Midnight + War Within + DF + SL + PvP)
+- Professions scan in ScanDelves(): data.professions[] in DB
+- Roster kaartjes: profession iconen (max 4)
+
+---
+
+## [v2.9.0] — 2026-06-08 (Sprint A)
+### Added
+- Delves tab: 2-koloms layout
+- Zoekbalk met live letter-suggesties dropdown
+- Guild tab: naam/MOTD gecentreerd
+- Roster: race icoon + spec icoon op kaartjes
+- Header B knop: uniform uitgelijndt met tandwiel/X
+
+---
+
+## [v2.8.9] — 2026-06-08
+### Fixed
+- Admin panel: actie knoppen anchor-based (geen overlap meer)
+- Stale opt.afkBtn op Y=-638 verwijderd
+
+### Added
+- Currency tab filter/zoekbalk rechtsboven (OnTextChanged)
+- Currency tiles: C_CurrencyInfo live iconen, tooltip, dimmen bij 0
+
+---
+
+## [v2.8.8] — 2026-06-07
+### Added
+- Abundance integratie: DT_GetAbundanceData() public API
+- GuildRoster pre-fetch bij PLAYER_LOGIN (MOTD sneller)
+- Header knoppen uniform (22×22px)
+
+### Fixed
+- DT_prey_ui.lua backslash bug
+- Charmory close knop werkt in Tab5
+
+---
+
+## [v2.8.7] — 2026-06-07
+### Added
+- Roster ProfessionBuddy-stijl kaartjes (4 kolommen)
+- Currency grid kaarten met live iconen
+- Currency filter zoekbalk
+- DT_MailAttach.lua v1.0: Quick Attach bij mailbox (MAIL_SHOW)
+- Footer knoppen: Cloth · Skin · Prey · Debug
+
+### Fixed
+- Armory shield: BACKGROUND laag, achter tekst
+- Admin Reload/Wipe knoppen: niet meer overlappend
+
+---
+
+## [v2.8.x] — 2026-06-07
+### Added
+- Armory Tab5 embedded: model links (420px), stats rechts
+- WT_UpdateCurrency hersteld
+- DT_ArmoryStatsPanel: Karakter / Stats / Currencies / Delves / Goud
+- ScanDelves: gear scan, specID, race, faction
+
+---
+
+## [v2.7.0-v2.8.0] — 2026-06-02 t/m 2026-06-06
+### Initial v2.9.x series
+- Core Engine met 6 tabs (Guild/Delves/Bounty/Roster/Armory/Currency)
+- EventBus, Plugin Manifest API
+- Prey Tracker kompas V3.x (confirmed working in-game)
+- Registry XL 1320×750 frame
+- Murloc minimap button met context menu
+
+---
+
+*Maintained by DieOuwe — Slayer Alliance, Sporeggar-EU*

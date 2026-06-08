@@ -253,12 +253,12 @@ C_Timer.After(4.0, ScanAllMidnightMaps)
 -- KENNISBANK REFERENTIE (data-grinder archief voor oudedoos)
 -- ============================================================================
 -- CLASS ICONS (12.x):
---   Texture: "Interface\WorldStateFrame\Icons-Classes"
+--   Texture: "Interface\\WorldStateFrame\Icons-Classes"
 --   Coords via: CLASS_ICON_TCOORDS["DEATHKNIGHT"] etc.
 -- SPEC ICONS:
 --   GetSpecializationInfoByID(specID) → id,name,desc,iconID,role
 -- RACE ICONS:
---   "Interface\Icons\Achievement_Character_{race}_{faction}"
+--   "Interface\\Icons\Achievement_Character_{race}_{faction}"
 -- ABUNDANCE POI:
 --   C_AreaPoiInfo.GetAreaPOIForMap(mapID) → {poiID,...}
 --   C_AreaPoiInfo.GetAreaPOIInfo(poiID) → {atlasName,description,timeRemaining,...}

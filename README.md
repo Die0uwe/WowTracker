@@ -1,156 +1,171 @@
 # WowTracker — Slayer Alliance Edition
 
-<p align="center">
-  <img src="Media/Icons/WowTracker_Icon_256.png" width="128" alt="WowTracker Logo"/>
-</p>
+> **WoW: Midnight · Interface 120005 · Build 67314**  
+> Multi-plugin warband tracker for World of Warcraft Midnight (12.0.5)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/WoW-Midnight%2012.0.5-blueviolet?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Interface-120005-blue?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Version-2.7.0-gold?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Guild-Slayer%20Alliance-purple?style=flat-square"/>
-  <img src="https://img.shields.io/badge/Realm-Sporeggar--EU-orange?style=flat-square"/>
-</p>
-
----
-
-## Over WowTracker
-
-WowTracker (voorheen **DelveTracker**) is een complete WoW addon suite voor **Retail 12.0.5 (Midnight)**, gebouwd door **DieOuwe** van Slayer Alliance op Sporeggar-EU.
-
-De addon biedt een geïntegreerd dashboard voor Prey Hunt tracking, Bounty Delves, Warband karakter beheer, currency scanning en meer — allemaal in één professionele interface.
+[![Version](https://img.shields.io/badge/version-v2.9.7-a335ee?style=flat-square)](https://github.com/Die0uwe/WowTracker)
+[![WoW](https://img.shields.io/badge/WoW-Midnight%2012.0.5-00ccff?style=flat-square)](https://worldofwarcraft.com)
+[![Guild](https://img.shields.io/badge/Guild-Slayer%20Alliance-ccaa00?style=flat-square)](https://slayeralliance.com)
+[![Themes](https://img.shields.io/badge/Themes-fork%20welcome-44cc66?style=flat-square)](https://github.com/Die0uwe/WowTracker-Themes)
+[![i18n](https://img.shields.io/badge/i18n-fork%20welcome-44cc66?style=flat-square)](https://github.com/Die0uwe/WowTracker-i18n)
 
 ---
 
 ## Features
 
-| Module | Beschrijving | Slash Command |
-|---|---|---|
-| **Core** | 760px breed hoofdscherm · event ticker · live klok · scaling | `/dt` `/delves` |
-| **Prey Tracker HUD** | Kompas naald · 3-tier fallback · affix detectie · Midnight zones | `/prey` `/pton` `/ptoff` |
-| **Bounty Tracker** | Nemesis · Bountiful · Normal tabs · Valeera XP bar · story tracker | `/dt3` `/tb3` |
-| **Registry XL** | Groot karakter index per klasse · currency tooltip · armory link | `/crew` |
-| **UserInfo / Armory** | 3D model viewer · gear · iLvl · spec · warband stats | `/userinfo` `/cdb` |
-| **Charmory** | Karakter armory popup met schaal | `/charmory` |
-| **ClothCounter** | Warband stof tracker · Silver/Gold · cooldown scanner | `/cbud` `/cloth` |
-| **SkinNRare / Majestic Tracker** | Rare beast waypoints · zone filter · track/lure | `/snr` `/mt` |
-| **Lockout Scanner** | Raid/dungeon lockouts · currency IDs · professions | `/dtlockout` `/dtprof` |
-| **Exchange Bot** | Currency exchange assistent | `/cbot` `/cureset` |
-| **Events** | Live world event timer met countdown · scrollende ticker | `/dtevents` |
-| **Combat Announcer** | Grote combat tekst aankondigingen | `/cset` |
-| **AFK Screen** | Volledig scherm AFK display met stats · loot history · guild chat | `/dtafk` `/dtgrid` |
-| **Debugger** | In-game log viewer · DB inspector · memory monitor | `/dtdebug` |
+### Main Interface
+- **6-tab UI** — Guild · Delves · Bounty · Roster · Armory · Currency
+- **Scrolling event ticker** bovenaan met live klok, world events, Prey Hunt en Abundance
+- **Theme selector** (🎨) — SA Dark · ProfBuddy Purple · MailVault Blue · Night Black
+- **Language selector** (🌐) — NL · EN · DE · FR · ES
+- **Registry B button** — XL karakter index popup
+- **Scale knoppen** (+/−) — UI schaal 0.5× tot 2.0×
+
+### Tab 1 — Guild
+- Gilde naam en MOTD gecentreerd
+- Live online leden lijst rechts met klasse kleur en level
+- Guild emblem · Kelsey · DieOuwe afbeeldingen
+
+### Tab 2 — Delves
+- **2-koloms layout** — warband karakters alphabetisch verdeeld
+- Live zoekbalk met **letter-suggesties dropdown**
+- Per karakter: faction · klasse icoon · naam · spec · iLvl · delve voortgang (0/2 0/4 0/8) · gold
+- Klik → opent Charmory Armory
+
+### Tab 3 — Bounty
+- **Nemesis** subtab: actieve Nemesis delve + Required Items
+- **Abundance info blok**: actieve zone · timer (7h 12m) · Shard of Dundun count
+- **Bountiful** subtab: live bountiful detectie via C_AreaPoiInfo
+- **Normal** subtab: alle normale delves
+
+### Tab 4 — Roster
+- **ProfessionBuddy-stijl kaartjes** (3 kolommen)
+- Per kaartje: groot race portrait (52×52) + spec icoon in hoek
+- Naam in klasse kleur · Lvl · Spec · iLvl · delve voortgang · gold · profession iconen
+
+### Tab 5 — Armory
+- **3D model viewer** links (Charmory)
+- **Stats panel** rechts: Karakter · Stats · Currencies · Delves · Goud
+- `/charmory` of `/armory` voor standalone popup
+- Gear slots met iLvl badges · gold/token count
+
+### Tab 6 — Currency
+- Warband currency overzicht per karakter
+- Live iconen via `C_CurrencyInfo.GetCurrencyInfo()`
+- **Filter op currency naam** of expansie
+- Expansies: Midnight → The War Within → Dragonflight → Shadowlands → PvP
 
 ---
 
-## Installatie
+## Plugins (20+)
+
+| Plugin | Slash | Beschrijving |
+|--------|-------|--------------|
+| **Charmory** | `/charmory` `/armory` | 3D karakter armory + stats |
+| **ClothCounter** | `/cbud` `/cloth` | Stof tracker warband-breed |
+| **CombatAnnouncer** | `/cset` | Combat tekst aankondigingen |
+| **ContentManager** | — | Content kalender |
+| **CustomAFK** | `/dtafk` `/dtgrid` | AFK scherm layout |
+| **Debugger** | `/dtdebug` | In-game log & DB viewer |
+| **Events** | — | World events + Abundance scanner |
+| **ExchangeBot** | `/cbot` | Currency exchange tool |
+| **HelpGuide** | `/dthelp` | Dit help scherm |
+| **Lockout** | `/dtlockout` | Raid & dungeon lockouts |
+| **MailAttach** | `/dtmail` | Quick Attach bij mailbox |
+| **Media** | — | Zone media manager |
+| **Overlay** | — | UI overlay systeem |
+| **PreyTracker** | `/prey` `/pton` `/ptoff` | Prey Hunt kompas HUD |
+| **QuickSet** | — | Bounty delve tracker |
+| **Registry** | `/crew` | XL karakter index |
+| **SkinNRare** | `/snr` `/mt` | Skin & rare tracker |
+| **SystemTools** | `/wt-mem` `/wt-reload` | Systeem tools |
+| **TooltipExtra** | — | Extra tooltip informatie |
+| **UserInfo** | — | Karakter armory & model viewer |
+
+---
+
+## Slash Commands
 
 ```
-Interface/AddOns/WowTracker/
-├── WowTracker.toc
-├── WowTracker.xml
-├── Core/
-│   └── WowTracker.lua
-├── Media/
-│   ├── Icons/
-│   ├── Avatars/
-│   └── *.tga  (MijnIcoon, Dieouwe, kelsey, etc.)
-└── Plugins/
-    ├── PreyTracker/    DT_preytracker.lua + DT_prey_ui.lua
-    ├── Events/         DT_events.lua + DT_events_ui.lua
-    ├── UserInfo/       DT_userinfo.lua
-    ├── QuickSet/       DT_QuickSet.lua
-    ├── Registry/       DT_Registry.lua
-    ├── ClothCounter/   DT_ClothCounter.lua
-    ├── SkinNRare/      DT_SkinNRare.lua
-    ├── Lockout/        DT_Lockout.lua
-    ├── Exchangebot/    DT_exchangebot.lua
-    ├── Charmory/       DT_Charmory.lua
-    ├── CombatAnnouncer/
-    ├── TooltipExtra/
-    ├── SystemTools/
-    ├── Media/          DT_Media.lua
-    ├── HelpGuide/
-    ├── CustomAFK/      DT_CustomAFK.lua
-    ├── ContentManager/ DT_ContentManager.lua
-    ├── Overlay/        DT_Overlay.lua
-    └── Debugger/       DT_Debugger.lua
+/wt  /dt  /delves          Open/sluit de tracker
+/wt1 .. /wt6               Spring direct naar tab
+/prey  /pton  /ptoff        Prey Tracker kompas HUD
+/crew                       Registry XL karakter index
+/charmory  /armory          3D karakter armory
+/cbud  /cloth               ClothCounter
+/snr  /mt                   SkinNRare tracker
+/dtlockout                  Lockout scanner
+/cbot                       ExchangeBot
+/dtafk  /dtgrid             AFK scherm
+/dtdebug                    Debug console
+/dthelp                     Help scherm
+/dtmail                     Mail Attach panel
+/wt-reload                  UI herladen
+/wt-mem                     Geheugengebruik
 ```
 
 ---
 
-## Slash Commands — Volledig overzicht
+## Installation
 
-```
-/dt  of  /delves        — Open/sluit hoofdscherm
-/dt1  /tb1  /dt guild   — Guild tab
-/dt2  /tb2  /dt delves  — Delves karakter lijst
-/dt3  /tb3  /dt bounty  — Bounty / Prey Hunt tab
+1. Download de [laatste release](https://github.com/Die0uwe/WowTracker/releases)
+2. Pak uit in `World of Warcraft/_retail_/Interface/AddOns/`
+3. Zorg dat de map `WowTracker/` heet
+4. Log in → `/reload`
 
-/prey   /pton  /ptoff   — Prey Tracker HUD aan/uit
-/crew                   — Registry XL karakter index
-/userinfo  /cdb  /chardash — Karakter dashboard
-/charmory               — Armory popup
-
-/cbud  /cloth           — ClothCounter widget
-/snr   /mt   /snrpop    — SkinNRare / Majestic Tracker
-/dtevents               — Events panel
-/dtlockout  /dtprof     — Lockout & profession scanner
-/cbot  /cureset         — Exchange Bot
-
-/dtafk  /dtgrid         — AFK screen
-/dtdebug                — Debug console
-/dthelp                 — Help guide
-/cset                   — Combat Announcer settings
-/dmenu                  — Tooltip extra menu
-
-/dtmem                  — Addon geheugengebruik
-/dtcombat               — Combat alert toggle
-/dtreload               — Snelle UI reload
-```
+**Media folder** (`WowTracker/Media/`) bevat custom TGA bestanden — **niet overschrijven** bij update tenzij expliciet aangegeven.
 
 ---
 
-## Technische details
+## Community & Customization
 
-- **Interface**: `120005` (Midnight 12.0.5 / Build 67314)
-- **SavedVariables**: `DelveTrackerDB`, `DT_CustomAFK_Settings`, `ClothWarbandDB`
-- **Font**: `Fonts\2002.ttf` (FRIZQT__.TTF verwijderd in 12.x — volledig gefixt)
-- **Deprecated APIs gefixt**: `OptionsSliderTemplate`, `UIDropDownMenu`, `GetCurrencyInfo`, `getglobal`
-- **Geen taint**: alle drag/move achter `InCombatLockdown()` guards
-- **Prey kompas formule**: `math.atan2(dx, -dy)` · `SetRotation(-angle)` — in-game gevalideerd
+### 🎨 Maak je eigen guild theme
+Fork **[WowTracker-Themes](https://github.com/Die0uwe/WowTracker-Themes)**  
+Kopieer `themes/template.lua`, pas kleuren aan, stuur een PR!
 
----
-
-## Changelog
-
-Zie [CHANGELOG.md](CHANGELOG.md) voor het volledige versie overzicht.
-
-**v2.7.0 — 2026-06-07**
-- Core herbouwd naar 760px breed (was 420px)
-- Event ticker bovenaan met live klok en scrollende world events
-- GetMoney() fix — goud nu correct opgeslagen per karakter
-- 67× FRIZQT__.TTF → 2002.ttf crash fix
-- RegisterPlugin toegevoegd voor alle 5 ontbrekende plugins
-- Murloc menu uitgebreid: Characters · Trackers · Settings · Systeem
-- Scaling via +/- knoppen (stap 0.05, traag genoeg voor controle)
-- UserInfo gepind bovenaan admin plugin lijst
-- DieOuwe karakter image verwerkt in admin panel en guild tab
-- Race conditions gefixt in SystemTools en HelpGuide
+### 🌐 Voeg een vertaling toe
+Fork **[WowTracker-i18n](https://github.com/Die0uwe/WowTracker-i18n)**  
+Kopieer `locales/enUS.lua`, vertaal naar jouw taal, stuur een PR!
 
 ---
 
-## Slayer Alliance
+## Technical
 
-> *Sporeggar-EU · Est. 2008 · Horde*
+| Eigenschap | Waarde |
+|-----------|--------|
+| Interface | `## Interface: 120005` |
+| Build | `67314` |
+| Expansie | Midnight (12.0.5) |
+| Lua | 5.1 compatible |
+| Bestanden | 23 Lua · 1 TOC · 1 XML |
+| Code | ~16.000 regels |
+| Afhankelijkheden | Geen externe libs vereist |
 
-- 🌐 **Website**: [slayeralliance.com](https://slayeralliance.com)
-- 💬 **Discord**: [discord.gg/y8Pu5qsEbQ](https://discord.gg/y8Pu5qsEbQ)
-- 🎮 **CurseForge**: [DelveTracker Slayer Alliance Edition](https://www.curseforge.com/wow/addons/delvetracker-slayer-alliance-edition)
+### Kritieke API's (Midnight 12.x)
+- `C_AreaPoiInfo.GetDelvesForMap()` — abundance & bountiful detectie
+- `C_AreaPoiInfo.GetAreaPOISecondsLeft()` — exacte event timer
+- `C_CurrencyInfo.GetCurrencyInfo()` — live currency iconen
+- `GetSpecializationInfoByID()` — spec iconen
+- `MenuUtil.CreateContextMenu()` — context menus (vervangt UIDropDownMenu)
+- `C_Container.*` — bag API (Midnight)
+
+### Verboden in Midnight 12.x
+- ~~`OptionsSliderTemplate`~~ → `CreateFrame("Slider")` + `SetThumbTexture()`
+- ~~`Fonts\FRIZQT__.TTF`~~ → `Fonts2.ttf`
+- ~~`UIDropDownMenu_*`~~ → `MenuUtil.CreateContextMenu()`
+- ~~`GetAddOnMemoryUsage`~~ → `C_AddOns.GetAddOnMemoryUsage()`
 
 ---
 
-## Licentie
+## Links
 
-Copyright © 2024–2026 DieOuwe / Slayer Alliance  
-Zie [LICENSE](LICENSE) voor de volledige licentietekst.
+- 🏰 **Slayer Alliance**: [slayeralliance.com](https://slayeralliance.com)
+- 💬 **Discord**: [slayeralliance.com/discord](https://slayeralliance.com/discord)
+- 🎨 **Themes**: [WowTracker-Themes](https://github.com/Die0uwe/WowTracker-Themes)
+- 🌐 **i18n**: [WowTracker-i18n](https://github.com/Die0uwe/WowTracker-i18n)
+- 📦 **CurseForge**: [Die0uwe](https://www.curseforge.com/members/dieouwe)
+
+---
+
+*WowTracker is gebouwd door DieOuwe voor Slayer Alliance — Sporeggar EU*  
+*Midnight ready · Updated 2026-06-08*
