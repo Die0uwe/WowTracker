@@ -504,9 +504,9 @@ local GUILD_LEFT_W  = UI_W - 2 - GUILD_RIGHT_W
 -- ── LINKER KOLOM ──────────────────────────────────────────────────────────
 -- Guild tab gecentreerd in de linker kolom
 Tab1.guildName=Tab1:CreateFontString(nil,"OVERLAY")
-Tab1.guildName:SetFont(C_2002,20,"OUTLINE")
+Tab1.guildName:SetFont(C_2002,26,"OUTLINE")  -- was 20, nu groter
 Tab1.guildName:SetJustifyH("CENTER")
-Tab1.guildName:SetPoint("TOP",Tab1,"TOPLEFT",GUILD_LEFT_W/2,-18)
+Tab1.guildName:SetPoint("TOP",Tab1,"TOPLEFT",GUILD_LEFT_W/2,-14)
 Tab1.guildName:SetWidth(GUILD_LEFT_W-20)
 Tab1.guildName:SetText(SA_GOLD.."Slayer Alliance|r")
 
@@ -533,11 +533,10 @@ Tab1.motdText:SetMaxLines(4)
 --   DieOuwe: klein, rechtsonder linker kolom, gespiegeld, wijst naar binnen
 --   Logo: subtiel watermark linksonder
 
--- Kelsey centraal groot — feature image van de guild
+-- Kelsey kleiner — minder ruimte innemen zodat tekst beter past
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.img:SetSize(220,220)
--- Gecentreerd in linker kolom, in het onderste gedeelte
-Tab1.img:SetPoint("BOTTOM",Tab1,"BOTTOMLEFT",GUILD_LEFT_W/2,30)
+Tab1.img:SetSize(140,140)  -- was 220, nu kleiner
+Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",20,30)
 Tab1.img:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\kelsey.tga")
 Tab1.img:SetAlpha(0.90)
 
@@ -765,9 +764,9 @@ Tab6.scroll.content.crows={}
 -- ============================================================================
 -- Roster ProfessionBuddy-stijl: kaartjes per karakter v2.0
 -- Race portrait + spec icoon + iLvl groot + professions onderaan
-local ROSTER_CARD_W = 220
+local ROSTER_CARD_W = 230  -- 3 cols * 230 + 2*8 = 706px
 local ROSTER_CARD_H = 130  -- hoger voor profession rij + spec in hoek
-local ROSTER_COLS   = 4
+local ROSTER_COLS   = 3  -- 3 cols past binnen 760px UI
 local ROSTER_GAP    = 8
 
 -- Race icon lookup (Achievement_Character_{race}_{faction})
@@ -1236,9 +1235,9 @@ WT_UpdateCurrency = function()
     end
     table.sort(sorted)
 
-    local TILE_W = 68
-    local TILE_H = 72
-    local TILE_G = 6
+    local TILE_W = 56  -- kleiner voor meer tiles zichtbaar
+    local TILE_H = 60
+    local TILE_G = 4
     local COLS   = math.floor((UI_W-46) / (TILE_W+TILE_G))
     local ROW_H  = 30  -- karakter naam rij
     local yOff   = -4
@@ -1705,24 +1704,29 @@ UpdateCharacterList = function()
             r2:SetBackdropColor(0.08,0.04,0.12,0.8)
             r2:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
             r2:Show()
-            -- Vul zelfde velden als kolom 1
+            -- Kolom 2: EXACT zelfde structuur als kolom 1
             r2.fLet=r2.fLet or r2:CreateFontString(nil,"OVERLAY")
-            r2.fLet:SetFont(C_2002,12,"OUTLINE"); r2.fLet:SetPoint("LEFT",6,0)
+            r2.fLet:SetFont(C_2002,14,"OUTLINE")
+            r2.fLet:SetPoint("LEFT",8,0)
             r2.fLet:SetText(data2.faction=="Horde" and "|cffff4444H|r" or "|cff4488ffA|r")
             r2.cIcon=r2.cIcon or r2:CreateTexture(nil,"OVERLAY")
-            r2.cIcon:SetSize(30,30); r2.cIcon:SetPoint("LEFT",r2.fLet,"RIGHT",4,0)
+            r2.cIcon:SetSize(36,36); r2.cIcon:SetPoint("LEFT",r2.fLet,"RIGHT",8,0)
             local coords2=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data2.class or ""]
-            if coords2 then r2.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes"); r2.cIcon:SetTexCoord(unpack(coords2)) end
+            if coords2 then
+                r2.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                r2.cIcon:SetTexCoord(unpack(coords2))
+            end
             r2.nm=r2.nm or r2:CreateFontString(nil,"OVERLAY")
-            r2.nm:SetFont(C_2002,11,"OUTLINE"); r2.nm:SetPoint("LEFT",r2.cIcon,"RIGHT",6,6)
-            r2.nm:SetText(string.format("|cff%02x%02x%02x%s|r",math.floor(cc2.r*255),math.floor(cc2.g*255),math.floor(cc2.b*255),shortName2))
+            r2.nm:SetFont(C_2002,12,"OUTLINE")
+            r2.nm:SetPoint("LEFT",r2.cIcon,"RIGHT",10,8)
+            r2.nm:SetText(SA_GOLD..shortName2.."|r")
             r2.sp=r2.sp or r2:CreateFontString(nil,"OVERLAY")
-            r2.sp:SetFont(C_2002,9,""); r2.sp:SetPoint("LEFT",r2.cIcon,"RIGHT",6,-6)
+            r2.sp:SetFont(C_2002,9,"")
+            r2.sp:SetPoint("LEFT",r2.cIcon,"RIGHT",10,-4)
             r2.sp:SetText(SA_GREY..(data2.spec or "??").." · iLvl "..(data2.ilvl or 0).."|r")
-            -- Delve progress (zelfde als kolom 1: 0/2 0/4 0/8)
             r2.prgr=r2.prgr or r2:CreateFontString(nil,"OVERLAY")
-            r2.prgr:SetFont(C_2002,9,"OUTLINE")
-            r2.prgr:SetPoint("BOTTOMLEFT",r2.cIcon,"RIGHT",6,4)
+            r2.prgr:SetFont(C_2002,10,"OUTLINE")
+            r2.prgr:SetPoint("LEFT",r2.cIcon,"RIGHT",10,-17)
             local st2=""
             if data2.delves then
                 for _,v in ipairs(data2.delves) do
@@ -1731,8 +1735,12 @@ UpdateCharacterList = function()
             end
             r2.prgr:SetText(st2~="" and st2 or SA_GREY.."—|r")
             r2.gld=r2.gld or r2:CreateFontString(nil,"OVERLAY")
-            r2.gld:SetFont(C_2002,10,"OUTLINE"); r2.gld:SetPoint("RIGHT",-6,0)
+            r2.gld:SetFont(C_2002,11,"OUTLINE"); r2.gld:SetPoint("RIGHT",-10,0)
             r2.gld:SetText(SA_GOLD..math.floor((data2.money or 0)/10000).."g|r")
+            r2.ilv=r2.ilv or r2:CreateFontString(nil,"OVERLAY")
+            r2.ilv:SetFont(C_2002,10,"OUTLINE")
+            r2.ilv:SetPoint("RIGHT",r2.gld,"LEFT",-12,0)
+            r2.ilv:SetText("|cff00ff00"..(data2.ilvl or 0).."|r")
             -- Tooltip + click (zelfde als kolom 1)
             local sn2,d2=shortName2,data2
             r2:SetScript("OnEnter",function(self)

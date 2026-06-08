@@ -981,7 +981,7 @@ local function BuildGrid(container)
 
         local bc = #bountiful
         tabBoun.lbl:SetText(bc > 0
-            and (CO.orange .. "Bountiful (" .. bc .. ")|r")
+            and ("|cff00ccff" .. "Bountiful (" .. bc .. ")|r")
             or  (CO.gray   .. "Bountiful|r"))
         tabNorm.lbl:SetText(CO.blue .. "Normal (" .. #normal .. ")|r")
 
@@ -1068,7 +1068,64 @@ local function BuildGrid(container)
             end
         end
 
-        scN:SetHeight(math.max(ITEMS_Y + ITEM_H + 6, 10))
+        -- ── ABUNDANCE BLOK onder Required Items ───────────────────────
+        local AB_Y = ITEMS_Y + ITEM_H + 10
+        if not scN.abundanceFrame then
+            local abf = CreateFrame("Frame", nil, scN, "BackdropTemplate")
+            abf:SetSize(SCROLL_W, 60)
+            abf:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            abf:SetBackdropColor(0.04, 0.08, 0.04, 0.95)
+            abf:SetBackdropBorderColor(0.20, 0.65, 0.20, 0.9)
+            -- Groen stripe links
+            local abStripe = abf:CreateTexture(nil,"ARTWORK")
+            abStripe:SetSize(4,58); abStripe:SetPoint("LEFT",1,0)
+            abStripe:SetColorTexture(0.20,0.80,0.20,1)
+            -- Titel
+            abf.title = abf:CreateFontString(nil,"OVERLAY")
+            abf.title:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+            abf.title:SetPoint("TOPLEFT",10,-6)
+            abf.title:SetText("|cff44cc66✦ Abundance Delve|r")
+            -- Info
+            abf.info = abf:CreateFontString(nil,"OVERLAY")
+            abf.info:SetFont("Fonts\\2002.ttf",10,"")
+            abf.info:SetPoint("TOPLEFT",10,-22)
+            abf.info:SetWidth(SCROLL_W-20)
+            abf.info:SetText("|cff887799Laden...|r")
+            -- Timer
+            abf.timer = abf:CreateFontString(nil,"OVERLAY")
+            abf.timer:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
+            abf.timer:SetPoint("TOPRIGHT",-8,-6)
+            abf.timer:SetText("")
+            scN.abundanceFrame = abf
+        end
+        scN.abundanceFrame:SetPoint("TOPLEFT",0,-AB_Y)
+        -- Vul abundance data
+        local abData = DT_GetAbundanceData and DT_GetAbundanceData()
+        if abData and abData.active then
+            scN.abundanceFrame:SetBackdropBorderColor(0.30,0.90,0.30,1)
+            scN.abundanceFrame.title:SetText("|cff44cc66✦ Abundance Actief: |r|cffffffff"..(abData.zone or "?").."|r")
+            local timeStr = ""
+            if abData.secondsLeft and abData.secondsLeft > 0 then
+                local h=math.floor(abData.secondsLeft/3600)
+                local m=math.floor((abData.secondsLeft%3600)/60)
+                timeStr = h>0 and string.format("|cffff8800%dh %dm|r",h,m) or string.format("|cffff8800%dm|r",m)
+            end
+            scN.abundanceFrame.timer:SetText(timeStr)
+            local shards = abData.shards or 0
+            local dundunCol = shards > 0 and "|cff44cc66" or "|cffff5555"
+            scN.abundanceFrame.info:SetText(
+                "|cff887799Shard of Dundun: |r"..dundunCol..shards.."|r  "..
+                "|cff887799Chip vendor: |r|cff00ccffChel the Chip|r"
+            )
+        else
+            scN.abundanceFrame:SetBackdropBorderColor(0.20,0.40,0.20,0.6)
+            scN.abundanceFrame.title:SetText("|cff887799✦ Abundance|r")
+            scN.abundanceFrame.timer:SetText("")
+            scN.abundanceFrame.info:SetText("|cff887799Geen actieve Abundant Harvest in Quel'Thalas|r")
+        end
+        scN.abundanceFrame:Show()
+
+        scN:SetHeight(math.max(AB_Y + 70, 10))
 
         -- ── TAB 2: BOUNTIFUL ───────────────────────────
         local iB = 0
