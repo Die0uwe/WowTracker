@@ -558,9 +558,17 @@ end
 local function BuildGrid(container)
     if container._dtBuilt then return end
     container._dtBuilt = true
-    -- Gebruik container breedte als die groter is dan default
+    -- Gebruik container breedte — wacht tot frame gelayout is
+    C_Timer.After(0.05, function()
+        local cw = container:GetWidth()
+        if cw and cw > 200 then
+            CONT_W   = math.floor(cw)
+            SF_RIGHT = 20
+            SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
+        end
+    end)
     local cw = container:GetWidth()
-    if cw and cw > 0 and cw ~= CONT_W then
+    if cw and cw > 200 then
         CONT_W   = math.floor(cw)
         SF_RIGHT = 20
         SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
@@ -572,8 +580,10 @@ local function BuildGrid(container)
     --    3D NPC portrait (Valeera Sanguinar).
     -- ════════════════════════════════════════════════
     local hdr = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    -- hdr breed als container, gecentreerd
     hdr:SetSize(CONT_W - 2, HDR_H)
     hdr:SetPoint("TOPLEFT", container, "TOPLEFT", 1, -1)
+    hdr:SetPoint("TOPRIGHT", container, "TOPRIGHT", -1, -1)
     hdr:SetBackdrop(BD(1))
     hdr:SetBackdropColor(0.02, 0.05, 0.12, 0.98)
     hdr:SetBackdropBorderColor(0.0, 0.75, 0.70, 1)

@@ -654,29 +654,23 @@ searchBox:SetScript("OnEditFocusLost",function()
     C_Timer.After(0.15,function() DT_SuggestDrop:Hide() end)
 end)
 
--- 2-KOLOMS layout — linker + rechter scroll
+-- 1 scroller over volledige breedte, 2-koloms tegel layout
 local COL_W=math.floor((UI_W-50)/2)
 local scroll=CreateFrame("ScrollFrame","DT_Scroll",Tab2,"UIPanelScrollFrameTemplate")
 scroll:SetPoint("TOPLEFT",Tab2,"TOPLEFT",1,-34)
-scroll:SetPoint("BOTTOMLEFT",Tab2,"BOTTOMLEFT",1,4)
-scroll:SetWidth(COL_W+2)
+scroll:SetPoint("BOTTOMRIGHT",Tab2,"BOTTOMRIGHT",-22,4)
 scroll.content=CreateFrame("Frame",nil,scroll)
-scroll.content:SetSize(COL_W,1)
+scroll.content:SetSize(UI_W-46,1)
 scroll:SetScrollChild(scroll.content)
 scroll.content.rows={}
-
-local scroll2=CreateFrame("ScrollFrame","DT_Scroll2",Tab2,"UIPanelScrollFrameTemplate")
-scroll2:SetPoint("TOPLEFT",Tab2,"TOPLEFT",COL_W+8,-34)
-scroll2:SetPoint("BOTTOMRIGHT",Tab2,"BOTTOMRIGHT",-22,4)
-scroll2.content=CreateFrame("Frame",nil,scroll2)
-scroll2.content:SetSize(COL_W,1)
-scroll2:SetScrollChild(scroll2.content)
-scroll2.content.rows={}
+-- DT_Scroll2 alias zodat kolom 2 code nog werkt
+local scroll2_alias = scroll  -- zelfde scroller, kolom 2 gebruikt xPos offset
 
 -- ── TAB 3: BOUNTY — volle breedte ────────────────────────────────────────
 Tab3.PluginArea=CreateFrame("Frame","DT_BountyArea",Tab3)
 Tab3.PluginArea:SetPoint("TOPLEFT",Tab3,"TOPLEFT",0,0)
 Tab3.PluginArea:SetPoint("BOTTOMRIGHT",Tab3,"BOTTOMRIGHT",0,0)
+-- QuickSet legt zijn content in Tab3.PluginArea centraal
 Tab3.bg=Tab3:CreateTexture(nil,"BACKGROUND")
 Tab3.bg:SetAllPoints()
 Tab3.bg:SetColorTexture(0.05,0.02,0.08,0.6)
@@ -843,8 +837,18 @@ WT_UpdateRoster = function()
         card.rIcon:SetPoint("TOPLEFT",4,-4)
         local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s","")
         local facKey  = ((data.faction or ""):lower()=="horde") and "horde" or "alliance"
-        card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey)
+        -- Primair: Achievement icon (Midnight 12.x)
+        local raceIconPath = "Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey
+        card.rIcon:SetTexture(raceIconPath)
         card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+        -- Fallback: als texture leeg is, gebruik klasse kleur als achtergrond
+        card.rIcon:SetAlpha(1.0)
+        if not card.rIconBg then
+            card.rIconBg=card:CreateTexture(nil,"BACKGROUND")
+            card.rIconBg:SetSize(52,52)
+            card.rIconBg:SetPoint("TOPLEFT",4,-4)
+            card.rIconBg:SetColorTexture(cc.r*0.3,cc.g*0.3,cc.b*0.3,0.8)
+        end
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
         card.sIcon = card.sIcon or card:CreateTexture(nil,"OVERLAY")
@@ -852,8 +856,17 @@ WT_UpdateRoster = function()
         -- BOTTOMRIGHT van race portrait, -1px overlap voor hoek-effect
         card.sIcon:SetPoint("BOTTOMRIGHT",card.rIcon,"BOTTOMRIGHT",1,1)
         if data.specID then
-            local ok,_,_,_,iconID = pcall(GetSpecializationInfoByID, data.specID)
-            if ok and iconID then card.sIcon:SetTexture(iconID) end
+            local ok, sid, sname, sdesc, sicon = pcall(GetSpecializationInfoByID, data.specID)
+            if ok and sicon then
+                card.sIcon:SetTexture(sicon)
+            elseif data.class then
+                -- Fallback: klasse icoon als spec niet beschikbaar
+                local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+                if coords then
+                    card.sIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                    card.sIcon:SetTexCoord(unpack(coords))
+                end
+            end
         end
         card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
 
@@ -1178,28 +1191,39 @@ WT_UpdateCurrency = function()
         return nil, tostring(id)
     end
 
-    -- Volledige lijst: Midnight → The War Within → Dragonflight → Shadowlands → BfA → Legion
+    -- Volledige lijst alle currencies — gesorteerd op relevantie
     local CUR_DEFS_ALL = {
-        -- Midnight (12.x)
+        -- ── MIDNIGHT (12.x) ──────────────────────────────────────────
         {id=3028, label="Restored Coffer Keys",       col="|cff00ccff", expac="Midnight"},
         {id=3310, label="Coffer Key Shards",           col="|cffffee00", expac="Midnight"},
         {id=3376, label="Shard of Dundun",             col="|cff44cc66", expac="Midnight"},
         {id=3378, label="Dawnlight Manaflux",          col="|cffa335ee", expac="Midnight"},
-        -- The War Within (11.x)
+        {id=3399, label="Unalloyed Abundance",         col="|cff55ff55", expac="Midnight"},
+        {id=3403, label="Midnight Reputation Token",   col="|cff00aaff", expac="Midnight"},
+        {id=3390, label="Amani Favor",                 col="|cffff8800", expac="Midnight"},
+        -- ── THE WAR WITHIN (11.x) ────────────────────────────────────
         {id=2803, label="Resonance Crystals",          col="|cff88ddff", expac="War Within"},
-        {id=2778, label="Weathered Harbinger Crest",   col="|cff779966", expac="War Within"},
-        {id=2779, label="Carved Harbinger Crest",      col="|cff88aa55", expac="War Within"},
-        {id=2780, label="Runed Harbinger Crest",       col="|cff99bb44", expac="War Within"},
+        {id=2778, label="Weathered Harbinger Crest",   col="|cff99aa77", expac="War Within"},
+        {id=2779, label="Carved Harbinger Crest",      col="|cff88bb55", expac="War Within"},
+        {id=2780, label="Runed Harbinger Crest",       col="|cff77cc44", expac="War Within"},
         {id=2781, label="Gilded Harbinger Crest",      col="|cffccaa00", expac="War Within"},
-        {id=3028, label="Restored Coffer Keys",        col="|cff00ccff", expac="War Within"},
-        -- Dragonflight (10.x)
+        {id=2815, label="Valorstones",                 col="|cff4488cc", expac="War Within"},
+        {id=2778, label="Undercoin",                   col="|cff665588", expac="War Within"},
+        -- ── DRAGONFLIGHT (10.x) ──────────────────────────────────────
         {id=2245, label="Dragon Isles Supplies",       col="|cff55aa88", expac="Dragonflight"},
         {id=2123, label="Valor",                       col="|cff4488dd", expac="Dragonflight"},
         {id=2119, label="Conquest",                    col="|cffdd4444", expac="Dragonflight"},
-        -- Shadowlands
+        {id=2032, label="Primal Chaos",                col="|cffff6600", expac="Dragonflight"},
+        {id=2003, label="Dragon Isles Renown",         col="|cff55cc88", expac="Dragonflight"},
+        -- ── SHADOWLANDS ──────────────────────────────────────────────
         {id=1885, label="Anima",                       col="|cff8855ff", expac="Shadowlands"},
         {id=1906, label="Soul Cinders",                col="|cff4455dd", expac="Shadowlands"},
-        -- Warband / Algemeen
+        {id=1767, label="Stygia",                      col="|cff2244aa", expac="Shadowlands"},
+        {id=1828, label="Grateful Offering",           col="|cffddaa22", expac="Shadowlands"},
+        -- ── BATTLE FOR AZEROTH ───────────────────────────────────────
+        {id=1560, label="War Resources",               col="|cffcc4400", expac="BfA"},
+        {id=1159, label="Azerite",                     col="|cffff8800", expac="BfA"},
+        -- ── PvP ──────────────────────────────────────────────────────
         {id=1792, label="Honor",                       col="|cffaaffaa", expac="PvP"},
         {id=1602, label="Conquest",                    col="|cffff4444", expac="PvP"},
     }
@@ -1575,66 +1599,80 @@ ScanDelves = function()
 end
 
 UpdateCharacterList = function()
-    ScanDelves()
-    local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-    local d=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
-    if d then
-        local c=RAID_CLASS_COLORS[d.class] or {r=1,g=1,b=1}
-        UI.charInfo:SetText(string.format(
-            "|cff%02x%02x%02x%s|r  |cffffffffLvl %d|r  ·  %s %s  ·  |cff00ff00iLvl %d|r  ·  "..SA_GOLD.."%dg|r",
-            math.floor(c.r*255+0.5),math.floor(c.g*255+0.5),math.floor(c.b*255+0.5),
-            UnitName("player") or "?",d.level or 0,d.spec or "??",d.class or "",d.ilvl or 0,
-            math.floor((d.money or 0)/10000)
-        ))
-    end
+    -- Herlaad suggesties
+    if DT_SuggestDrop then DT_SuggestDrop:Hide() end
     if not (DT_Scroll and DT_Scroll.content) then return end
     local filter=(DT_SearchBox and DT_SearchBox:GetText() or ""):lower()
+    if filter=="🔍 zoek karakter..." then filter="" end
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
-        if filter=="" or k:lower():find(filter,1,true) then table.insert(sorted,k) end
+        if filter=="" or k:lower():find(filter,1,true) then
+            table.insert(sorted,k)
+        end
     end
     table.sort(sorted)
+
+    -- Verberg alle oude rijen
     for _,row in pairs(DT_Scroll.content.rows) do row:Hide() end
-    local ROW_H=60; local ROW_W=UI_W-46
+    DT_Scroll.content.rows = {}
+
+    local ROW_H = 60
+    local COLS  = 2
+    local COL   = math.floor((UI_W-50)/2)
+    local GAP   = 4
+
     for i,key in ipairs(sorted) do
-        local data=DelveTrackerDB.characters[key]
-        local r=DT_Scroll.content.rows[i]
+        local data = DelveTrackerDB.characters[key]
+        local shortName = key:match("([^-]+)") or key
+        local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+
+        -- 2-koloms: col 0=links, col 1=rechts
+        local col = (i-1) % COLS
+        local row = math.floor((i-1) / COLS)
+        local xPos = col * (COL + GAP)
+        local yPos = -(row * (ROW_H + 3))
+
+        local r = DT_Scroll.content.rows[i]
         if not r then
-            r=CreateFrame("Button",nil,DT_Scroll.content,"BackdropTemplate")
+            r = CreateFrame("Button",nil,DT_Scroll.content,"BackdropTemplate")
             r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         end
-        r:SetSize(ROW_W,ROW_H)
-        r:SetPoint("TOPLEFT",0,-(i-1)*(ROW_H+3))
+        r:SetSize(COL, ROW_H)
+        r:SetPoint("TOPLEFT", xPos, yPos)
         r:SetBackdropColor(0.08,0.04,0.12,0.8)
         r:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
         r:Show()
+
         -- Faction
-        r.fLet=r.fLet or r:CreateFontString(nil,"OVERLAY")
+        r.fLet = r.fLet or r:CreateFontString(nil,"OVERLAY")
         r.fLet:SetFont(C_2002,14,"OUTLINE")
         r.fLet:SetPoint("LEFT",8,0)
         r.fLet:SetText(data.faction=="Horde" and "|cffff4444H|r" or "|cff4488ffA|r")
+
         -- Klasse icon
-        r.cIcon=r.cIcon or r:CreateTexture(nil,"OVERLAY")
-        r.cIcon:SetSize(36,36); r.cIcon:SetPoint("LEFT",r.fLet,"RIGHT",8,0)
-        if data.class then
-            local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class]
-            if coords then
-                r.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
-                r.cIcon:SetTexCoord(unpack(coords))
-            end
+        r.cIcon = r.cIcon or r:CreateTexture(nil,"OVERLAY")
+        r.cIcon:SetSize(36,36)
+        r.cIcon:SetPoint("LEFT",r.fLet,"RIGHT",8,0)
+        local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+        if coords then
+            r.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+            r.cIcon:SetTexCoord(unpack(coords))
         end
+
         -- Naam
-        r.nm=r.nm or r:CreateFontString(nil,"OVERLAY")
+        r.nm = r.nm or r:CreateFontString(nil,"OVERLAY")
         r.nm:SetFont(C_2002,12,"OUTLINE")
         r.nm:SetPoint("LEFT",r.cIcon,"RIGHT",10,8)
-        r.nm:SetText(SA_GOLD..(key:match("([^-]+)") or key).."|r")
+        r.nm:SetText(SA_GOLD..shortName.."|r")
+
         -- Spec
-        r.sp=r.sp or r:CreateFontString(nil,"OVERLAY")
+        r.sp = r.sp or r:CreateFontString(nil,"OVERLAY")
         r.sp:SetFont(C_2002,9,"")
         r.sp:SetPoint("LEFT",r.cIcon,"RIGHT",10,-4)
         r.sp:SetText(SA_GREY..(data.spec or "??").." · iLvl "..(data.ilvl or 0).."|r")
+
         -- Delve progress
-        r.prgr=r.prgr or r:CreateFontString(nil,"OVERLAY")
+        r.prgr = r.prgr or r:CreateFontString(nil,"OVERLAY")
         r.prgr:SetFont(C_2002,10,"OUTLINE")
         r.prgr:SetPoint("LEFT",r.cIcon,"RIGHT",10,-17)
         local st=""
@@ -1644,26 +1682,35 @@ UpdateCharacterList = function()
             end
         end
         r.prgr:SetText(st~="" and st or SA_GREY.."—|r")
+
         -- Gold
-        r.gld=r.gld or r:CreateFontString(nil,"OVERLAY")
+        r.gld = r.gld or r:CreateFontString(nil,"OVERLAY")
         r.gld:SetFont(C_2002,11,"OUTLINE")
         r.gld:SetPoint("RIGHT",-10,0)
         r.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+
         -- iLvl badge
-        r.ilv=r.ilv or r:CreateFontString(nil,"OVERLAY")
+        r.ilv = r.ilv or r:CreateFontString(nil,"OVERLAY")
         r.ilv:SetFont(C_2002,10,"OUTLINE")
         r.ilv:SetPoint("RIGHT",r.gld,"LEFT",-12,0)
-        r.ilv:SetText("|cff00ff00"..  (data.ilvl or 0).."|r")
-        -- Events
-        local shortName=key:match("([^-]+)") or key
+        r.ilv:SetText("|cff00ff00"..(data.ilvl or 0).."|r")
+
+        -- Tooltip — zelfde voor beide kolommen
+        local sn,d = shortName,data
         r:SetScript("OnEnter",function(self)
             self:SetBackdropColor(0.14,0.07,0.22,1)
             self:SetBackdropBorderColor(0.50,0.15,0.80,1)
             GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
-            GameTooltip:SetText(SA_GOLD..shortName)
-            for pN,pF in pairs(DelveTracker.Plugins) do
-                if DelveTrackerDB.PluginStates[pN]~=false then pcall(pF,"Tooltip",data,key) end
+            GameTooltip:SetText(SA_GOLD..sn)
+            GameTooltip:AddLine(SA_GREY..(d.class or "?").." · "..(d.spec or "??").."|r")
+            if d.delves then
+                local ds=""
+                for _,v in ipairs(d.delves) do
+                    ds=ds..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
+                end
+                if ds~="" then GameTooltip:AddLine(ds) end
             end
+            GameTooltip:AddLine(SA_GOLD..math.floor((d.money or 0)/10000).."g|r")
             GameTooltip:Show()
         end)
         r:SetScript("OnLeave",function(self)
@@ -1673,541 +1720,16 @@ UpdateCharacterList = function()
         end)
         r:SetScript("OnClick",function()
             if DT_Armory_ShowCharacter then
-                data.name=shortName; DT_Armory_ShowCharacter(data); PlaySound(852)
+                d.name=sn; DT_Armory_ShowCharacter(d); PlaySound(852)
             end
         end)
-        DT_Scroll.content.rows[i]=r
+
+        DT_Scroll.content.rows[i] = r
     end
-    -- Verdeel over 2 kolommen
-    local half=math.ceil(#sorted/2)
-    DT_Scroll.content:SetHeight(half*(ROW_H+3))
-    -- Kolom 2 content opbouwen (DT_Scroll2 als aanwezig)
-    if _G["DT_Scroll2"] then
-        local s2=_G["DT_Scroll2"]
-        if not s2.content.rows then s2.content.rows={} end
-        for _,r in pairs(s2.content.rows) do r:Hide() end
-        local ri2=0
-        for j=half+1,#sorted do
-            ri2=ri2+1
-            local key2=sorted[j]
-            local data2=DelveTrackerDB.characters[key2]
-            local shortName2=key2:match("([^-]+)") or key2
-            local cc2=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data2.class or ""] or {r=0.8,g=0.8,b=0.8}
-            local r2=s2.content.rows[ri2]
-            if not r2 then
-                r2=CreateFrame("Button",nil,s2.content,"BackdropTemplate")
-                r2:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-            end
-            local ROW_W2=s2.content:GetWidth() or COL_W
-            r2:SetSize(ROW_W2,ROW_H)
-            r2:SetPoint("TOPLEFT",0,-(ri2-1)*(ROW_H+3))
-            r2:SetBackdropColor(0.08,0.04,0.12,0.8)
-            r2:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
-            r2:Show()
-            -- Kolom 2: EXACT zelfde structuur als kolom 1
-            r2.fLet=r2.fLet or r2:CreateFontString(nil,"OVERLAY")
-            r2.fLet:SetFont(C_2002,14,"OUTLINE")
-            r2.fLet:SetPoint("LEFT",8,0)
-            r2.fLet:SetText(data2.faction=="Horde" and "|cffff4444H|r" or "|cff4488ffA|r")
-            r2.cIcon=r2.cIcon or r2:CreateTexture(nil,"OVERLAY")
-            r2.cIcon:SetSize(36,36); r2.cIcon:SetPoint("LEFT",r2.fLet,"RIGHT",8,0)
-            local coords2=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data2.class or ""]
-            if coords2 then
-                r2.cIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
-                r2.cIcon:SetTexCoord(unpack(coords2))
-            end
-            r2.nm=r2.nm or r2:CreateFontString(nil,"OVERLAY")
-            r2.nm:SetFont(C_2002,12,"OUTLINE")
-            r2.nm:SetPoint("LEFT",r2.cIcon,"RIGHT",10,8)
-            r2.nm:SetText(SA_GOLD..shortName2.."|r")
-            r2.sp=r2.sp or r2:CreateFontString(nil,"OVERLAY")
-            r2.sp:SetFont(C_2002,9,"")
-            r2.sp:SetPoint("LEFT",r2.cIcon,"RIGHT",10,-4)
-            r2.sp:SetText(SA_GREY..(data2.spec or "??").." · iLvl "..(data2.ilvl or 0).."|r")
-            r2.prgr=r2.prgr or r2:CreateFontString(nil,"OVERLAY")
-            r2.prgr:SetFont(C_2002,10,"OUTLINE")
-            r2.prgr:SetPoint("LEFT",r2.cIcon,"RIGHT",10,-17)
-            local st2=""
-            if data2.delves then
-                for _,v in ipairs(data2.delves) do
-                    st2=st2..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
-                end
-            end
-            r2.prgr:SetText(st2~="" and st2 or SA_GREY.."—|r")
-            r2.gld=r2.gld or r2:CreateFontString(nil,"OVERLAY")
-            r2.gld:SetFont(C_2002,11,"OUTLINE"); r2.gld:SetPoint("RIGHT",-10,0)
-            r2.gld:SetText(SA_GOLD..math.floor((data2.money or 0)/10000).."g|r")
-            r2.ilv=r2.ilv or r2:CreateFontString(nil,"OVERLAY")
-            r2.ilv:SetFont(C_2002,10,"OUTLINE")
-            r2.ilv:SetPoint("RIGHT",r2.gld,"LEFT",-12,0)
-            r2.ilv:SetText("|cff00ff00"..(data2.ilvl or 0).."|r")
-            -- Tooltip + click (zelfde als kolom 1)
-            local sn2,d2=shortName2,data2
-            r2:SetScript("OnEnter",function(self)
-                self:SetBackdropColor(0.14,0.07,0.22,1)
-                self:SetBackdropBorderColor(0.50,0.15,0.80,1)
-                GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
-                GameTooltip:SetText(SA_GOLD..sn2)
-                GameTooltip:AddLine(SA_GREY..(d2.class or "?").." · "..(d2.spec or "??").." · iLvl "..(d2.ilvl or 0).."|r")
-                if d2.delves then
-                    local ds=""
-                    for _,v in ipairs(d2.delves) do
-                        ds=ds..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
-                    end
-                    if ds~="" then GameTooltip:AddLine(ds) end
-                end
-                GameTooltip:AddLine(SA_GOLD..math.floor((d2.money or 0)/10000).."g|r")
-                GameTooltip:Show()
-            end)
-            r2:SetScript("OnLeave",function(self)
-                self:SetBackdropColor(0.08,0.04,0.12,0.8)
-                self:SetBackdropBorderColor(0.20,0.06,0.32,0.7)
-                GameTooltip:Hide()
-            end)
-            r2:SetScript("OnClick",function()
-                if DT_Armory_ShowCharacter then
-                    d2.name=sn2; DT_Armory_ShowCharacter(d2); PlaySound(852)
-                end
-            end)
-            s2.content.rows[ri2]=r2
-        end
-        s2.content:SetHeight(ri2*(ROW_H+3))
-    end
+
+    -- Hoogte: aantal rijen * (ROW_H+3)
+    local nRows = math.ceil(#sorted / COLS)
+    DT_Scroll.content:SetHeight(nRows*(ROW_H+3)+4)
 end
 
--- ── ADMIN PANEL ───────────────────────────────────────────────────────────
--- Volledig gesectioned, geen overlappende absolute Y-offsets
--- Gebruikt anchor-chaining: elk element anchor op het vorige
--- ============================================================================
-local opt=CreateFrame("Frame","DelveTrackerOptions")
-opt.name="DelveTracker"
-local category=Settings.RegisterCanvasLayoutCategory(opt,opt.name)
-Settings.RegisterAddOnCategory(category)
-UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
 
--- ── HEADER (vaste posities — geen anchor chain) ──────────────────────────
-opt.logo=opt:CreateTexture(nil,"ARTWORK")
-opt.logo:SetSize(40,40)
-opt.logo:SetPoint("TOPLEFT",16,-16)
-opt.logo:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
-
-opt.tit=opt:CreateFontString(nil,"OVERLAY")
-opt.tit:SetFont(C_2002,15,"OUTLINE")
-opt.tit:SetPoint("TOPLEFT",62,-18)
-opt.tit:SetText(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v2.7.8|r")
-
-opt.sub=opt:CreateFontString(nil,"OVERLAY")
-opt.sub:SetFont(C_2002,9,"")
-opt.sub:SetPoint("TOPLEFT",62,-38)
-opt.sub:SetText(SA_GREY.."Slayer Alliance · Midnight 12.0.5.67314|r")
-
-opt.charImg=opt:CreateTexture(nil,"ARTWORK")
-opt.charImg:SetSize(60,105)
-opt.charImg:SetPoint("TOPRIGHT",-14,-4)
-opt.charImg:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
-opt.charImg:SetAlpha(0.85)
-
--- Lijn Y=60
-opt.hdrLine=opt:CreateTexture(nil,"OVERLAY")
-opt.hdrLine:SetHeight(1)
-opt.hdrLine:SetPoint("TOPLEFT",8,-60)
-opt.hdrLine:SetPoint("TOPRIGHT",-8,-60)
-opt.hdrLine:SetColorTexture(0.35,0.10,0.55,0.7)
-
--- ── UI SCHAAL Y=70 ────────────────────────────────────────────────────────
-opt.scaleHdr=opt:CreateFontString(nil,"OVERLAY")
-opt.scaleHdr:SetFont(C_2002,10,"OUTLINE")
-opt.scaleHdr:SetPoint("TOPLEFT",8,-70)
-opt.scaleHdr:SetText(SA_PURPLE.."UI SCHAAL|r")
-
-local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,y)
-    local l=parent:CreateFontString(nil,"OVERLAY")
-    l:SetFont(C_2002,10,"")
-    l:SetPoint("TOPLEFT",8,y)
-    l:SetText(SA_GREY..lbl.."|r")
-
-    local s=CreateFrame("Slider","DT_Slider_"..dbKey,parent)
-    s:SetSize(260,14)
-    s:SetPoint("TOPLEFT",8,y-14)
-    s:SetOrientation("HORIZONTAL")
-    s:SetMinMaxValues(minV,maxV)
-    s:SetValueStep(step)
-    s:SetObeyStepOnDrag(true)
-    s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-    local bg=s:CreateTexture(nil,"BACKGROUND")
-    bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
-
-    local vt=s:CreateFontString(nil,"OVERLAY")
-    vt:SetFont(C_2002,10,"")
-    vt:SetPoint("LEFT",s,"RIGHT",6,0)
-    vt:SetTextColor(0.8,0.6,1,1)
-
-    local init=DelveTrackerDB[dbKey] or 1.0
-    s:SetValue(init); vt:SetText(string.format("%.2f",init))
-    s:SetScript("OnValueChanged",function(_,v)
-        v=math.floor(v*100+0.5)/100
-        DelveTrackerDB[dbKey]=v
-        vt:SetText(string.format("%.2f",v))
-        fn(v)
-    end)
-end
-
-MakeSlider(opt,"Main window scale",0.5,2.0,0.05,"scale",
-    function(v) UI:SetScale(v) end,-82)
-MakeSlider(opt,"Murloc button scale",0.5,2.0,0.05,"mScale",
-    function(v) if _G["DT_MurlocBtn"] then _G["DT_MurlocBtn"]:SetScale(v) end end,-114)
-
--- Lijn Y=145
-opt.scaleLine=opt:CreateTexture(nil,"OVERLAY")
-opt.scaleLine:SetHeight(1)
-opt.scaleLine:SetPoint("TOPLEFT",8,-145)
-opt.scaleLine:SetPoint("TOPRIGHT",-8,-145)
-opt.scaleLine:SetColorTexture(0.20,0.05,0.35,0.5)
-
--- ── PLUGINS Y=155 ─────────────────────────────────────────────────────────
-opt.plbl=opt:CreateFontString(nil,"OVERLAY")
-opt.plbl:SetFont(C_2002,10,"OUTLINE")
-opt.plbl:SetPoint("TOPLEFT",8,-155)
-opt.plbl:SetText(SA_PURPLE.."PLUGINS|r  "..SA_GREY.."(toggle = direct effect)|r")
-
-opt.pScroll=CreateFrame("ScrollFrame","DT_PluginScroll",opt,"UIPanelScrollFrameTemplate")
-opt.pScroll:SetSize(550,310)
-opt.pScroll:SetPoint("TOPLEFT",8,-170)
-local pContent=CreateFrame("Frame",nil,opt.pScroll)
-pContent:SetSize(500,1); opt.pScroll:SetScrollChild(pContent); pContent.rows={}
-
-local function UpdatePluginList()
-    DelveTrackerDB.PluginStates=DelveTrackerDB.PluginStates or {}
-    local names={}
-    for n in pairs(DelveTracker.Plugins) do table.insert(names,n) end
-    table.sort(names,function(a,b)
-        if a=="UserInfo" then return true end
-        if b=="UserInfo" then return false end
-        return a<b
-    end)
-    for i,name in ipairs(names) do
-        local r=pContent.rows[i]
-        if not r then
-            r=CreateFrame("Frame",nil,pContent,"BackdropTemplate")
-            r:SetSize(498,28)
-            r:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        end
-        r:SetPoint("TOPLEFT",0,(i-1)*-31)
-        local pinned=(name=="UserInfo")
-        r:SetBackdropColor(pinned and 0.12 or 0.07, 0.04, pinned and 0.18 or 0.11, 0.9)
-        r:SetBackdropBorderColor(pinned and 0.55 or 0.18, 0.05, pinned and 0.85 or 0.28, 1)
-        r:Show()
-
-        r.t=r.t or r:CreateFontString(nil,"OVERLAY")
-        r.t:SetFont(C_2002,11,"")
-        r.t:SetPoint("LEFT",8,0)
-        r.t:SetText((pinned and SA_PURPLE or SA_GREY)..name.."|r")
-
-        -- Beschrijving
-        r.desc=r.desc or r:CreateFontString(nil,"OVERLAY")
-        r.desc:SetFont(C_2002,9,"")
-        r.desc:SetPoint("LEFT",r.t,"RIGHT",10,0)
-        local descs={
-            UserInfo="Karakter armory & model viewer",
-            PreyTracker="Kompas HUD voor Prey Hunts",
-            ClothCounter="Stof tracker warband-breed",
-            SkinNRare="Rare beast waypoints",
-            Registry="XL karakter index (/crew)",
-            Lockout="Raid & dungeon lockouts",
-            ExchangeBot="Currency exchange",
-            Debugger="In-game log & DB viewer",
-            CombatAnnounce="Combat tekst aankondigingen",
-            HelpGuide="Help scherm (/dthelp)",
-            Charmory="Armory popup",
-            QuickSet="Bounty delve tracker",
-            Media="Zone media manager",
-            CustomAFK="AFK scherm",
-        }
-        r.desc:SetText(SA_GREY..(descs[name] or "").."|r")
-
-        r.btn=r.btn or CreateFrame("Button",nil,r,"BackdropTemplate")
-        r.btn:SetSize(52,20); r.btn:SetPoint("RIGHT",-5,0)
-        r.btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        r.btn.t=r.btn.t or r.btn:CreateFontString(nil,"OVERLAY")
-        r.btn.t:SetFont(C_2002,10,"OUTLINE"); r.btn.t:SetPoint("CENTER")
-
-        local function Rfsh()
-            local en=DelveTrackerDB.PluginStates[name]~=false
-            r.btn:SetBackdropColor(en and 0.04 or 0.22,en and 0.16 or 0.04,0.04,1)
-            r.btn:SetBackdropBorderColor(en and 0.10 or 0.55,en and 0.55 or 0.10,0.05,1)
-            r.btn.t:SetText(en and "|cff44cc66ON|r" or "|cffcc4444OFF|r")
-        end
-        r.btn:SetScript("OnClick",function()
-            DelveTrackerDB.PluginStates[name]=not(DelveTrackerDB.PluginStates[name]~=false); Rfsh()
-        end)
-        Rfsh(); pContent.rows[i]=r
-    end
-    pContent:SetHeight(#names*31+4)
-end
-opt:SetScript("OnShow",UpdatePluginList)
-
--- Lijn Y=490 (170 start + 310 hoogte + 10 gap)
--- ─────────────────────────────────────────────────────────────────────────
--- EXTRA OPTIES — verankerd ONDER de scrolllijst, nooit erin
--- pScroll start Y=-170, hoogte=310px → eindigt bij Y=-480
--- Extra opties: Y=-492 (12px marge)
--- ─────────────────────────────────────────────────────────────────────────
-opt.plugLine=opt:CreateTexture(nil,"OVERLAY")
-opt.plugLine:SetHeight(1)
-opt.plugLine:SetPoint("TOPLEFT",opt.pScroll,"BOTTOMLEFT",0,-8)
-opt.plugLine:SetWidth(540)
-opt.plugLine:SetColorTexture(0.20,0.05,0.35,0.5)
-
-opt.extraHdr=opt:CreateFontString(nil,"OVERLAY")
-opt.extraHdr:SetFont(C_2002,10,"OUTLINE")
-opt.extraHdr:SetPoint("TOPLEFT",opt.plugLine,"BOTTOMLEFT",0,-8)
-opt.extraHdr:SetText(SA_PURPLE.."EXTRA OPTIES|r")
-
-local function MakeOptBtn(lbl,anchorFrame,fn)
-    local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
-    b:SetSize(280,24)
-    b:SetPoint("TOPLEFT",anchorFrame,"BOTTOMLEFT",0,-4)
-    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    b:SetBackdropColor(0.08,0.04,0.12,0.9)
-    b:SetBackdropBorderColor(0.25,0.07,0.40,1)
-    local t=b:CreateFontString(nil,"OVERLAY")
-    t:SetFont(C_2002,10,"")
-    t:SetPoint("LEFT",8,0)
-    t:SetText(SA_GREY..lbl.."|r")
-    b:SetScript("OnClick",fn)
-    b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.55,0.15,0.85,1) end)
-    b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.25,0.07,0.40,1) end)
-    return b  -- teruggeven voor anchoring
-end
-
-local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",opt.extraHdr,function()
-    if SlashCmdList["CSET"] then SlashCmdList["CSET"]("")
-    elseif SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("") end
-end)
-local eb2=MakeOptBtn("⊞  AFK Screen layout (/dtgrid)",eb1,function()
-    if SlashCmdList["DTGRID"] then SlashCmdList["DTGRID"]("") end
-end)
-local eb3=MakeOptBtn("▶  Preview AFK scherm (/dtafk)",eb2,function()
-    if SlashCmdList["DTAFK"] then SlashCmdList["DTAFK"]("") end
-end)
-MakeOptBtn("⚠  Wipe Character DB",eb3,function()
-    if DelveTrackerDB then
-        DelveTrackerDB.characters={}
-        print(SA_PURPLE.."[WowTracker]|r DB gewist.|r")
-    end
-end)
-
--- ─────────────────────────────────────────────────────────────────────────
-
--- [stale afkBtn verwijderd]
-
--- ── MURLOC ────────────────────────────────────────────────────────────────
-local MBtn=CreateFrame("Button","DT_MurlocBtn",UIParent)
-MBtn:SetSize(58,58); MBtn:SetPoint("CENTER"); MBtn:SetMovable(true)
-MBtn:EnableMouse(true); MBtn:RegisterForDrag("RightButton"); MBtn:SetClampedToScreen(true)
-MBtn:SetClampedToScreen(true)
--- Achtergrond ring (donker paars)
-MBtn.ring=MBtn:CreateTexture(nil,"BACKGROUND")
-MBtn.ring:SetAllPoints()
-MBtn.ring:SetColorTexture(0,0,0,0)  -- volledig transparant
--- Logo texture
-MBtn.tex=MBtn:CreateTexture(nil,"ARTWORK")
-MBtn.tex:SetAllPoints()
-MBtn.tex:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
--- Hover tooltip
-MBtn:SetScript("OnEnter",function(self)
-    GameTooltip:SetOwner(self,"ANCHOR_TOP")
-    GameTooltip:ClearLines()
-    GameTooltip:AddLine("|cffa335eeSlayer Alliance|r  |cff887799DelveTracker v2.7.0|r")
-    GameTooltip:AddLine("|cff44aacc[Links]|r  |cff887799Open/Sluit tracker|r")
-    GameTooltip:AddLine("|cff44aacc[Rechts]|r  |cff887799Menu|r")
-    GameTooltip:AddLine("|cff44aacc[R-drag]|r  |cff887799Verplaats knop|r")
-    GameTooltip:Show()
-end)
-MBtn:SetScript("OnLeave",function() GameTooltip:Hide() end)
-local function DT_OpenMurlocMenu(owner)
-    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
-    MenuUtil.CreateContextMenu(owner, function(_, root)
-        root:CreateTitle(SA_PURPLE.."Slayer Alliance|r  "..SA_GREY.."v2.7.0|r")
-
-        -- ── CHARACTERS ───────────────────────────────────
-        root:CreateTitle(SA_GOLD.."Characters|r")
-        root:CreateButton("|cffffffff⚔  Delves|r  "..SA_GREY.."(lijstoverzicht)|r",
-            function() ShowTab(2) end)
-        root:CreateButton("|cffffffff📖  Registry|r  "..SA_GREY.."(XL karakter index)|r",
-            function()
-                local reg = _G["DT_RegistryFrame"]
-                if reg then if reg:IsShown() then reg:Hide() else reg:Show() end
-                else print(SA_GREY.."[DT] Registry niet geladen|r") end
-            end)
-        root:CreateButton("|cffffffff🏛  Armory|r  "..SA_GREY.."(huidige karakter)|r",
-            function()
-                local myKey = (UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-                local data  = DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
-                if DT_Armory_ShowCharacter and data then
-                    data.name = UnitName("player"); DT_Armory_ShowCharacter(data)
-                else print(SA_GREY.."[DT] Armory niet beschikbaar of geen data|r") end
-            end)
-        root:CreateButton("|cffffffff👥  Guild|r  "..SA_GREY.."(guild tab)|r",
-            function() ShowTab(1) end)
-
-        -- ── TRACKERS ──────────────────────────────────────
-        root:CreateTitle(SA_BLUE.."Trackers|r")
-        root:CreateButton("|cffffffff🎯  Prey Tracker|r  "..SA_GREY.."(/prey toggle)|r",
-            function()
-                if addonTable.PreyTrackerEnable and addonTable.PreyTrackerDisable then
-                    local PreyUI = _G["DT_PreyUI"]
-                    if PreyUI and PreyUI:IsShown() then
-                        addonTable.PreyTrackerDisable()
-                    else
-                        addonTable.PreyTrackerEnable()
-                    end
-                else
-                    if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
-                end
-            end)
-        root:CreateButton("|cffffffff📦  Bounty|r  "..SA_GREY.."(delve bounty tab)|r",
-            function() ShowTab(3) end)
-        root:CreateButton("|cffffffff🗓  Events|r  "..SA_GREY.."(/dtevents toggle)|r",
-            function()
-                if SlashCmdList["DTEVENTS"] then SlashCmdList["DTEVENTS"]()
-                else print(SA_GREY.."[DT] Events module niet geladen|r") end
-            end)
-        root:CreateButton("|cffffffff🧵  Cloth Counter|r  "..SA_GREY.."(/cbud toggle)|r",
-            function()
-                if SlashCmdList["CBUDGET"] then SlashCmdList["CBUDGET"]("")
-                else print(SA_GREY.."[DT] ClothCounter niet geladen|r") end
-            end)
-        root:CreateButton("|cffffffff🐾  Skin & Rare|r  "..SA_GREY.."(Majestic Tracker)|r",
-            function()
-                local f = _G["MajesticTrackerFrame"]
-                if f then if f:IsShown() then f:Hide() else f:Show() end
-                else print(SA_GREY.."[DT] SkinNRare niet geladen|r") end
-            end)
-        root:CreateButton("|cffffffff🔒  Lockout|r  "..SA_GREY.."(/dtlockout toggle)|r",
-            function()
-                if SlashCmdList["DTLOCKOUT"] then SlashCmdList["DTLOCKOUT"]()
-                else print(SA_GREY.."[DT] Lockout niet geladen|r") end
-            end)
-
-        -- ── SETTINGS ──────────────────────────────────────
-        root:CreateTitle(SA_PURPLE.."Settings|r")
-        root:CreateButton("|cffffffff⚙  Admin Panel|r  "..SA_GREY.."(alle instellingen)|r",
-            function() Settings.OpenToCategory(category:GetID()) end)
-        root:CreateButton("|cffffffff🔧  Debug Console|r  "..SA_GREY.."(/dtdebug toggle)|r",
-            function()
-                local f = _G["DT_DebugFrame"]
-                if f then if f:IsShown() then f:Hide() else f:Show() end
-                else print(SA_GREY.."[DT] Debugger niet geladen|r") end
-            end)
-        root:CreateButton("|cffffffff💬  Exchange Bot|r  "..SA_GREY.."(/cbot toggle)|r",
-            function()
-                local f = _G["DT_ExchangeFrame"]
-                if f then if f:IsShown() then f:Hide() else f:Show() end
-                else print(SA_GREY.."[DT] ExchangeBot niet geladen|r") end
-            end)
-
-        -- ── SYSTEEM ───────────────────────────────────────
-        root:CreateTitle(SA_GREY.."Systeem|r")
-        root:CreateButton("Herpositioneer Murloc",
-            function() MBtn:ClearAllPoints(); MBtn:SetPoint("CENTER") end)
-        root:CreateButton("Reload UI",
-            function() ReloadUI() end)
-        root:CreateButton("Sluit venster",
-            function() UI:Hide() end)
-    end)
-end
-MBtn:SetScript("OnClick",function(self,btn)
-    if btn=="LeftButton" then
-        PlaySound(6449)
-        if UI:IsShown() then UI:Hide() else ShowTab(activeTabID) end
-    else DT_OpenMurlocMenu(self) end
-end)
-MBtn:SetScript("OnDragStart",MBtn.StartMoving)
-MBtn:SetScript("OnDragStop",function(self)
-    self:StopMovingOrSizing()
-    local _,_,_,x,y=self:GetPoint(); DelveTrackerDB.murlocPos={x=x,y=y}
-end)
-
--- ── SLASH COMMANDS ────────────────────────────────────────────────────────
--- WowTracker slash commands — /wt als hoofd prefix (geen conflict met andere addons)
--- Oude /dt commands blijven werken als alias voor backward compatibility
-SLASH_WTMAIN1="/wt";     SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/dt"; SLASH_WTMAIN4="/delves"
-SLASH_WTAB11="/wt1";    SLASH_WTAB12="/wt guild";  SLASH_WTAB13="/dt1"; SLASH_WTAB14="/tb1"
-SLASH_WTAB21="/wt2";    SLASH_WTAB22="/wt delves"; SLASH_WTAB23="/dt2"; SLASH_WTAB24="/tb2"
-SLASH_WTAB31="/wt3";    SLASH_WTAB32="/wt bounty"; SLASH_WTAB33="/dt3"; SLASH_WTAB34="/tb3"
-SLASH_WTAB41="/wt4";    SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
-SLASH_WTAB51="/wt5";    SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
-SLASH_WTAB61="/wt6";    SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
-SLASH_WTRELOAD1="/wt-reload"; SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
--- Legacy aliases
-SLASH_DTRELOAD1="/dtreload"; SLASH_DTMEM1="/dtmem"; SLASH_DTCOMBAT1="/dtcombat"
-
-SlashCmdList["WTMAIN"]=function(msg)
-    msg=(msg or ""):lower():gsub("^%s+",""):gsub("%s+$","")
-    if     msg=="1" or msg=="guild"   then ShowTab(1)
-    elseif msg=="2" or msg=="delves"  then ShowTab(2)
-    elseif msg=="3" or msg=="bounty"  then ShowTab(3)
-    elseif msg=="afk" and DT_CustomAFK_Frame then DT_CustomAFK_Frame:Show()
-    elseif UI:IsShown() then UI:Hide()
-    else ShowTab(activeTabID) end
-end
-SlashCmdList["WTAB1"]=function() ShowTab(1) end
-SlashCmdList["WTAB2"]=function() ShowTab(2) end
-SlashCmdList["WTAB3"]=function() ShowTab(3) end
-SlashCmdList["WTAB4"]=function() ShowTab(4) end
-SlashCmdList["WTAB5"]=function() ShowTab(5) end
-SlashCmdList["WTAB6"]=function() ShowTab(6) end
-SlashCmdList["WTRELOAD"]=function() ReloadUI() end
-SlashCmdList["WTMEM"]=function()
-    if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then C_AddOns.UpdateAddOnMemoryUsage() end
-    local m=(C_AddOns and C_AddOns.GetAddOnMemoryUsage and C_AddOns.GetAddOnMemoryUsage("DelveTracker")) or 0
-    print(string.format(SA_PURPLE.."[DelveTracker]|r Geheugen: %.1f KB",m))
-end
-SlashCmdList["WTCOMBAT"]=function()
-    DelveTrackerDB.enableCombatAlert=not DelveTrackerDB.enableCombatAlert
-    print(SA_PURPLE.."[DelveTracker]|r Combat alert: "
-        ..(DelveTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))
-end
-
--- ── EVENTS ────────────────────────────────────────────────────────────────
-UI:RegisterEvent("PLAYER_LOGIN")
-UI:RegisterEvent("PLAYER_ENTERING_WORLD")
-UI:RegisterEvent("WEEKLY_REWARDS_UPDATE")
-UI:RegisterEvent("PLAYER_MONEY")
-
-UI:SetScript("OnEvent",function(self,event)
-    DelveTrackerDB.characters=DelveTrackerDB.characters or {}
-    DelveTrackerDB.PluginStates=DelveTrackerDB.PluginStates or {}
-    if event=="PLAYER_LOGIN" then
-        if DelveTrackerDB.mainScale then
-            UI:SetScale(DelveTrackerDB.mainScale)
-            scaleValTxt:SetText(string.format("%.2f",DelveTrackerDB.mainScale))
-        end
-        if DelveTrackerDB.mScale then MBtn:SetScale(DelveTrackerDB.mScale) end
-        if DelveTrackerDB.murlocPos then
-            local p=DelveTrackerDB.murlocPos
-            MBtn:ClearAllPoints(); MBtn:SetPoint("CENTER",UIParent,"CENTER",p.x or 0,p.y or 0)
-        end
-        if DelveTrackerDB.mainPos then
-            local p=DelveTrackerDB.mainPos
-            UI:ClearAllPoints(); UI:SetPoint(p.pt or "CENTER",UIParent,p.rpt or "CENTER",p.x or 0,p.y or 0)
-        end
-        tickerLastT=GetTime(); tickerDirty=true
-        TickerClock:SetText(string.format(SA_GOLD.."%s|r",date("%H:%M:%S")))
-    end
-    if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
-    or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
-        ScanDelves()
-        if Tab2:IsShown() then UpdateCharacterList() end
-        tickerDirty=true
-        if event=="PLAYER_LOGIN" and IsInGuild() then GuildRoster() end
-    end
-end)
-
--- ============================================================================
--- FILE CARD — DelveTracker.lua | v17.0 | 2026-06-07
--- Role  : Core UI — main frame 760px, event ticker, scaling, tabs, plugin API
--- Status: Production · Retail 12.0.5.67314 Midnight
--- Author: DieOuwe · Slayer Alliance · slayeralliance.com
--- ============================================================================
