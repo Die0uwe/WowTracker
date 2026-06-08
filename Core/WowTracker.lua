@@ -842,15 +842,12 @@ WT_UpdateRoster = function()
             card.rIconBg:SetPoint("TOPLEFT",4,-4)
         end
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
-        -- Race icoon via SetAtlas — werkt in 12.x (PBRoster methode)
-        local raceAtlas = (data.race or "human"):lower():gsub("%s","")
-        local genderStr = (data.gender==3) and "female" or "male"
-        local atlasName = "raceicon-"..raceAtlas.."-"..genderStr
-        local ok = pcall(function() card.rIcon:SetAtlas(atlasName) end)
-        if not ok or not card.rIcon:GetTexture() then
-            -- Fallback: klasse kleur, geen crash
-            card.rIcon:SetColorTexture(cc.r*0.4,cc.g*0.4,cc.b*0.4,1)
-        end
+        -- Race icon: exact PBRoster methode
+        -- data.race is CamelCase (2e return UnitRace): "BloodElf","ZandalariTroll" etc
+        -- data.gender is "male"/"female" string
+        -- atlas: "raceicon-bloodelf-male"
+        local raceAtlas = "raceicon-"..(data.race or "human"):lower().."-"..(data.gender or "male")
+        card.rIcon:SetAtlas(raceAtlas)
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
@@ -1652,8 +1649,13 @@ ScanDelves = function()
         local specID = GetSpecializationInfo(specIndex)
         d.specID = specID
     end
-    d.race    = UnitRace("player") or d.race
-    d.gender  = UnitSex("player") or d.gender  -- 2=male, 3=female
+    -- Race: tweede return van UnitRace() is CamelCase zonder spaties
+    -- bijv "BloodElf", "ZandalariTroll", "LightforgedDraenei"
+    local _,raceFile = UnitRace("player")
+    d.race    = raceFile or d.race
+    -- Gender: "male" of "female" string voor atlas
+    local sex = UnitSex("player")
+    d.gender  = (sex==3) and "female" or "male"
     d.faction = UnitFactionGroup("player") or d.faction
 end
 
