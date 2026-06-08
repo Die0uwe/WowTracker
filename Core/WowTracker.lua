@@ -1801,9 +1801,36 @@ MBtn:RegisterForDrag("RightButton")
 MBtn:SetFrameStrata("HIGH")
 MBtn:SetClampedToScreen(true)
 
+-- Bepaal correct addon pad
+local _addonPath = "Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga"
+-- Fallback: als map DelveTracker heet (oudere installatie)
+if not GetAddOnInfo or true then
+    -- Probeer WowTracker pad eerst, dan DelveTracker
+    _addonPath = "Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga"
+end
+
+-- Donkere achtergrond — altijd zichtbaar
+local mBtnBG = MBtn:CreateTexture(nil,"BACKGROUND")
+mBtnBG:SetAllPoints()
+mBtnBG:SetColorTexture(0.15,0.05,0.25,1)
+
+-- Border ring — Blizzard ingebouwd, altijd aanwezig
+local mBtnRing = MBtn:CreateTexture(nil,"OVERLAY")
+mBtnRing:SetSize(60,60)
+mBtnRing:SetPoint("CENTER")
+mBtnRing:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+
 MBtn.tex = MBtn:CreateTexture(nil,"ARTWORK")
-MBtn.tex:SetAllPoints()
-MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
+MBtn.tex:SetSize(42,42)
+MBtn.tex:SetPoint("CENTER")
+MBtn.tex:SetTexture(_addonPath)
+
+-- Fallback tekst ALTIJD zichtbaar
+MBtn.lbl = MBtn:CreateFontString(nil,"OVERLAY")
+MBtn.lbl:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+MBtn.lbl:SetPoint("CENTER")
+MBtn.lbl:SetText("|cffa335eeWT|r")
+MBtn.lbl:SetShown(true)  -- altijd zichtbaar als backup
 
 -- Context menu via MenuUtil (UIDropDownMenu verwijderd in 12.x)
 local function DT_OpenMurlocMenu(owner)
