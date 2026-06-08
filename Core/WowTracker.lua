@@ -274,7 +274,7 @@ UI.title:SetText(SA_PURPLE.."SLAYER ALLIANCE|r")
 UI.versionTxt = UI:CreateFontString(nil,"OVERLAY")
 UI.versionTxt:SetFont(C_2002,9,"")
 UI.versionTxt:SetPoint("TOPLEFT",UI.title,"BOTTOMLEFT",0,-3)
-UI.versionTxt:SetText(SA_GREY.."DelveTracker v2.7.0 · Midnight 12.0.5|r")
+UI.versionTxt:SetText(SA_GREY.."WowTracker v3.0.8 · Midnight 12.0.5|r")
 
 UI.charInfo = UI:CreateFontString(nil,"OVERLAY")
 UI.charInfo:SetFont(C_2002,11,"OUTLINE")
@@ -282,6 +282,44 @@ UI.charInfo:SetPoint("TOPLEFT",UI.versionTxt,"BOTTOMLEFT",0,-4)
 UI.charInfo:SetPoint("RIGHT",UI,"RIGHT",-120,0)
 UI.charInfo:SetJustifyH("LEFT")
 UI.charInfo:SetText(SA_GREY.."Laden...|r")
+
+-- Warband stats rechtsboven header: totaal karakters + totaal gold
+UI.warbandChars = UI:CreateFontString(nil,"OVERLAY")
+UI.warbandChars:SetFont(C_2002,11,"OUTLINE")
+UI.warbandChars:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-180,-(TICKER_H+10))
+UI.warbandChars:SetText(SA_GREY.."0 chars|r")
+
+UI.warbandGold = UI:CreateFontString(nil,"OVERLAY")
+UI.warbandGold:SetFont(C_2002,13,"OUTLINE")
+UI.warbandGold:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-180,-(TICKER_H+26))
+UI.warbandGold:SetText(SA_GOLD.."0g|r")
+
+-- Divider voor warband stats
+UI.warbandDiv = UI:CreateTexture(nil,"OVERLAY")
+UI.warbandDiv:SetSize(1,40)
+UI.warbandDiv:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-188,-(TICKER_H+8))
+UI.warbandDiv:SetColorTexture(0.35,0.10,0.55,0.5)
+
+local function UpdateWarbandStats()
+    local chars = DelveTrackerDB.characters or {}
+    local count = 0
+    local gold = 0
+    for _,data in pairs(chars) do
+        count = count + 1
+        gold = gold + math.floor((data.money or 0) / 10000)
+    end
+    local goldStr
+    if gold >= 1000000 then
+        goldStr = string.format("%.1fM", gold/1000000)
+    elseif gold >= 1000 then
+        goldStr = string.format("%.1fK", gold/1000)
+    else
+        goldStr = tostring(gold)
+    end
+    UI.warbandChars:SetText(SA_GREY..count.." chars|r")
+    UI.warbandGold:SetText(SA_GOLD..goldStr.."g|r")
+end
+addonTable.UpdateWarbandStats = UpdateWarbandStats
 
 -- Header knoppen: X · Tandwiel · [Theme] [Lang] — rechtsboven op één lijn
 local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 11)
@@ -550,7 +588,8 @@ Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.75)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
 -- Origineel kijkt rechts → gespiegeld kijkt naar links (naar binnen)
-Tab1.dieouwe:SetTexCoord(1,0,0,1)
+-- Horizontaal spiegelen: UL=(1,0) UR=(0,0) LL=(1,1) LR=(0,1)
+Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)
 
 -- Logo watermark links midden — subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
@@ -798,32 +837,47 @@ local DT_AlliedRaceCrest = {
 
 local function DT_SetRaceIcon(texture, raceName, gender)
     if not texture then return end
-    -- gender is getal: 2=male, 3=female (exact zoals PB Scanner + C:SetRaceIcon)
-    local gStr = (gender == 3) and "female" or "male"
+    -- gender: 2=male, 3=female — exact zoals PB Constants.lua C:SetRaceIcon()
+    -- gender kan ook een string zijn (oude DB) — beide afhandelen
+    local gStr
+    if gender == 3 or gender == "female" then gStr = "female"
+    else gStr = "male" end
+
+    -- Lookup: eerst tabel, dan dynamische fallback (lowercase, geen spaties)
     local shortName = DT_RaceIconShortName[raceName]
     if not shortName then
         shortName = (raceName or "human"):lower():gsub("[%s'%-]+","")
     end
-    -- Stap 1: raceicon128 (128px, alle rassen, 12.x)
+
+    -- Stap 1: raceicon128 — valideer met C_Texture.GetAtlasInfo (zoals PB)
     local atlas128 = "raceicon128-"..shortName.."-"..gStr
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas128) then
-        texture:SetAtlas(atlas128)
-        return
+    if C_Texture and C_Texture.GetAtlasInfo then
+        if C_Texture.GetAtlasInfo(atlas128) then
+            texture:SetAtlas(atlas128)
+            return true
+        end
     end
-    -- Stap 2: raceicon (64px, basis rassen)
+
+    -- Stap 2: raceicon64 — valideer
     local atlas64 = "raceicon-"..shortName.."-"..gStr
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas64) then
-        texture:SetAtlas(atlas64)
-        return
+    if C_Texture and C_Texture.GetAtlasInfo then
+        if C_Texture.GetAtlasInfo(atlas64) then
+            texture:SetAtlas(atlas64)
+            return true
+        end
     end
-    -- Stap 3: AlliedRace crest (Haranir etc)
+
+    -- Stap 3: AlliedRace-Crest fallback (Haranir)
     local crest = DT_AlliedRaceCrest[raceName]
-    if crest and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(crest) then
-        texture:SetAtlas(crest)
-        return
+    if crest and C_Texture and C_Texture.GetAtlasInfo then
+        if C_Texture.GetAtlasInfo(crest) then
+            texture:SetAtlas(crest)
+            return true
+        end
     end
-    -- Stap 4: vraagteken fallback
-    texture:SetTexture(134400)
+
+    -- Stap 4: klasse kleur achtergrond is al zichtbaar — geen vraagteken
+    return false
 end
 
 -- ============================================================================
@@ -851,13 +905,14 @@ local RACE_ICON_MAP = {
     ["KulTiran"]    = "kultiran",
     ["Mechagnome"]  = "mechagnome",
     ["Orc"]         = "orc",
-    ["Undead"]      = "scourge",  -- fix: atlas heet scourge
+    ["Scourge"]     = "scourge",  -- UnitRace 2e return voor Undead
+    ["Undead"]      = "scourge",  -- alias
     ["Tauren"]      = "tauren",
     ["Troll"]       = "troll",
     ["BloodElf"]    = "bloodelf",
     ["Goblin"]      = "goblin",
     ["Nightborne"]  = "nightborne",
-    ["HighmountainTauren"] = "highmountaintauren",
+    ["HighmountainTauren"] = "highmountain",  -- atlas: raceicon128-highmountain-*
     ["MagharOrc"]   = "magharorc",
     ["ZandalariTroll"] = "zandalaritroll",
     ["Vulpera"]     = "vulpera",
@@ -1394,6 +1449,68 @@ opt.extraHdr:SetFont(C_2002,10,"OUTLINE")
 opt.extraHdr:SetPoint("TOPLEFT",opt.plugLine,"BOTTOMLEFT",0,-8)
 opt.extraHdr:SetText(SA_PURPLE.."EXTRA OPTIES|r")
 
+-- Thema selector naast extra opties (rechterkant)
+opt.themeHdr=opt:CreateFontString(nil,"OVERLAY")
+opt.themeHdr:SetFont(C_2002,10,"OUTLINE")
+opt.themeHdr:SetPoint("TOPLEFT",opt.extraHdr,"TOPRIGHT",40,0)
+opt.themeHdr:SetText(SA_BLUE.."THEMA|r")
+
+local optThemes = {
+    {name="SA Dark",      r=0.04,g=0.02,b=0.08, border={0.25,0.07,0.40}},
+    {name="Paars",        r=0.06,g=0.02,b=0.12, border={0.45,0.10,0.70}},
+    {name="Blauw",        r=0.02,g=0.04,b=0.12, border={0.10,0.25,0.60}},
+    {name="Zwart",        r=0.02,g=0.02,b=0.04, border={0.20,0.20,0.20}},
+}
+local lastThemeBtn = opt.themeHdr
+for _,th in ipairs(optThemes) do
+    local t=th
+    local tb=CreateFrame("Button",nil,opt,"BackdropTemplate")
+    tb:SetSize(120,22)
+    tb:SetPoint("TOPLEFT",lastThemeBtn,"BOTTOMLEFT",0,-4)
+    tb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    tb:SetBackdropColor(t.r,t.g,t.b,0.95)
+    tb:SetBackdropBorderColor(t.border[1]+0.1,t.border[2],t.border[3]+0.1,0.9)
+    local tl=tb:CreateFontString(nil,"OVERLAY")
+    tl:SetFont(C_2002,10,""); tl:SetPoint("LEFT",6,0)
+    tl:SetText(SA_GREY..t.name.."|r")
+    tb:SetScript("OnClick",function()
+        DelveTrackerDB.theme={bg={t.r,t.g,t.b}, border=t.border, name=t.name}
+        UI:SetBackdropColor(t.r,t.g,t.b,0.97)
+        UI:SetBackdropBorderColor(t.border[1],t.border[2],t.border[3],1)
+    end)
+    tb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
+    tb:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(t.border[1]+0.1,t.border[2],t.border[3]+0.1,0.9) end)
+    lastThemeBtn = tb
+end
+
+-- Taal selector onder thema
+opt.langHdr=opt:CreateFontString(nil,"OVERLAY")
+opt.langHdr:SetFont(C_2002,10,"OUTLINE")
+opt.langHdr:SetPoint("TOPLEFT",lastThemeBtn,"BOTTOMLEFT",0,-10)
+opt.langHdr:SetText(SA_BLUE.."TAAL / LANGUAGE|r")
+
+local optLangs = {"Nederlands","English","Deutsch","Français","Español"}
+local lastLangBtn = opt.langHdr
+for _,lang in ipairs(optLangs) do
+    local l=lang
+    local lb=CreateFrame("Button",nil,opt,"BackdropTemplate")
+    lb:SetSize(120,22)
+    lb:SetPoint("TOPLEFT",lastLangBtn,"BOTTOMLEFT",0,-4)
+    lb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    lb:SetBackdropColor(0.06,0.03,0.10,0.9)
+    lb:SetBackdropBorderColor(0.25,0.07,0.40,0.8)
+    local ll=lb:CreateFontString(nil,"OVERLAY")
+    ll:SetFont(C_2002,10,""); ll:SetPoint("LEFT",6,0)
+    ll:SetText(SA_GREY..l.."|r")
+    lb:SetScript("OnClick",function()
+        DelveTrackerDB.language=l
+        print(SA_PURPLE.."[WowTracker] Taal: "..l.."|r")
+    end)
+    lb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.55,0.15,0.85,1) end)
+    lb:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.25,0.07,0.40,0.8) end)
+    lastLangBtn = lb
+end
+
 local function MakeOptBtn(lbl,anchorFrame,fn)
     local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
     b:SetSize(280,24)
@@ -1608,8 +1725,8 @@ WT_UpdateCurrency = function()
     end
     table.sort(sorted)
 
-    local TILE_W = 56  -- kleiner voor meer tiles zichtbaar
-    local TILE_H = 60
+    local TILE_W = 44  -- 33px icon + padding
+    local TILE_H = 52
     local TILE_G = 4
     local COLS   = math.floor((UI_W-46) / (TILE_W+TILE_G))
     local ROW_H  = 30  -- karakter naam rij
@@ -1650,6 +1767,13 @@ WT_UpdateCurrency = function()
         local hScroll = CreateFrame("ScrollFrame",nil,Tab6.scroll.content)
         hScroll:SetSize(hScrollW, TILE_H)
         hScroll:SetPoint("TOPLEFT",0,yOff)
+        -- Muiswiel horizontaal scrollen
+        hScroll:EnableMouseWheel(true)
+        hScroll:SetScript("OnMouseWheel",function(self,delta)
+            local cur = self:GetHorizontalScroll()
+            local step = TILE_W + TILE_G
+            self:SetHorizontalScroll(math.max(0, cur - delta * step))
+        end)
 
         -- Scroll child: breed genoeg voor alle tiles naast elkaar
         local hContent = CreateFrame("Frame",nil,hScroll)
@@ -1708,7 +1832,7 @@ WT_UpdateCurrency = function()
 
             -- Icoon
             card.ico=card:CreateTexture(nil,"ARTWORK")
-            card.ico:SetSize(TILE_W-12, TILE_W-12)
+            card.ico:SetSize(33, 33)  -- vaste 33px icon
             card.ico:SetPoint("TOP",card,"TOP",0,-3)
             if def.iconID then card.ico:SetTexture(def.iconID) end
             card.ico:SetTexCoord(0.08,0.92,0.08,0.92)
@@ -1993,6 +2117,8 @@ ScanDelves = function()
     d.race    = raceFile or d.race
     d.gender = UnitSex("player")  -- getal: 2=male, 3=female (zoals PB Scanner)
     d.faction = UnitFactionGroup("player") or d.faction
+    -- Update header warband stats
+    if addonTable.UpdateWarbandStats then addonTable.UpdateWarbandStats() end
 end
 
 UpdateCharacterList = function()
