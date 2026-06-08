@@ -1734,5 +1734,107 @@ UpdateCharacterList = function()
     local nRows = math.ceil(#sorted / COLS)
     DT_Scroll.content:SetHeight(nRows*(ROW_H+3)+4)
 end
+-- ============================================================================
+-- MURLOC MINIMAP BUTTON
+-- Klik: toggle UI · Rechtermuisklik: context menu · Sleep: herpositioneer
+-- ============================================================================
+local DT_MurlockBtn = CreateFrame("Button","DT_MurlockBtn",UIParent,"BackdropTemplate")
+DT_MurlockBtn:SetSize(32,32)
+DT_MurlockBtn:SetFrameStrata("MEDIUM")
+DT_MurlockBtn:SetFrameLevel(8)
+DT_MurlockBtn:SetMovable(true)
+DT_MurlockBtn:EnableMouse(true)
+DT_MurlockBtn:RegisterForClicks("AnyUp")
+DT_MurlockBtn:RegisterForDrag("LeftButton")
+DT_MurlockBtn:SetClampedToScreen(true)
 
+-- Icoon
+local _mbTex = DT_MurlockBtn:CreateTexture(nil,"ARTWORK")
+_mbTex:SetAllPoints()
+_mbTex:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
+
+-- Highlight ring
+local _mbHL = DT_MurlockBtn:CreateTexture(nil,"OVERLAY")
+_mbHL:SetSize(40,40)
+_mbHL:SetPoint("CENTER")
+_mbHL:SetTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+_mbHL:SetAlpha(0)
+
+-- Tooltip
+DT_MurlockBtn:SetScript("OnEnter",function(self)
+    _mbHL:SetAlpha(0.5)
+    GameTooltip:SetOwner(self,"ANCHOR_LEFT")
+    GameTooltip:SetText(SA_PURPLE.."WowTracker|r  "..SA_GOLD.."v2.9.9|r")
+    GameTooltip:AddLine(SA_GREY.."Klik: open/sluit|r")
+    GameTooltip:AddLine(SA_GREY.."Rechts: menu|r")
+    GameTooltip:AddLine(SA_GREY.."Sleep: verplaats|r")
+    GameTooltip:Show()
+end)
+DT_MurlockBtn:SetScript("OnLeave",function()
+    _mbHL:SetAlpha(0)
+    GameTooltip:Hide()
+end)
+
+-- Klik links: toggle UI
+DT_MurlockBtn:SetScript("OnClick",function(self,btn)
+    if btn=="LeftButton" then
+        if UI:IsShown() then UI:Hide()
+        else UI:Show(); ShowTab(activeTabID or 1) end
+    elseif btn=="RightButton" then
+        -- Murloc context menu
+        if MenuUtil and MenuUtil.CreateContextMenu then
+            MenuUtil.CreateContextMenu(self,function(_,root)
+                root:CreateTitle(SA_PURPLE.."WowTracker|r")
+                root:CreateDivider()
+                root:CreateButton("🏰  Guild",     function() UI:Show(); ShowTab(1) end)
+                root:CreateButton("⚔  Delves",    function() UI:Show(); ShowTab(2) end)
+                root:CreateButton("🎯  Bounty",    function() UI:Show(); ShowTab(3) end)
+                root:CreateButton("📋  Roster",    function() UI:Show(); ShowTab(4) end)
+                root:CreateButton("🛡  Armory",    function() UI:Show(); ShowTab(5) end)
+                root:CreateButton("💰  Currency",  function() UI:Show(); ShowTab(6) end)
+                root:CreateDivider()
+                root:CreateButton("⚙  Instellingen", function()
+                    local opt=_G["DelveTrackerOptions"]
+                    if opt then if opt:IsShown() then opt:Hide() else opt:Show() end end
+                end)
+                root:CreateButton("↺  Reload UI",  function() ReloadUI() end)
+                root:CreateButton("✕  Sluit",       function() UI:Hide() end)
+            end)
+        end
+    end
+end)
+
+-- Sleep
+DT_MurlockBtn:SetScript("OnDragStart",function(self)
+    if InCombatLockdown() then return end
+    self:StartMoving()
+end)
+DT_MurlockBtn:SetScript("OnDragStop",function(self)
+    self:StopMovingOrSizing()
+    -- Sla positie op
+    local pt,_,rpt,x,y = self:GetPoint()
+    if DelveTrackerDB then
+        DelveTrackerDB.murlockPos = {pt=pt,rpt=rpt,x=x,y=y}
+    end
+end)
+
+-- Herstel positie uit DB, anders naast minimap
+local function RestoreMurlockPos()
+    local pos = DelveTrackerDB and DelveTrackerDB.murlockPos
+    if pos then
+        DT_MurlockBtn:ClearAllPoints()
+        DT_MurlockBtn:SetPoint(pos.pt, UIParent, pos.rpt, pos.x, pos.y)
+    else
+        DT_MurlockBtn:ClearAllPoints()
+        DT_MurlockBtn:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -220, -5)
+    end
+end
+
+-- Herstel na login
+local _mbFrame = CreateFrame("Frame")
+_mbFrame:RegisterEvent("PLAYER_LOGIN")
+_mbFrame:SetScript("OnEvent",function()
+    _mbFrame:UnregisterAllEvents()
+    C_Timer.After(0.5, RestoreMurlockPos)
+end)
 
