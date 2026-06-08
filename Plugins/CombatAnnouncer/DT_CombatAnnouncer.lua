@@ -47,7 +47,7 @@ if DelveTracker then
         local f = CreateFrame("Frame", nil, CA_Frame)
         f:SetSize(180, 180)
         local t = f:CreateTexture(nil, "OVERLAY")
-        t:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\"..tex)
+        t:SetTexture("Interface\\AddOns\\WowTracker\\Media\\"..tex)
         t:SetAllPoints()
         if flip then t:SetTexCoord(1, 0, 0, 1) end
         f:SetAlpha(0)

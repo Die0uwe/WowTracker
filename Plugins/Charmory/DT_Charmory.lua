@@ -65,7 +65,7 @@ if DelveTracker then
 
     -- Shield: BACKGROUND laag -2, tot aan gold bar, achter gear+model+tekst
     Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -2)
-    Armory.bgShield:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Shield.tga")
+    Armory.bgShield:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Shield.tga")
     -- Grootte: vult het model gebied van top tot boven de gold bar
     Armory.bgShield:SetSize(360, 440)
     Armory.bgShield:SetPoint("TOP", Armory, "TOP", 0, -30)

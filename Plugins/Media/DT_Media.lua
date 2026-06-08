@@ -5,7 +5,7 @@
 -- =====================================================
 
 local function InitMedia()
-    local placeholder = "Interface\\AddOns\\DelveTracker\\Media\\UCdieouwe.tga"
+    local placeholder = "Interface\\AddOns\\WowTracker\\Media\\UCdieouwe.tga"
     
     -- Exact zone names as defined in the Core
     local zones = {"Isle of Dorn", "Ringing Deeps", "Hallowfall", "Azj-Kahet"}
@@ -24,7 +24,7 @@ local function InitMedia()
             cleanName = cleanName:gsub("%s", ""):gsub("'", ""):lower()
             
             -- 3. Determine the path (e.g. Media/thesinkhole.tga)
-            local delveTexture = "Interface\\AddOns\\DelveTracker\\Media\\"..cleanName..".tga"
+            local delveTexture = "Interface\\AddOns\\WowTracker\\Media\\"..cleanName..".tga"
 
             -- Create the texture if it does not exist yet
             if not tile.bgTex then

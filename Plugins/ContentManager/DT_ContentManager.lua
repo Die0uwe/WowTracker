@@ -16,15 +16,15 @@ local defaultSettings = {
 }
 
 local availableIcons = {
-    "Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\UCdieouwe.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\Shield.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\sword.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\sinkhole.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\site9.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\thelostnether.tga",
-    "Interface\\AddOns\\DelveTracker\\Media\\kelsey.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\UCdieouwe.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\Shield.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\sword.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\sinkhole.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\site9.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\thelostnether.tga",
+    "Interface\\AddOns\\WowTracker\\Media\\kelsey.tga",
 }
 
 -- 2. EVENT MONITOR (LOOT & GUILD)

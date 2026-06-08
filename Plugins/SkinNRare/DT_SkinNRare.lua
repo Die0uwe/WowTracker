@@ -318,7 +318,7 @@ model:SetAllPoints()
 local headerImg = frame:CreateTexture(nil, "ARTWORK")
 headerImg:SetSize(160, 70)                                        -- [LOGO-FIX] was 700x40
 headerImg:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -7)          -- [LOGO-FIX] was TOP/CENTER
-headerImg:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\AMT")
+headerImg:SetTexture("Interface\\AddOns\\WowTracker\\Media\\AMT")
 headerImg:SetAlpha(1.0)                                           -- [LOGO-FIX] was 0.9; full opacity
 
 -- Subtle separator line under the logo to anchor it visually

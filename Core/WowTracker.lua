@@ -835,37 +835,45 @@ WT_UpdateRoster = function()
         card.rIcon = card.rIcon or card:CreateTexture(nil,"ARTWORK")
         card.rIcon:SetSize(52,52)
         card.rIcon:SetPoint("TOPLEFT",4,-4)
-        local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s","")
-        local facKey  = ((data.faction or ""):lower()=="horde") and "horde" or "alliance"
-        -- Primair: Achievement icon (Midnight 12.x)
-        local raceIconPath = "Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey
-        card.rIcon:SetTexture(raceIconPath)
-        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
-        -- Fallback: als texture leeg is, gebruik klasse kleur als achtergrond
-        card.rIcon:SetAlpha(1.0)
+        local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s+","")
+        local facKey  = (data.faction=="Horde") and "horde" or "alliance"
+        -- Klasse kleur achtergrond (altijd zichtbaar)
         if not card.rIconBg then
             card.rIconBg=card:CreateTexture(nil,"BACKGROUND")
             card.rIconBg:SetSize(52,52)
             card.rIconBg:SetPoint("TOPLEFT",4,-4)
-            card.rIconBg:SetColorTexture(cc.r*0.3,cc.g*0.3,cc.b*0.3,0.8)
         end
+        card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
+        -- Race icoon (achievement texture)
+        local racePath="Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey
+        card.rIcon:SetTexture(racePath)
+        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+        card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
         card.sIcon = card.sIcon or card:CreateTexture(nil,"OVERLAY")
         card.sIcon:SetSize(18,18)
         -- BOTTOMRIGHT van race portrait, -1px overlap voor hoek-effect
         card.sIcon:SetPoint("BOTTOMRIGHT",card.rIcon,"BOTTOMRIGHT",1,1)
-        if data.specID then
-            local ok, sid, sname, sdesc, sicon = pcall(GetSpecializationInfoByID, data.specID)
-            if ok and sicon then
+        -- Spec icon: 4e return value van GetSpecializationInfoByID
+        if data.specID and GetSpecializationInfoByID then
+            local ok,_,_,_,sicon = pcall(GetSpecializationInfoByID, data.specID)
+            if ok and sicon and sicon~=0 then
                 card.sIcon:SetTexture(sicon)
-            elseif data.class then
-                -- Fallback: klasse icoon als spec niet beschikbaar
-                local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+                card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+            else
+                -- Fallback: klasse icoon
+                local coords=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
                 if coords then
                     card.sIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
                     card.sIcon:SetTexCoord(unpack(coords))
                 end
+            end
+        elseif data.class then
+            local coords=CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+            if coords then
+                card.sIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                card.sIcon:SetTexCoord(unpack(coords))
             end
         end
         card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
@@ -1165,10 +1173,9 @@ WT_UpdateCurrency = function()
         if t ~= "Filter karakter..." then filter = t:lower() end
     end
 
-    -- Verberg alle oude frames (veilig: check elk element apart)
+    -- Verberg alle oude frames veilig
     for k,v in pairs(Tab6.scroll.content.crows or {}) do
         if type(v)=="table" then
-            -- cards_N is een table van frames
             for _,c in ipairs(v) do
                 if type(c)=="userdata" and c.Hide then c:Hide() end
             end
@@ -1176,6 +1183,7 @@ WT_UpdateCurrency = function()
             v:Hide()
         end
     end
+    Tab6.scroll.content.crows = {}
     Tab6.scroll.content.crows = {}
 
     -- Currency definities — alle expansies van nieuw naar oud
@@ -1299,61 +1307,105 @@ WT_UpdateCurrency = function()
         Tab6.scroll.content.crows["nr_"..ci] = nameRow
         yOff = yOff - ROW_H - 2
 
-        -- Currency tiles: 4 naast elkaar
+        -- Horizontale ScrollFrame voor currency tiles van dit karakter
+        local hScrollW = UI_W - 48
+        local hScroll = CreateFrame("ScrollFrame",nil,Tab6.scroll.content)
+        hScroll:SetSize(hScrollW, TILE_H)
+        hScroll:SetPoint("TOPLEFT",0,yOff)
+
+        -- Scroll child: breed genoeg voor alle tiles naast elkaar
+        local hContent = CreateFrame("Frame",nil,hScroll)
+        local totalTileW = #CUR_DEFS*(TILE_W+TILE_G)
+        hContent:SetSize(totalTileW, TILE_H)
+        hScroll:SetScrollChild(hContent)
+
+        -- Linker/rechter pijl knoppen
+        local function MakeArrow(dir)
+            local b=CreateFrame("Button",nil,Tab6.scroll.content,"BackdropTemplate")
+            b:SetSize(16,TILE_H)
+            b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            b:SetBackdropColor(0.08,0.04,0.12,0.9)
+            b:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
+            local t=b:CreateFontString(nil,"OVERLAY")
+            t:SetFont(C_2002,12,"OUTLINE"); t:SetPoint("CENTER")
+            t:SetText(dir=="left" and SA_GREY.."◀|r" or SA_GREY.."▶|r")
+            b:SetScript("OnClick",function()
+                local cur=hScroll:GetHorizontalScroll()
+                local step=TILE_W+TILE_G
+                if dir=="left" then
+                    hScroll:SetHorizontalScroll(math.max(0,cur-step))
+                else
+                    hScroll:SetHorizontalScroll(math.min(totalTileW-hScrollW,cur+step))
+                end
+            end)
+            return b
+        end
+
+        -- Pijlen naast de hscroll
+        local ARROW_W = 18
+        hScroll:SetSize(hScrollW - ARROW_W*2, TILE_H)
+        hScroll:SetPoint("TOPLEFT",ARROW_W,yOff)
+
+        local lArrow = MakeArrow("left")
+        lArrow:SetPoint("TOPLEFT",0,yOff)
+        local rArrow = MakeArrow("right")
+        rArrow:SetPoint("TOPLEFT",hScrollW-ARROW_W,yOff)
+
+        -- Tiles in de horizontale scroll content
         local cards = {}
         for j,def in ipairs(CUR_DEFS) do
             local val = cur[def.id] or 0
-            local xPos = (j-1)*(TILE_W+TILE_G) + 4
+            local xPos = (j-1)*(TILE_W+TILE_G)
 
-            local card = CreateFrame("Button",nil,Tab6.scroll.content,"BackdropTemplate")
+            local card = CreateFrame("Button",nil,hContent,"BackdropTemplate")
             card:SetSize(TILE_W,TILE_H)
-            card:SetPoint("TOPLEFT",xPos,yOff)
+            card:SetPoint("TOPLEFT",xPos,0)
             card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-            card:SetBackdropColor(0.07,0.03,0.12,(val>0 and 0.95 or 0.6))
+            card:SetBackdropColor(0.07,0.03,0.12,(val>0 and 0.95 or 0.55))
             card:SetBackdropBorderColor(
-                val>0 and 0.50 or 0.15,
-                0.05,
+                val>0 and 0.50 or 0.15, 0.05,
                 val>0 and 0.75 or 0.25,
-                val>0 and 1.0 or 0.5)
+                val>0 and 1.0  or 0.4)
             card:Show()
 
-            -- Icoon groot (46x46 centered)
+            -- Icoon
             card.ico=card:CreateTexture(nil,"ARTWORK")
-            card.ico:SetSize(44,44)
-            card.ico:SetPoint("TOP",card,"TOP",0,-4)
-            if def.iconID then
-                card.ico:SetTexture(def.iconID)
-            end
+            card.ico:SetSize(TILE_W-12, TILE_W-12)
+            card.ico:SetPoint("TOP",card,"TOP",0,-3)
+            if def.iconID then card.ico:SetTexture(def.iconID) end
             card.ico:SetTexCoord(0.08,0.92,0.08,0.92)
-            -- Dimmen als 0
-            card.ico:SetAlpha(val>0 and 1.0 or 0.35)
+            card.ico:SetAlpha(val>0 and 1.0 or 0.3)
 
-            -- Waarde getal onderaan icoon
+            -- Waarde
             card.valTxt=card:CreateFontString(nil,"OVERLAY")
-            card.valTxt:SetFont(C_2002,14,"OUTLINE")
-            card.valTxt:SetPoint("BOTTOM",card,"BOTTOM",0,4)
-            card.valTxt:SetText(def.col..val.."|r")
+            card.valTxt:SetFont(C_2002,12,"OUTLINE")
+            card.valTxt:SetPoint("BOTTOM",card,"BOTTOM",0,3)
+            card.valTxt:SetText((val>0 and def.col or SA_GREY)..val.."|r")
 
-            -- Tooltip bij hover
+            -- Tooltip
+            local lbl,vl,sn=def.label,val,shortName
             card:SetScript("OnEnter",function(self)
                 self:SetBackdropBorderColor(0.85,0.70,0.10,1)
                 GameTooltip:SetOwner(self,"ANCHOR_TOP")
                 GameTooltip:ClearLines()
-                GameTooltip:AddLine(def.col..def.label.."|r")
-                GameTooltip:AddLine(SA_GREY..shortName..": ".."|cffffffff"..val.."|r")
-                if val==0 then
-                    GameTooltip:AddLine("|cffff5555Geen op dit karakter|r")
-                end
+                GameTooltip:AddLine(def.col..lbl.."|r")
+                GameTooltip:AddLine(SA_GREY..sn..": |cffffffff"..vl.."|r")
+                if def.expac then GameTooltip:AddLine(SA_GREY..def.expac.."|r") end
+                if vl==0 then GameTooltip:AddLine("|cffff5555Geen op dit karakter|r") end
                 GameTooltip:Show()
             end)
             card:SetScript("OnLeave",function(self)
-                self:SetBackdropBorderColor(val>0 and 0.50 or 0.15, 0.05, val>0 and 0.75 or 0.25, val>0 and 1.0 or 0.5)
+                self:SetBackdropBorderColor(
+                    vl>0 and 0.50 or 0.15, 0.05,
+                    vl>0 and 0.75 or 0.25, vl>0 and 1.0 or 0.4)
                 GameTooltip:Hide()
             end)
-
             table.insert(cards,card)
         end
 
+        Tab6.scroll.content.crows["hs_"..ci]    = hScroll
+        Tab6.scroll.content.crows["la_"..ci]    = lArrow
+        Tab6.scroll.content.crows["ra_"..ci]    = rArrow
         Tab6.scroll.content.crows["cards_"..ci] = cards
         yOff = yOff - TILE_H - TILE_G
     end
@@ -1739,30 +1791,85 @@ end
 -- MURLOC MINIMAP BUTTON — volledig origineel menu (4 secties)
 -- Klik links: toggle UI · Rechts: volledig context menu · R-drag: verplaats
 -- ============================================================================
-local MBtn=CreateFrame("Button","DT_MurlocBtn",UIParent,"BackdropTemplate")
-MBtn:SetSize(58,58)
-MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-225,-5)
+-- ── Murloc Button: ProfBuddy stijl, orbiting rond Minimap ───────────────
+local MRADIUS   = 80   -- afstand van minimap center
+local MANGLE    = 225  -- standaard hoek (linksonder van minimap)
+local MBTN_SIZE = 36
+
+local MBtn = CreateFrame("Button","DT_MurlocBtn",Minimap)
+MBtn:SetSize(MBTN_SIZE, MBTN_SIZE)
 MBtn:SetMovable(true)
 MBtn:EnableMouse(true)
-MBtn:RegisterForDrag("LeftButton","RightButton")
-MBtn:SetClampedToScreen(true)
-MBtn:SetFrameStrata("HIGH")
-MBtn:SetFrameLevel(10)
-MBtn:Show()
+MBtn:RegisterForDrag("LeftButton")
+MBtn:RegisterForClicks("LeftButtonUp","RightButtonUp")
+MBtn:SetFrameStrata("MEDIUM")
+MBtn:SetFrameLevel(8)
+MBtn:SetClampedToScreen(false)
 
--- Achtergrond cirkel (altijd zichtbaar als texture mist)
-MBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=2})
-MBtn:SetBackdropColor(0.04,0.02,0.08,0.9)
-MBtn:SetBackdropBorderColor(0.55,0.15,0.85,1)
+-- Border ring (standaard WoW minimap button stijl)
+local mRing = MBtn:CreateTexture(nil,"OVERLAY")
+mRing:SetSize(MBTN_SIZE+4, MBTN_SIZE+4)
+mRing:SetPoint("CENTER")
+mRing:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
 
-MBtn.tex=MBtn:CreateTexture(nil,"ARTWORK")
-MBtn.tex:SetAllPoints()
+-- Icoon
+MBtn.tex = MBtn:CreateTexture(nil,"BACKGROUND")
+MBtn.tex:SetSize(MBTN_SIZE-8, MBTN_SIZE-8)
+MBtn.tex:SetPoint("CENTER")
 MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
--- Fallback tekst als texture ontbreekt
-MBtn.fallback=MBtn:CreateFontString(nil,"OVERLAY")
-MBtn.fallback:SetFont("Fonts\\2002.ttf",14,"OUTLINE")
-MBtn.fallback:SetPoint("CENTER")
-MBtn.fallback:SetText("|cffa335eeWT|r")
+
+-- Fallback: gekleurde cirkel als texture ontbreekt
+local mBG = MBtn:CreateTexture(nil,"BACKGROUND",nil,-1)
+mBG:SetSize(MBTN_SIZE-4, MBTN_SIZE-4)
+mBG:SetPoint("CENTER")
+mBG:SetColorTexture(0.15,0.05,0.25,0.95)
+
+-- Highlight bij hover
+local mHL = MBtn:CreateTexture(nil,"HIGHLIGHT")
+mHL:SetSize(MBTN_SIZE+4, MBTN_SIZE+4)
+mHL:SetPoint("CENTER")
+mHL:SetTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+mHL:SetBlendMode("ADD")
+mHL:SetAlpha(0.7)
+
+-- Positie berekening
+local function MBtnApplyAngle(deg)
+    local r = math.rad(deg)
+    MBtn:ClearAllPoints()
+    MBtn:SetPoint("CENTER",Minimap,"CENTER",
+        math.cos(r)*MRADIUS, math.sin(r)*MRADIUS)
+end
+
+-- Laden opgeslagen hoek
+local function MBtnLoadAngle()
+    if DelveTrackerDB and DelveTrackerDB.murlocAngle then
+        MANGLE = DelveTrackerDB.murlocAngle
+    end
+    MBtnApplyAngle(MANGLE)
+end
+
+-- Drag: orbit rond minimap
+local _mbDragging = false
+MBtn:SetScript("OnDragStart",function(self)
+    _mbDragging=true; self:LockHighlight()
+end)
+MBtn:SetScript("OnUpdate",function(self)
+    if not _mbDragging then return end
+    local cx,cy = Minimap:GetCenter()
+    local mx,my = GetCursorPosition()
+    local sc    = UIParent:GetEffectiveScale()
+    local dx,dy = mx/sc-cx, my/sc-cy
+    local len   = math.sqrt(dx*dx+dy*dy)
+    if len > 0 then
+        local deg = math.deg(math.atan2(dy/len*MRADIUS, dx/len*MRADIUS)) % 360
+        MBtnApplyAngle(deg)
+        MANGLE = deg
+    end
+end)
+MBtn:SetScript("OnDragStop",function(self)
+    _mbDragging=false; self:UnlockHighlight()
+    if DelveTrackerDB then DelveTrackerDB.murlocAngle=MANGLE end
+end)
 
 MBtn:SetScript("OnEnter",function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
@@ -1960,16 +2067,9 @@ UI:SetScript("OnEvent",function(self,event)
         -- Herstel murloc schaal
         if DelveTrackerDB.mScale then MBtn:SetScale(DelveTrackerDB.mScale) end
         -- Herstel murloc positie
-        -- Murloc positie herstel
-        C_Timer.After(0.2, function()
-            if DelveTrackerDB.murlocPos then
-                local p=DelveTrackerDB.murlocPos
-                MBtn:ClearAllPoints()
-                MBtn:SetPoint(p.pt or "TOPRIGHT",UIParent,p.rpt or "TOPRIGHT",p.x or -225,p.y or -5)
-            else
-                MBtn:ClearAllPoints()
-                MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-225,-5)
-            end
+        -- Murloc positie herstel (angle-based)
+        C_Timer.After(0.3, function()
+            MBtnLoadAngle()
             MBtn:Show()
         end)
         -- Herstel UI positie

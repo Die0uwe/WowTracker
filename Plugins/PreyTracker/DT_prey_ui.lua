@@ -29,7 +29,7 @@
 -- ============================================================================
 local addonName, addonTable = ...
 
-local MEDIA = "Interface\\AddOns\\DelveTracker\\Media\\"
+local MEDIA = "Interface\\AddOns\\WowTracker\\Media\\"
 local function M(f) return MEDIA..f end
 local math_pi  = math.pi
 local math_abs = math.abs

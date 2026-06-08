@@ -51,12 +51,12 @@ if DelveTracker then
     -- Media & Decoratie
     Registry.iconDecor = Registry:CreateTexture(nil, "ARTWORK", nil, 0)
     Registry.iconDecor:SetSize(350, 350); Registry.iconDecor:SetPoint("CENTER", 0, -40)
-    Registry.iconDecor:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\MijnIcoon.tga")
+    Registry.iconDecor:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
     Registry.iconDecor:SetAlpha(0.35)
 
     Registry.dwarfDecor = Registry:CreateTexture(nil, "BACKGROUND", nil, 2)
     Registry.dwarfDecor:SetSize(170, 280); Registry.dwarfDecor:SetPoint("BOTTOMRIGHT", -20, 35)
-    Registry.dwarfDecor:SetTexture("Interface\\AddOns\\DelveTracker\\Media\\Dieouwe.tga")
+    Registry.dwarfDecor:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
     Registry.dwarfDecor:SetAlpha(0.4); Registry.dwarfDecor:SetTexCoord(1, 0, 0, 1)
 
     Registry.header = Registry:CreateTexture(nil, "OVERLAY")
