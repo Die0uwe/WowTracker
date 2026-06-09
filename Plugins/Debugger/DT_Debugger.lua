@@ -169,16 +169,17 @@ DBG_frame:SetBackdrop({
     edgeSize = 1,
 })
 do local _b=TH().bg.main; DBG_frame:SetBackdropColor(_b.r,_b.g,_b.b,_b.a) end
-DBG_frame:SetBackdropBorderColor(0.3, 0.8, 0.3, 1)
+DBG_frame:SetBackdropBorderColor(0.45, 0.08, 0.70, 1)  -- SA purple border
 
 -- Header bar
 local hdr = DBG_frame:CreateTexture(nil, "BACKGROUND")
 hdr:SetPoint("TOPLEFT", 1, -1); hdr:SetPoint("TOPRIGHT", -1, -1); hdr:SetHeight(28)
-hdr:SetColorTexture(0.06, 0.14, 0.06, 1)
+hdr:SetColorTexture(0.05, 0.02, 0.09, 1)  -- SA dark header
 
 -- Title
-local title = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+local title = DBG_frame:CreateFontString(nil, "OVERLAY")
 title:SetPoint("TOPLEFT", 10, -8)
+title:SetFont("Fonts\\2002.ttf", 11, "OUTLINE")
 title:SetText("|cff44ff44DT Debug Console|r  |cff888888v1.0  —  WoW 12.0.5.67314|r")
 
 -- Close button
@@ -186,7 +187,9 @@ local closeBtn = CreateFrame("Button", nil, DBG_frame, "UIPanelCloseButton")
 closeBtn:SetPoint("TOPRIGHT", -2, -2)
 
 -- Uptime / error count bar
-local statusBar = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+local statusBar = DBG_frame:CreateFontString(nil, "OVERLAY")
+statusBar:SetFont("Fonts\\2002.ttf", 9, "")
+statusBar:SetTextColor(0.75, 0.75, 0.75, 1)
 statusBar:SetPoint("TOPRIGHT", closeBtn, "TOPLEFT", -8, -6)
 statusBar:SetJustifyH("RIGHT")
 DBG.statusBar = statusBar
@@ -211,9 +214,12 @@ for i, name in ipairs(TAB_NAMES) do
     b:SetPoint("TOPLEFT", 8 + (i-1) * 85, -32)
     b:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
     b:SetBackdropColor(0.1, 0.1, 0.1, 1)
-    b:SetBackdropBorderColor(0.2, 0.5, 0.2, 1)
-    local t = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    t:SetPoint("CENTER"); t:SetText(name)
+    b:SetBackdropBorderColor(0.35, 0.08, 0.55, 0.9)
+    local t = b:CreateFontString(nil, "OVERLAY")
+    t:SetPoint("CENTER")
+    t:SetFont("Fonts\\2002.ttf", 10, "OUTLINE")
+    t:SetTextColor(0.80, 0.95, 0.80, 1)
+    t:SetText(name)
     b:SetScript("OnClick", function() ShowTabFrame(i) end)
     tabBtns[i] = b
 end
@@ -221,7 +227,7 @@ end
 -- Separator line
 local sep = DBG_frame:CreateTexture(nil, "BACKGROUND")
 sep:SetPoint("TOPLEFT", 0, -58); sep:SetPoint("TOPRIGHT", 0, -58); sep:SetHeight(1)
-sep:SetColorTexture(0.2, 0.5, 0.2, 0.6)
+sep:SetColorTexture(0.35, 0.08, 0.55, 0.6)  -- SA purple sep
 
 -- ─────────────────────────────────────────────────────────────────────
 -- TAB 1: LOG
@@ -241,11 +247,12 @@ local LOG_LINE_H = 13
 local MAX_VISIBLE = 30
 
 for i = 1, MAX_VISIBLE do
-    local fs = logContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    local fs = logContent:CreateFontString(nil, "OVERLAY")
     fs:SetPoint("TOPLEFT", 4, -(i-1) * LOG_LINE_H)
     fs:SetWidth(PANEL_W - 50)
     fs:SetJustifyH("LEFT")
-    fs:SetFont("Fonts\\2002.ttf", 10)
+    fs:SetFont("Fonts\\2002.ttf", 10, "")
+    fs:SetTextColor(0.85, 0.85, 0.85, 1)  -- explicit kleur zodat het nooit wit-op-wit is
     LOG_LINES[i] = fs
 end
 
@@ -291,10 +298,12 @@ function DBG._RefreshPlugins()
     for i, name in ipairs(names) do
         local r = PLUG_ROWS[i]
         if not r then
-            r = plugContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            r = plugContent:CreateFontString(nil, "OVERLAY")
             r:SetPoint("TOPLEFT", 6, -(i-1) * 16)
             r:SetWidth(PANEL_W - 60)
             r:SetJustifyH("LEFT")
+            r:SetFont("Fonts\\2002.ttf", 10, "")
+            r:SetTextColor(0.85, 0.85, 0.85, 1)
             PLUG_ROWS[i] = r
         end
         local enabled = states[name] ~= false
@@ -315,11 +324,12 @@ local dbFrame = CreateFrame("Frame", nil, DBG_frame)
 dbFrame:SetPoint("TOPLEFT", 0, -62); dbFrame:SetPoint("BOTTOMRIGHT", 0, 36)
 TAB_FRAMES[3] = dbFrame
 
-local dbText = dbFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+local dbText = dbFrame:CreateFontString(nil, "OVERLAY")
 dbText:SetPoint("TOPLEFT", 10, -8)
 dbText:SetWidth(PANEL_W - 20)
 dbText:SetJustifyH("LEFT")
-dbText:SetFont("Fonts\\2002.ttf", 11)
+dbText:SetFont("Fonts\\2002.ttf", 11, "")
+dbText:SetTextColor(0.85, 0.85, 0.85, 1)
 
 function DBG._RefreshDB()
     local s = GetDBStats()
@@ -358,11 +368,12 @@ local memFrame = CreateFrame("Frame", nil, DBG_frame)
 memFrame:SetPoint("TOPLEFT", 0, -62); memFrame:SetPoint("BOTTOMRIGHT", 0, 36)
 TAB_FRAMES[4] = memFrame
 
-local memText = memFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+local memText = memFrame:CreateFontString(nil, "OVERLAY")
 memText:SetPoint("TOPLEFT", 10, -8)
 memText:SetWidth(PANEL_W - 20)
 memText:SetJustifyH("LEFT")
-memText:SetFont("Fonts\\2002.ttf", 11)
+memText:SetFont("Fonts\\2002.ttf", 11, "")
+memText:SetTextColor(0.85, 0.85, 0.85, 1)
 
 local _memHistory = {}
 local _memTimer = nil
@@ -397,8 +408,11 @@ local function MakeToolBtn(label, xOff, onClick)
     b:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
     b:SetBackdropColor(0.08, 0.12, 0.08, 1)
     b:SetBackdropBorderColor(0.25, 0.5, 0.25, 1)
-    local t = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    t:SetPoint("CENTER"); t:SetText(label)
+    local t = b:CreateFontString(nil, "OVERLAY")
+    t:SetPoint("CENTER")
+    t:SetFont("Fonts\\2002.ttf", 10, "")
+    t:SetTextColor(0.85, 0.95, 0.85, 1)
+    t:SetText(label)
     b:SetScript("OnClick", onClick)
     b:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(0.4, 0.9, 0.4, 1) end)
     b:SetScript("OnLeave", function(self) self:SetBackdropBorderColor(0.25, 0.5, 0.25, 1) end)
@@ -421,7 +435,9 @@ end)
 MakeToolBtn("Mem Snap", 293, function() DBG._RefreshMem() end)
 
 -- Error counter badge (bottom right)
-local errBadge = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+local errBadge = DBG_frame:CreateFontString(nil, "OVERLAY")
+errBadge:SetFont("Fonts\\2002.ttf", 10, "")
+errBadge:SetTextColor(0.85, 0.85, 0.85, 1)
 errBadge:SetPoint("BOTTOMRIGHT", -8, 12)
 errBadge:SetJustifyH("RIGHT")
 DBG.errBadge = errBadge
