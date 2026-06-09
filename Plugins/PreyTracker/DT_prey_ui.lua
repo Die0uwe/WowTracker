@@ -857,6 +857,12 @@ local function CheckAutoShow()
     lastAutoCheck = now
     local prey = addonTable.DT_preytracker
     if not prey or prey.isTesting then return end
+    -- BUG-T03: respect admin panel plugin toggle
+    if DelveTrackerDB and DelveTrackerDB.PluginStates and
+       DelveTrackerDB.PluginStates["PreyTracker"] == false then
+        if PreyUI:IsShown() then PreyUI:Hide() end
+        return
+    end
     if not S.autoShow then return end
     local ok, qid = pcall(C_QuestLog.GetActivePreyQuest)
     if ok and qid and qid ~= 0 then

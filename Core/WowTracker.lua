@@ -112,6 +112,7 @@ DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
 TickerClip:SetScript("OnClick", function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
     local ts = DelveTrackerDB.tickerShow
+    if not ts then return end  -- BUG-003: nil guard
     MenuUtil.CreateContextMenu(self, function(_, root)
         root:CreateTitle(SA_PURPLE.."Ticker inhoud|r")
         local function ToggleItem(key, label)
@@ -677,7 +678,8 @@ local function RefreshSuggest(filter)
         end
         local sb=DT_SuggestDrop.btns[i]
         local data=DelveTrackerDB.characters[m.key] or {}
-        local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        local _cc = C_ClassColor and C_ClassColor.GetClassColor(data.class or "")
+        local cc = (_cc and type(_cc)=="table" and _cc.r) and _cc or (RAID_CLASS_COLORS and type(RAID_CLASS_COLORS[data.class or ""])=="table" and RAID_CLASS_COLORS[data.class or ""]) or {r=0.8,g=0.8,b=0.8}
         sb.t:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
             m.short, data.class or "??"))
@@ -939,7 +941,8 @@ WT_UpdateRoster = function()
     for i,key in ipairs(sorted) do
         local data=DelveTrackerDB.characters[key]
         local shortName=key:match("([^-]+)") or key
-        local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        local _cc = C_ClassColor and C_ClassColor.GetClassColor(data.class or "")
+        local cc = (_cc and type(_cc)=="table" and _cc.r) and _cc or (RAID_CLASS_COLORS and type(RAID_CLASS_COLORS[data.class or ""])=="table" and RAID_CLASS_COLORS[data.class or ""]) or {r=0.8,g=0.8,b=0.8}
 
         local col = (i-1) % ROSTER_COLS
         local row = math.floor((i-1) / ROSTER_COLS)
@@ -1248,7 +1251,8 @@ WT_UpdateGuildOnline = function()
         r.nm = r.nm or r:CreateFontString(nil,"OVERLAY")
         r.nm:SetFont(C_2002,11,"")
         r.nm:SetPoint("LEFT",12,0)
-        local cc = RAID_CLASS_COLORS[member.class] or {r=0.8,g=0.8,b=0.8}
+        local _cc2 = C_ClassColor and C_ClassColor.GetClassColor(member.class or "")
+        local cc = (_cc2 and type(_cc2)=="table" and _cc2.r) and _cc2 or {r=0.8,g=0.8,b=0.8}
         r.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
             member.name))
@@ -1736,7 +1740,8 @@ WT_UpdateCurrency = function()
         local data = DelveTrackerDB.characters[key]
         local cur  = data.currencies or {}
         local shortName = key:match("([^-]+)") or key
-        local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        local _cc3 = C_ClassColor and C_ClassColor.GetClassColor(data.class or "")
+        local cc = (_cc3 and type(_cc3)=="table" and _cc3.r) and _cc3 or (RAID_CLASS_COLORS and type(RAID_CLASS_COLORS[data.class or ""])=="table" and RAID_CLASS_COLORS[data.class or ""]) or {r=0.8,g=0.8,b=0.8}
 
         -- Karakter naam header rij
         local nameRow = CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
@@ -2147,7 +2152,8 @@ UpdateCharacterList = function()
     for i,key in ipairs(sorted) do
         local data = DelveTrackerDB.characters[key]
         local shortName = key:match("([^-]+)") or key
-        local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
+        local _cc3 = C_ClassColor and C_ClassColor.GetClassColor(data.class or "")
+        local cc = (_cc3 and type(_cc3)=="table" and _cc3.r) and _cc3 or (RAID_CLASS_COLORS and type(RAID_CLASS_COLORS[data.class or ""])=="table" and RAID_CLASS_COLORS[data.class or ""]) or {r=0.8,g=0.8,b=0.8}
 
         -- 2-koloms: col 0=links, col 1=rechts
         local col = (i-1) % COLS
@@ -2469,6 +2475,11 @@ UI:SetScript("OnEvent",function(self,event)
         if Tab1:IsShown() then
             local gName=GetGuildInfo("player")
             if gName and Tab1.guildName then Tab1.guildName:SetText(SA_GOLD..gName.."|r") end
+            -- BUG-002: ook MOTD updaten na roster refresh
+            local motd=GetGuildRosterMOTD() or ""
+            if Tab1.motdText then
+                Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY.."Geen bericht|r")
+            end
             WT_UpdateGuildOnline()
         end
     end

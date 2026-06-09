@@ -1145,6 +1145,7 @@ ScanCooldowns = function()
     if not (C_TradeSkillUI and C_TradeSkillUI.GetAllRecipeIDs) then return end
     local recipes=C_TradeSkillUI.GetAllRecipeIDs(); if not recipes then return end
     local key=GetCharKey()
+    if not ClothCharDB then return end  -- BUG-004B: nil guard vóór indexeren
     ClothCharDB.knownRecipes=ClothCharDB.knownRecipes or {}
     local wbc=ClothWarbandDB and ClothWarbandDB.chars[key]
     if wbc then wbc.knownRecipes=wbc.knownRecipes or {}; wbc.cooldowns=wbc.cooldowns or {} end
@@ -1212,7 +1213,8 @@ evtFrame:SetScript("OnEvent",function(self,event,...)
         if session.currentZone~="" and session.currentZone~=nz then
             local hd=false
             for _,f in ipairs(CLOTH_DATA) do
-                if session.counts[f.name].total>0 then hd=true; break end end
+                local cnt = session.counts[f.name]
+                if cnt and cnt.total and cnt.total>0 then hd=true; break end end
             if hd then SaveRun() end; ResetSession()
         else session.currentZone=nz end
         if F:IsShown() then F:UpdateUI() end
