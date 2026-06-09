@@ -516,6 +516,21 @@ UI.vaultBtn:SetScript("OnClick",function()
     end
 end)
 
+-- B-03: WTTheme live callback voor main UI frame
+if WTTheme and WTTheme.Register then
+    WTTheme.Register(function()
+        local t = TH()
+        if UI and UI.SetBackdropColor then
+            UI:SetBackdropColor(t.bg.main.r, t.bg.main.g, t.bg.main.b, t.bg.main.a)
+            UI:SetBackdropBorderColor(t.border.main.r, t.border.main.g, t.border.main.b, 1)
+        end
+        -- Tab balk achtergrond
+        if UI.tabBar then
+            UI.tabBar:SetBackdropColor(t.bg.header.r, t.bg.header.g, t.bg.header.b, 1)
+        end
+    end)
+end
+
 -- Expose als global referentie voor andere plugins (Registry B knop)
 DelveTrackerFrame.langBtn  = UI.langBtn
 DelveTrackerFrame.themeBtn = UI.themeBtn
@@ -952,7 +967,97 @@ Tab5.PluginArea=CreateFrame("Frame","DT_ArmoryArea",Tab5)
 Tab5.PluginArea:SetPoint("TOPLEFT",Tab5,"TOPLEFT",0,0)
 Tab5.PluginArea:SetPoint("BOTTOMRIGHT",Tab5,"BOTTOMRIGHT",0,0)
 
--- ── TAB 6: CURRENCY ───────────────────────────────────────────────────────
+-- ── TAB 6: CURRENCY ─────────────────────────────────────────────────────
+-- B-02: naam-filter + auto-suggest
+local curSearchBox = CreateFrame("EditBox","DT_CurSearchBox",Tab6,"SearchBoxTemplate")
+curSearchBox:SetSize(UI_W - 20, 24)
+curSearchBox:SetPoint("TOPLEFT", Tab6, "TOPLEFT", 8, -6)
+curSearchBox:SetAutoFocus(false)
+
+-- Auto-suggest dropdown voor currency namen
+local curSuggest = CreateFrame("Frame","DT_CurSuggest",Tab6,"BackdropTemplate")
+curSuggest:SetFrameLevel(Tab6:GetFrameLevel()+20)
+curSuggest:SetWidth(320)
+curSuggest:SetPoint("TOPLEFT", curSearchBox, "BOTTOMLEFT", 0, -1)
+curSuggest:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+curSuggest:SetBackdropColor(0.06,0.03,0.10,0.98)
+curSuggest:SetBackdropBorderColor(0.80,0.67,0.00,1)  -- goud border voor currency
+curSuggest:Hide()
+curSuggest.btns = {}
+
+local curFilterText = ""
+local function RefreshCurrencyFilter(filter)
+    curFilterText = filter or ""
+    if RefreshCurrencyTab then RefreshCurrencyTab() end
+end
+
+local function RefreshCurSuggest(filter)
+    for _,b in ipairs(curSuggest.btns) do b:Hide() end
+    if not filter or filter == "" then curSuggest:Hide(); return end
+    -- Verzamel currency namen die matchen
+    local matches = {}
+    local allCurs = DelveTrackerDB.knownCurrencies or {}
+    for id, name in pairs(allCurs) do
+        if tostring(name):lower():find(filter:lower(), 1, true) then
+            table.insert(matches, {id=id, name=name})
+        end
+    end
+    -- Ook check C_CurrencyInfo voor bekende IDs
+    local KNOWN = {
+        {id=3057, name="Coffer Keys"},
+        {id=2803, name="Key Shards"},
+        {id=3376, name="Shard of Dundun"},
+        {id=3378, name="Dawnlight Manaflux"},
+        {id=2778, name="Resonance Crystals"},
+        {id=2822, name="Weathered Harbinger Crest"},
+        {id=2823, name="Carved Harbinger Crest"},
+        {id=2824, name="Runed Harbinger Crest"},
+        {id=2825, name="Gilded Harbinger Crest"},
+    }
+    for _,k in ipairs(KNOWN) do
+        local already = false
+        for _,m in ipairs(matches) do if m.id==k.id then already=true; break end end
+        if not already and k.name:lower():find(filter:lower(), 1, true) then
+            table.insert(matches, k)
+        end
+    end
+    if #matches == 0 then curSuggest:Hide(); return end
+    table.sort(matches, function(a,b) return a.name < b.name end)
+    local BH=22; local cnt=math.min(#matches, 8)
+    for i=1,cnt do
+        local m = matches[i]
+        if not curSuggest.btns[i] then
+            local sb = CreateFrame("Button",nil,curSuggest)
+            sb:SetHeight(BH)
+            sb:SetPoint("TOPLEFT",1,-(BH*(i-1)+1))
+            sb:SetPoint("TOPRIGHT",-1,-(BH*(i-1)+1))
+            sb.t = sb:CreateFontString(nil,"OVERLAY")
+            sb.t:SetFont(C_2002,11,"")
+            sb.t:SetPoint("LEFT",6,0)
+            sb:SetScript("OnClick",function(self)
+                curSearchBox:SetText(self._name)
+                curSuggest:Hide()
+                RefreshCurrencyFilter(self._name)
+            end)
+            table.insert(curSuggest.btns, sb)
+        end
+        local sb = curSuggest.btns[i]
+        sb.t:SetText(SA_GOLD..m.name.."|r  "..SA_GREY.."ID: "..m.id.."|r")
+        sb._name = m.name; sb:Show()
+    end
+    curSuggest:SetHeight(cnt*BH+2); curSuggest:Show()
+end
+
+curSearchBox:SetScript("OnTextChanged", function(self)
+    SearchBoxTemplate_OnTextChanged(self)
+    local txt = self:GetText()
+    RefreshCurSuggest(txt)
+    RefreshCurrencyFilter(txt)
+end)
+curSearchBox:SetScript("OnEscapePressed", function(self)
+    self:SetText(""); self:ClearFocus()
+    curSuggest:Hide(); RefreshCurrencyFilter("")
+end)──
 Tab6.PluginArea=CreateFrame("Frame","DT_CurrencyArea",Tab6)
 Tab6.PluginArea:SetPoint("TOPLEFT",Tab6,"TOPLEFT",0,0)
 Tab6.PluginArea:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",0,0)
@@ -1417,11 +1522,42 @@ WT_UpdateRoster = function()
         card:SetScript("OnEnter",function(self)
             self:SetBackdropBorderColor(1.0,0.85,0.0,1)
             GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
-            GameTooltip:SetText(SA_GOLD..sn)
-            GameTooltip:AddLine(SA_GREY..(d.class or "?").." · "..(d.spec or "??").."|r")
-            GameTooltip:AddLine(SA_GREY.."iLvl "..(d.ilvl or 0).."|r")
-            if d.guild and d.guild~="Geen Guild" then
-                GameTooltip:AddLine(SA_BLUE..d.guild.."|r")
+            -- B-01: uitgebreide tooltip
+            local _ccc = C_ClassColor and C_ClassColor.GetClassColor(d.class or "")
+            local nameCol = (_ccc and type(_ccc)=="table" and _ccc.r)
+                and string.format("|cff%02x%02x%02x",math.floor(_ccc.r*255),math.floor(_ccc.g*255),math.floor(_ccc.b*255))
+                or SA_GOLD
+            GameTooltip:SetText(nameCol..sn.."|r  "..SA_GREY.."Lvl "..(d.level or "?").."|r")
+            GameTooltip:AddLine((d.spec or "??").." "..SA_GREY..(d.class or "?").."|r")
+            GameTooltip:AddLine(SA_BLUE.."iLvl "..(d.ilvl or 0).."|r")
+            if d.guild and d.guild~="" and d.guild~="Geen Guild" then
+                GameTooltip:AddLine("|cff44ff88"..d.guild.."|r")
+            end
+            -- Delve progress
+            local wp = d.weeklyProgress
+            if wp then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine(SA_GOLD.."Delves deze week:|r")
+                local t2 = (wp.threshold2 or 0).." / "..(wp.threshold2max or 2)
+                local t4 = (wp.threshold4 or 0).." / "..(wp.threshold4max or 4)
+                local t8 = (wp.threshold8 or 0).." / "..(wp.threshold8max or 8)
+                GameTooltip:AddLine(SA_GREY.."T2: |r"..t2.."  "..SA_GREY.."T4: |r"..t4.."  "..SA_GREY.."T8: |r"..t8)
+            end
+            -- Goud
+            if d.gold and d.gold > 0 then
+                local g = d.gold
+                local goldStr = g >= 10000 and string.format(SA_GOLD.."%.1fk|r g", g/100)
+                    or string.format(SA_GREY.."%d|r g", math.floor(g/100))
+                GameTooltip:AddLine(SA_GREY.."Goud: |r"..goldStr)
+            end
+            -- Professions
+            if d.profs then
+                GameTooltip:AddLine(" ")
+                for _, pr in ipairs(d.profs) do
+                    if pr.name then
+                        GameTooltip:AddLine(SA_GREY..pr.name.." |r"..SA_BLUE..pr.level.."|r")
+                    end
+                end
             end
             GameTooltip:Show()
         end)
@@ -1978,15 +2114,14 @@ local CUR_CARD_GAP = 6
 local CUR_ROW_H = 34  -- karakter naamrij
 local CUR_ROW_GAP = 4
 
+RefreshCurrencyTab = function()  -- B-02: alias voor curSearchBox
+    if WT_UpdateCurrency then WT_UpdateCurrency() end
+end
 WT_UpdateCurrency = function()
     if not (Tab6.scroll and Tab6.scroll.content) then return end
 
-    -- Filter van zoekbalk
-    local filter = ""
-    if Tab6.searchBox then
-        local t = Tab6.searchBox:GetText() or ""
-        if t ~= "Filter karakter..." then filter = t:lower() end
-    end
+    -- B-02: gebruik globale curFilterText van de nieuwe searchbox
+    local filter = (curFilterText or ""):lower()
 
     -- Verberg alle oude frames veilig
     for k,v in pairs(Tab6.scroll.content.crows or {}) do
@@ -2002,12 +2137,7 @@ WT_UpdateCurrency = function()
     Tab6.scroll.content.crows = {}
 
     -- Currency definities — alle expansies van nieuw naar oud
-    -- Filter op naam als zoekbalk gevuld
-    local curFilter = ""
-    if Tab6.searchBox then
-        local t = Tab6.searchBox:GetText() or ""
-        if t ~= "Filter currency naam..." then curFilter = t:lower() end
-    end
+    local curFilter = filter  -- B-02: gebruik de nieuwe filter
 
     local function getCurInfo(id)
         if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyInfo then
