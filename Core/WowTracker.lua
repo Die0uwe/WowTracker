@@ -641,7 +641,8 @@ Tab1.dieouwe:SetAlpha(0.75)
 -- Kwartslag CCW terug + horizontaal gespiegeld naar binnen
 -- SetTexCoord(ULx,ULy, URx,URy, LLx,LLy, LRx,LRy)
 -- CCW 90° + flip naar binnen (wijst naar guildinfo):
-Tab1.dieouwe:SetTexCoord(1,1, 1,0, 0,1, 0,0)
+-- Horizontaal gespiegeld → wijst naar guild info toe, rechtop
+Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)
 
 -- Logo watermark links midden — subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
