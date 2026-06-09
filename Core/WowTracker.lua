@@ -1209,10 +1209,9 @@ local RACE_ICON_MAP = {
 WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
 
-    -- Verberg oude kaartjes
-    for _,row in pairs(Tab4.scroll.content.rows or {}) do
-        if type(row)=="table" then for _,c in pairs(row) do if c and c.Hide then c:Hide() end end
-        elseif row and row.Hide then row:Hide() end
+    -- Verberg oude kaartjes (rows = array van Button frames, niet tables)
+    for _,row in ipairs(Tab4.scroll.content.rows or {}) do
+        if row and row.Hide then row:Hide() end
     end
     Tab4.scroll.content.rows = {}
 
