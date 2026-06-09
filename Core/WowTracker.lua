@@ -621,6 +621,7 @@ local ScanDelves
 
 local function ShowTab(id)
     UI:Show(); activeTabID=id
+    if DelveTrackerDB then DelveTrackerDB.uiWasOpen = true end
     Tab1:Hide(); Tab2:Hide(); Tab3:Hide(); Tab4:Hide(); Tab5:Hide(); Tab6:Hide()
     -- Verberg armory frame als Tab5 verlaten wordt
     local armFrame = _G["DT_ArmoryFrame"]
@@ -2763,7 +2764,19 @@ MBtn:SetClampedToScreen(true)
 
 MBtn.tex = MBtn:CreateTexture(nil,"ARTWORK")
 MBtn.tex:SetAllPoints()
-MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
+-- Probeer MijnIcoon.tga, fallback naar addon icon
+local iconPath = "Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga"
+local fallback = "Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icon_64"
+MBtn.tex:SetTexture(iconPath)
+-- Maak button altijd zichtbaar: backdrop als fallback
+MBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=2})
+MBtn:SetBackdropColor(0.08,0.02,0.14,0.92)
+MBtn:SetBackdropBorderColor(0.55,0.10,0.85,1)
+-- Label als ultieme fallback
+MBtn.lbl = MBtn:CreateFontString(nil,"OVERLAY")
+MBtn.lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
+MBtn.lbl:SetPoint("CENTER",0,0)
+MBtn.lbl:SetText(SA_PURPLE.."WT|r")
 
 -- Context menu via MenuUtil (UIDropDownMenu verwijderd in 12.x)
 local function DT_OpenMurlocMenu(owner)
@@ -2819,14 +2832,19 @@ local function DT_OpenMurlocMenu(owner)
         root:CreateButton("Herpositioneer venster",        function() UI:ClearAllPoints(); UI:SetPoint("CENTER") end)
         root:CreateButton("Reset Murloc positie",          function() MBtn:ClearAllPoints(); MBtn:SetPoint("CENTER") end)
         root:CreateButton("Reload UI",                     function() ReloadUI() end)
-        root:CreateButton("Sluit venster",                 function() UI:Hide() end)
+        root:CreateButton("Sluit venster", function()
+    UI:Hide()
+    if DelveTrackerDB then DelveTrackerDB.uiWasOpen = false end
+end)
     end)
 end
 
 MBtn:SetScript("OnClick", function(self,btn)
     if btn=="LeftButton" then
         PlaySound(6449)
-        if UI:IsShown() then UI:Hide()
+        if UI:IsShown() then
+            UI:Hide()
+            if DelveTrackerDB then DelveTrackerDB.uiWasOpen = false end
         else ShowTab(activeTabID or 2) end
     else
         DT_OpenMurlocMenu(self)
@@ -3000,6 +3018,10 @@ UI:SetScript("OnEvent",function(self,event)
     if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
     or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
         ScanDelves()
+        -- Zorg dat UI verborgen blijft bij world enter — alleen murloc opent het
+        if event=="PLAYER_ENTERING_WORLD" and not DelveTrackerDB.uiWasOpen then
+            UI:Hide()
+        end
         if Tab2:IsShown() then UpdateCharacterList() end
         tickerDirty=true
         if event=="PLAYER_LOGIN" and IsInGuild() then GuildRoster() end
