@@ -374,6 +374,14 @@ UI.themeBtn:SetScript("OnClick",function(self)
                 DelveTrackerDB.theme={bg={th.r,th.g,th.b}, border=th.border, name=th.name}
                 UI:SetBackdropColor(th.r,th.g,th.b,0.97)
                 UI:SetBackdropBorderColor(th.border[1],th.border[2],th.border[3],1)
+                if WTTheme and WTTheme.SetActiveTheme then
+                    local thMap={["SA Dark (standaard)"]="Slayer Alliance",
+                                 ["ProfBuddy Paars"]="Slayer Alliance",
+                                 ["MailVault Blauw"]="Midnight Dark",
+                                 ["Nacht Zwart"]="Midnight Dark"}
+                    local wtn=thMap[th.name]
+                    if wtn then WTTheme.SetActiveTheme(wtn) end
+                end
                 print(SA_PURPLE.."[WowTracker] Thema: "..th.name.."|r")
             end)
         end
@@ -1669,6 +1677,19 @@ for _,th in ipairs(optThemes) do
         DelveTrackerDB.theme={bg={t.r,t.g,t.b}, border=t.border, name=t.name}
         UI:SetBackdropColor(t.r,t.g,t.b,0.97)
         UI:SetBackdropBorderColor(t.border[1],t.border[2],t.border[3],1)
+        -- T04c: ook WTTheme updaten voor live theme reload in plugins
+        if WTTheme and WTTheme.SetActiveTheme then
+            -- Map admin thema naam naar WTTheme naam
+            local themeMap = {
+                ["SA Dark"]  = "Slayer Alliance",
+                ["Paars"]    = "Slayer Alliance",
+                ["Blauw"]    = "Midnight Dark",
+                ["Zwart"]    = "Midnight Dark",
+            }
+            local wtn = themeMap[t.name]
+            if wtn then WTTheme.SetActiveTheme(wtn) end
+        end
+        print(SA_PURPLE.."[WowTracker] Thema: "..t.name.."|r")
     end)
     tb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
     tb:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(t.border[1]+0.1,t.border[2],t.border[3]+0.1,0.9) end)

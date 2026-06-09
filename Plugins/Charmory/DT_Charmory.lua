@@ -3,6 +3,19 @@
 -- =====================================================
 
 if DelveTracker then
+
+-- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+local function TH()
+    return WTTheme or {
+        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
+            row={r=0.05,g=0.02,b=0.08,a=0.90}},
+        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
+               active={r=0.55,g=0.15,b=0.85,a=1}},
+        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
+           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
+    }
+end
+
     DelveTracker:RegisterPlugin("Charmory", function() end)
 
     local Armory = CreateFrame("Frame", "DT_ArmoryFrame", UIParent, "BackdropTemplate")
@@ -61,7 +74,7 @@ if DelveTracker then
     Armory:SetScript("OnDragStop", Armory.StopMovingOrSizing)
 
     Armory:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
-    Armory:SetBackdropColor(0, 0, 0, 0.9); Armory:SetBackdropBorderColor(0, 0, 0, 1)
+    do local _b=TH().bg.main;local _br=TH().border.main; Armory:SetBackdropColor(_b.r,_b.g,_b.b,0.97); Armory:SetBackdropBorderColor(_br.r,_br.g,_br.b,1) end
 
     -- Shield: BACKGROUND laag -2, tot aan gold bar, achter gear+model+tekst
     Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -2)
@@ -123,7 +136,7 @@ if DelveTracker then
     StatsPanel:SetSize(480, 500)
     StatsPanel:SetPoint("TOPLEFT", Armory, "TOPRIGHT", 4, 0)
     StatsPanel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
-    StatsPanel:SetBackdropColor(0.04, 0.02, 0.08, 0.96)
+    do local _b=TH().bg.main; StatsPanel:SetBackdropColor(_b.r,_b.g,_b.b,0.96) end
     StatsPanel:SetBackdropBorderColor(0.20, 0.50, 0.80, 0.8)
     StatsPanel:Hide()
 

@@ -13,6 +13,19 @@
 -- =====================================================================
 
 if not DelveTracker then
+
+-- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+local function TH()
+    return WTTheme or {
+        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
+            row={r=0.05,g=0.02,b=0.08,a=0.90}},
+        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
+               active={r=0.55,g=0.15,b=0.85,a=1}},
+        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
+           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
+    }
+end
+
     print("|cffff4444[DT_Debugger]:|r DelveTracker core not loaded — debugger disabled.")
     return
 end
@@ -153,7 +166,7 @@ DBG_frame:SetBackdrop({
     edgeFile = "Interface\\Buttons\\WHITE8x8",
     edgeSize = 1,
 })
-DBG_frame:SetBackdropColor(0.04, 0.04, 0.06, 0.97)
+do local _b=TH().bg.main; DBG_frame:SetBackdropColor(_b.r,_b.g,_b.b,_b.a) end
 DBG_frame:SetBackdropBorderColor(0.3, 0.8, 0.3, 1)
 
 -- Header bar

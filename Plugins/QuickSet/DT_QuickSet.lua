@@ -19,6 +19,19 @@
 
 if not DelveTracker then return end
 
+-- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+local function TH()
+    return WTTheme or {
+        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
+            row={r=0.05,g=0.02,b=0.08,a=0.90}},
+        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
+               active={r=0.55,g=0.15,b=0.85,a=1}},
+        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
+           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
+    }
+end
+
+
 -- ── Color scheme ─────────────────────────────────────────────────────────────
 local CO = {
     orange  = "|cffff6600",
@@ -293,7 +306,10 @@ local function NewTile(parent, idx)
     local tileW = math.floor((SCROLL_W - TILE_G) / 2)
     local tileH = math.floor(TILE_H * 1.4)  -- hoger dan voor, meer ruimte voor info
     t:SetSize(tileW, tileH)
-    t:SetPoint("TOPLEFT", col * (tileW + TILE_G), -(row * (tileH + TILE_G)))
+    -- T04d: 2 tiles gecentreerd in scroll area (berekend vanuit SCROLL_W)
+    local totalTileW = 2 * tileW + TILE_G
+    local xPad = math.max(0, math.floor((SCROLL_W - totalTileW) / 2))
+    t:SetPoint("TOPLEFT", xPad + col * (tileW + TILE_G), -(row * (tileH + TILE_G)))
     t:SetBackdrop(BD(1))
 
     -- Art background – alpha 0.50: images are clear, no haze
@@ -830,7 +846,10 @@ local function BuildGrid(container)
         local row2 = math.floor((idx - 1) / 2)
         local tileW2 = math.floor((SCROLL_W - TILE_G) / 2)
         local tileH2 = math.floor(TILE_H * 1.4)
-        pool[idx]:SetPoint("TOPLEFT", col2 * (tileW2 + TILE_G), -(row2 * (tileH2 + TILE_G)))
+        -- T04d: gecentreerd
+        local totalW2 = 2 * tileW2 + TILE_G
+        local xPad2 = math.max(0, math.floor((SCROLL_W - totalW2) / 2))
+        pool[idx]:SetPoint("TOPLEFT", xPad2 + col2 * (tileW2 + TILE_G), -(row2 * (tileH2 + TILE_G)))
             pool[idx]:SetSize(tileW2, tileH2)
         end
         return pool[idx]

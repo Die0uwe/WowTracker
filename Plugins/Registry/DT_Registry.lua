@@ -4,6 +4,19 @@
 -- =====================================================
 
 if DelveTracker then
+
+-- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+local function TH()
+    return WTTheme or {
+        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
+            row={r=0.05,g=0.02,b=0.08,a=0.90}},
+        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
+               active={r=0.55,g=0.15,b=0.85,a=1}},
+        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
+           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
+    }
+end
+
     -- 1. PLUGIN REGISTRATION
     DelveTracker:RegisterPlugin("Registry", function(mode, data, key)
         if mode == "Tooltip" then
@@ -46,7 +59,7 @@ if DelveTracker then
         bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1,
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    Registry:SetBackdropColor(0, 0, 0, 0.96); Registry:SetBackdropBorderColor(0.3, 0.1, 0.5, 0.5)
+    do local _b=TH().bg.main;local _br=TH().border.main; Registry:SetBackdropColor(_b.r,_b.g,_b.b,0.96); Registry:SetBackdropBorderColor(_br.r,_br.g,_br.b,0.8) end
 
     -- Media & Decoratie
     Registry.iconDecor = Registry:CreateTexture(nil, "ARTWORK", nil, 0)
@@ -249,7 +262,7 @@ if DelveTracker then
                 bookBtn:SetPoint("TOPRIGHT", DelveTrackerFrame, "TOPRIGHT", -98, -22)
             end
             bookBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
-            bookBtn:SetBackdropColor(0.08,0.04,0.14,0.95)
+            do local _b=TH().bg.card; bookBtn:SetBackdropColor(_b.r,_b.g,_b.b,0.95) end
             bookBtn:SetBackdropBorderColor(0.45,0.12,0.70,0.9)
             bookBtn.t = bookBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); bookBtn.t:SetPoint("CENTER"); bookBtn.t:SetText("|cffa335eeB|r")
             bookBtn:SetScript("OnClick", function() if Registry:IsShown() then Registry:Hide() else Registry:Show() end end)
