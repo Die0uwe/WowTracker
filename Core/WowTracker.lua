@@ -359,7 +359,7 @@ UI.title:SetText(SA_PURPLE.."SLAYER ALLIANCE|r")
 UI.versionTxt = UI:CreateFontString(nil,"OVERLAY")
 UI.versionTxt:SetFont(C_2002,9,"")
 UI.versionTxt:SetPoint("TOPLEFT",UI.title,"BOTTOMLEFT",0,-3)
-UI.versionTxt:SetText(SA_GREY.."WowTracker v3.0.8 · Midnight 12.0.5|r")
+UI.versionTxt:SetText(SA_GREY.."WowTracker v3.1.0 · Midnight 12.0.5|r")
 
 UI.charInfo = UI:CreateFontString(nil,"OVERLAY")
 UI.charInfo:SetFont(C_2002,11,"OUTLINE")
@@ -1588,7 +1588,7 @@ opt.tit:SetText(SA_PURPLE.."WowTracker|r")
 opt.ver=opt:CreateFontString(nil,"OVERLAY")
 opt.ver:SetFont(C_2002,10,"")
 opt.ver:SetPoint("LEFT",opt.logo,"RIGHT",8,-20)
-opt.ver:SetText(SA_GREY.."v3.0.8 · Midnight 12.0.5.67314|r")
+opt.ver:SetText(SA_GREY.."v3.1.0 · Midnight 12.0.5.67314|r")
 
 -- Sub onder versie
 opt.sub=opt:CreateFontString(nil,"OVERLAY")

@@ -1,5 +1,44 @@
 # CHANGELOG — WowTracker (Slayer Alliance Edition)
 
+## [v3.1.0] — 2026-06-09
+### Added
+- S3-02: Ticker toast config panel — slide-in paneel boven UI bij klik op ticker, SA dark stijl, 4 toggle knoppen (Events/Prey/Guild/Tijd), alles aan/uit
+- S3-04: Boss Tactics knop in Nemesis tab — draggable popup met volledige Nullaeus strat, T8 en T11 tabs, geverifieerde mechanics (Method.gg + ConquestCapped)
+- S3-02: TickerToast lazy-init systeem — herbruikbaar component, sluit via X of tweede klik
+
+### Fixed
+- S3-01: Guild MOTD async laden — C_GuildInfo.GuildRoster() + GUILD_ROSTER_UPDATE event + C_Timer.After(1.5) fallback, geen "Laden..." meer
+- S3-03: Nemesis Required Items header verwijderd — was onjuist en te generiek
+- S3-03: Nemesis items (Beacon of Hope, Trovehunter's Bounty, LOOT RAID-R Mini) gecentreerd in scroll area
+- S3-05: Abundance scanner — Silvermoon en Sunfury Spire verwijderd (geen abundance caves), correcte cave namen per mapID
+- S3-05: Abundance zone namen — Watha'nan Crypts / Loaknit Den / Floaret Grotto / Abundant Voidburrow
+- S3-05: Abundance events uitgebreid — WORLD_STATE_TIMER_START + DISPLAY_SIZE_CHANGED toegevoegd
+- S3-07: Abundance blok compacter (60px → 52px), cleaner 2-rij layout, Shard of Dundun prominent
+- T04b: WTTheme TH() helper op alle 18 plugins (PreyTracker uitgesloten)
+- T04c: Admin thema knoppen koppelen aan WTTheme.SetActiveTheme()
+- T04d: Bounty tiles gecentreerd via xPad berekening
+- Undead atlas — geverifieerd raceicon128-Undead-male/female via /wt-racedbg
+- Vault knop verplaatst van admin panel naar main UI header
+- Admin panel heringedeeld — logo + titel links, DieOuwe rechts, vault.tga banner
+- Gnome Dieouwe SetTexCoord — horizontaal gespiegeld (1,0, 0,0, 1,1, 0,1), rechtop
+
+### Research
+- S3-06: Altoholic/BeniKUI/ElvUI — delve tracking via C_AreaPoiInfo.GetDelvesForMap, geen abundance specifieke API, eigen implementatie is state-of-the-art
+- Abundance zones geverifieerd: 4 caves, roteert elke 8u (Wowhead storyline 5810)
+- Nullaeus boss mechanics volledig gedocumenteerd (beide moeilijkheden)
+
+### Files Changed
+| Bestand | Type | Sprint |
+|---------|------|--------|
+| Core/WowTracker.lua | fix+feat | S3-01, S3-02, T04c, vault, admin, gnome |
+| Plugins/QuickSet/DT_QuickSet.lua | fix+feat | S3-03, S3-04, S3-05, S3-07, T04b, T04d |
+| Plugins/Events/DT_events.lua | fix | S3-05 abundance maps |
+| Plugins/ClothCounter/DT_ClothCounter.lua | feat | T04b WTTheme |
+| Plugins/SkinNRare/DT_SkinNRare.lua | feat | T04b WTTheme |
+| Plugins/[15 plugins] | feat | T04b TH() helper |
+| Core/DT_Theme.lua | feat | T04a centraal theme systeem |
+
+---
 ## [v3.0.7] — 2026-06-08
 ### Fixed
 - Undead/Forsaken race icon: atlas heet `raceicon128-scourge-*` niet `undead`

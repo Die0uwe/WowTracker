@@ -1301,78 +1301,78 @@ lange interrupt CD hebt, anders Healer"
         -- ── ABUNDANCE BLOK onder Boss Tactics ────────────────────────────
         local AB_Y = BOSS_Y + 28 + 8
         if not scN.abundanceFrame then
+            -- S3-07: compact abundance blok (52px)
             local abf = CreateFrame("Frame", nil, scN, "BackdropTemplate")
-            abf:SetSize(SCROLL_W, 60)
+            abf:SetSize(SCROLL_W, 52)
             abf:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-            abf:SetBackdropColor(0.04, 0.08, 0.04, 0.95)
-            abf:SetBackdropBorderColor(0.20, 0.65, 0.20, 0.9)
-            -- Groen stripe links
+            abf:SetBackdropColor(0.03, 0.07, 0.03, 0.96)
+            abf:SetBackdropBorderColor(0.20, 0.55, 0.20, 0.85)
+            -- Groene stripe links
             local abStripe = abf:CreateTexture(nil,"ARTWORK")
-            abStripe:SetSize(4,58); abStripe:SetPoint("LEFT",1,0)
-            abStripe:SetColorTexture(0.20,0.80,0.20,1)
-            -- Titel
+            abStripe:SetSize(4,50); abStripe:SetPoint("LEFT",1,0)
+            abStripe:SetColorTexture(0.10,0.80,0.10,1)
+            -- Rij 1: cave naam links, timer rechts
             abf.title = abf:CreateFontString(nil,"OVERLAY")
             abf.title:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-            abf.title:SetPoint("TOPLEFT",10,-6)
-            abf.title:SetText("|cff44cc66✦ Abundance Delve|r")
-            -- Info
+            abf.title:SetPoint("TOPLEFT",10,-7)
+            abf.title:SetText("|cff44cc66✦ Abundance|r")
+            abf.timer = abf:CreateFontString(nil,"OVERLAY")
+            abf.timer:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+            abf.timer:SetPoint("TOPRIGHT",-8,-7)
+            abf.timer:SetText("")
+            -- Rij 2: shards links (prominent), info rechts
+            abf.shards = abf:CreateFontString(nil,"OVERLAY")
+            abf.shards:SetFont("Fonts\\2002.ttf",10,"")
+            abf.shards:SetPoint("BOTTOMLEFT",10,7)
+            abf.shards:SetText("")
             abf.info = abf:CreateFontString(nil,"OVERLAY")
             abf.info:SetFont("Fonts\\2002.ttf",10,"")
-            abf.info:SetPoint("TOPLEFT",10,-22)
-            abf.info:SetWidth(SCROLL_W-20)
+            abf.info:SetPoint("BOTTOMRIGHT",-8,7)
+            abf.info:SetJustifyH("RIGHT")
+            abf.info:SetWidth(SCROLL_W * 0.65)
             abf.info:SetText("|cff887799Laden...|r")
-            -- Timer
-            abf.timer = abf:CreateFontString(nil,"OVERLAY")
-            abf.timer:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
-            abf.timer:SetPoint("TOPRIGHT",-8,-6)
-            abf.timer:SetText("")
             scN.abundanceFrame = abf
         end
         scN.abundanceFrame:SetPoint("TOPLEFT",0,-AB_Y)
         -- Vul abundance data
         local abData = DT_GetAbundanceData and DT_GetAbundanceData()
         if abData and abData.active then
-            scN.abundanceFrame:SetBackdropBorderColor(0.30,0.90,0.30,1)
-            -- S3-05: correcte cave naam tonen ipv generieke zone naam
+            scN.abundanceFrame:SetBackdropBorderColor(0.20,0.85,0.20,1)
             local ABCAVE_NAMES = {
                 [2393]="Watha'nan Crypts", [2395]="Watha'nan Crypts",
                 [2437]="Loaknit Den", [2413]="Floaret Grotto",
                 [2405]="Abundant Voidburrow",
             }
+            local ABCAVE_ZONES = {
+                [2393]="Eversong", [2395]="Eversong",
+                [2437]="Zul'Aman", [2413]="Harandar", [2405]="Voidstorm",
+            }
             local caveName = (abData.mapID and ABCAVE_NAMES[abData.mapID]) or abData.zone or "?"
-            scN.abundanceFrame.title:SetText("|cff44cc66✦ Abundance Actief: |r|cffffffff"..caveName.."|r")
+            local zoneShort = (abData.mapID and ABCAVE_ZONES[abData.mapID]) or ""
+            -- Rij 1: cave naam + zone (links), timer (rechts)
+            scN.abundanceFrame.title:SetText("|cff44cc66✦ |r|cffffffff"..caveName.."|r  |cff887799"..zoneShort.."|r")
             local timeStr = ""
             if abData.secondsLeft and abData.secondsLeft > 0 then
                 local h=math.floor(abData.secondsLeft/3600)
                 local m=math.floor((abData.secondsLeft%3600)/60)
-                timeStr = h>0 and string.format("|cffff8800%dh %dm|r",h,m) or string.format("|cffff8800%dm|r",m)
+                timeStr = h>0 and string.format("|cff44cc66%dh %dm|r",h,m) or string.format("|cff44cc66%dm|r",m)
             end
             scN.abundanceFrame.timer:SetText(timeStr)
+            -- Rij 2: shards prominent links, status rechts
             local shards = abData.shards or 0
             local dundunCol = shards > 0 and "|cff44cc66" or "|cffff5555"
-            scN.abundanceFrame.info:SetText(
-                "|cff887799Shard of Dundun: |r"..dundunCol..shards.."|r  "..
-                "|cff887799Chip vendor: |r|cff00ccffChel the Chip|r"
-            )
+            scN.abundanceFrame.shards:SetText("|cff887799Dundun: |r"..dundunCol..shards.." shards|r")
+            scN.abundanceFrame.info:SetText("|cff887799Harvest actief · roteert elke 8u|r")
         else
-            scN.abundanceFrame:SetBackdropBorderColor(0.20,0.40,0.20,0.6)
-            scN.abundanceFrame.title:SetText("|cff887799✦ Abundance|r")
+            scN.abundanceFrame:SetBackdropBorderColor(0.15,0.30,0.15,0.6)
+            scN.abundanceFrame.title:SetText("|cff556655✦ Abundance|r  |cff334433geen actieve harvest|r")
             scN.abundanceFrame.timer:SetText("")
-            -- S3-05: correcte zone namen tonen
-            local ABCAVES = {
-                [2393]="Watha'nan Crypts (Eversong)",
-                [2395]="Watha'nan Crypts (Eversong)",
-                [2437]="Loaknit Den (Zul'Aman)",
-                [2413]="Floaret Grotto (Harandar)",
-                [2405]="Abundant Voidburrow (Voidstorm)",
-            }
-            scN.abundanceFrame.info:SetText("|cff887799Geen actieve Abundance cave gevonden.
-"..
-                "Roteert elke 8u: Eversong · Zul'Aman · Harandar · Voidstorm|r")
+            scN.abundanceFrame.shards:SetText("")
+            scN.abundanceFrame.info:SetText("|cff445544Eversong · Zul'Aman · Harandar · Voidstorm|r")
         end
         scN.abundanceFrame:Show()
 
-        scN:SetHeight(math.max(AB_Y + 70, 10))
+        scN:SetHeight(math.max(AB_Y + 62, 10))  -- S3-07: compacter blok
 
         -- ── TAB 2: BOUNTIFUL ───────────────────────────
         local iB = 0
