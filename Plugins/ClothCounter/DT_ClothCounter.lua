@@ -18,6 +18,15 @@
 local ADDON_NAME = "DelveTracker"
 local VERSION    = "14.5.1"  -- Removed Bright Linen Bolt (no cooldown)
 
+-- WTTheme: centraal kleurensysteem (Fase 3) — fallback als WTTheme nog niet geladen
+local function TH()
+    return WTTheme or {
+        bg={main={r=0.03,g=0.01,b=0.07,a=0.97},card={r=0.05,g=0.02,b=0.10,a=0.95}},
+        border={main={r=0.40,g=0.10,b=0.65,a=1},card={r=0.28,g=0.12,b=0.48,a=0.9}},
+        c={gold="|cffccaa00",purple="|cffbf00ff",grey="|cff887799",blue="|cff00dfff"}
+    }
+end
+
 local CLOTH_DATA = {
     { name="Bright Linen", id=236963, color={0.95,0.88,0.55},
       tiers={[236963]=2,[236965]=3}, extra={} },
@@ -194,8 +203,10 @@ end
 local function ApplyWindowStyle(f,r,g,b)
     f:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
         edgeFile="Interface\\ChatFrame\\ChatFrameBackground",edgeSize=2})
-    f:SetBackdropColor(0.03,0.01,0.07,0.97)
-    f:SetBackdropBorderColor(r or 0.5,g or 0.22,b or 0.85,1)
+    -- WTTheme: main frame background
+    local _th=TH(); local _bg=_th.bg.main; local _br=_th.border.main
+    f:SetBackdropColor(_bg.r,_bg.g,_bg.b,_bg.a or 0.97)
+    f:SetBackdropBorderColor(r or _br.r,g or _br.g,b or _br.b,1)
 end
 local function MakeHeaderStripe(parent,h)
     local s=parent:CreateTexture(nil,"BACKGROUND")
@@ -250,8 +261,9 @@ local function CreateProgressBar(parent,w,h)
     if not con.SetBackdrop then Mixin(con,BackdropTemplateMixin) end
     con:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
         edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
-    con:SetBackdropColor(0.05,0.02,0.10,1)
-    con:SetBackdropBorderColor(0.28,0.12,0.48,0.9)
+    local _thc=TH(); local _bgc=_thc.bg.main; local _brc=_thc.border.card
+    con:SetBackdropColor(_bgc.r,_bgc.g,_bgc.b,1)
+    con:SetBackdropBorderColor(_brc.r,_brc.g,_brc.b,_brc.a or 0.9)
     con._maxW=w-2
     local fill=con:CreateTexture(nil,"ARTWORK")
     fill:SetPoint("TOPLEFT",1,-1); fill:SetPoint("BOTTOMLEFT",1,1)

@@ -575,11 +575,19 @@ Tab1.motdText:SetMaxLines(4)
 --   Logo: subtiel watermark linksonder
 
 -- Kelsey kleiner — minder ruimte innemen zodat tekst beter past
-Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.img:SetSize(140,140)  -- was 220, nu kleiner
-Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",20,30)
+-- Kelsey in eigen schermpje rechtsonder online panel (30% kleiner = 98x98)
+Tab1.kelseyFrame=CreateFrame("Frame",nil,Tab1,"BackdropTemplate")
+Tab1.kelseyFrame:SetSize(100,104)
+Tab1.kelseyFrame:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-4,4)
+Tab1.kelseyFrame:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+Tab1.kelseyFrame:SetBackdropColor(0.04,0.02,0.08,0.90)
+Tab1.kelseyFrame:SetBackdropBorderColor(0.35,0.05,0.55,0.80)
+
+Tab1.img=Tab1.kelseyFrame:CreateTexture(nil,"ARTWORK")
+Tab1.img:SetSize(96,100)  -- 30% kleiner dan 140: ~98px
+Tab1.img:SetPoint("CENTER",Tab1.kelseyFrame,"CENTER",0,0)
 Tab1.img:SetTexture("Interface\\AddOns\\WowTracker\\Media\\kelsey.tga")
-Tab1.img:SetAlpha(0.90)
+Tab1.img:SetAlpha(0.92)
 
 -- DieOuwe: klein, rechterhoek van linker kolom, gespiegeld (wijst naar binnen)
 Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
@@ -590,7 +598,10 @@ Tab1.dieouwe:SetAlpha(0.75)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
 -- Origineel kijkt rechts → gespiegeld kijkt naar links (naar binnen)
 -- Horizontaal spiegelen: UL=(1,0) UR=(0,0) LL=(1,1) LR=(0,1)
-Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)
+-- Kwartslag CCW terug + horizontaal gespiegeld naar binnen
+-- SetTexCoord(ULx,ULy, URx,URy, LLx,LLy, LRx,LRy)
+-- CCW 90° + flip naar binnen (wijst naar guildinfo):
+Tab1.dieouwe:SetTexCoord(1,1, 1,0, 0,1, 0,0)
 
 -- Logo watermark links midden — subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
@@ -622,7 +633,7 @@ Tab1.onlineCount:SetText("")
 -- Scroll frame voor online leden
 Tab1.onlineScroll=CreateFrame("ScrollFrame",nil,Tab1,"UIPanelScrollFrameTemplate")
 Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-20,-26)
-Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-20,8)
+Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-20,112)  -- ruimte voor kelsey schermpje
 Tab1.onlineScroll:SetWidth(GUILD_RIGHT_W-22)
 Tab1.onlineScroll.content=CreateFrame("Frame",nil,Tab1.onlineScroll)
 Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-40,1)
@@ -1288,10 +1299,18 @@ Settings.RegisterAddOnCategory(category)
 UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
 
 -- ── HEADER (vaste posities — geen anchor chain) ──────────────────────────
+-- Admin panel header: vault.tga als banner image
+opt.vaultHdr=opt:CreateTexture(nil,"ARTWORK")
+opt.vaultHdr:SetSize(180,48)
+opt.vaultHdr:SetPoint("TOPLEFT",8,-8)
+opt.vaultHdr:SetTexture("Interface\\AddOns\\WowTracker\\Media\\vault.tga")
+opt.vaultHdr:SetAlpha(0.92)
+
 opt.logo=opt:CreateTexture(nil,"ARTWORK")
-opt.logo:SetSize(40,40)
-opt.logo:SetPoint("TOPLEFT",16,-16)
+opt.logo:SetSize(32,32)
+opt.logo:SetPoint("TOPLEFT",16,-14)
 opt.logo:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
+opt.logo:SetAlpha(0)  -- verborgen: vault.tga is de header
 
 opt.tit=opt:CreateFontString(nil,"OVERLAY")
 opt.tit:SetFont(C_2002,15,"OUTLINE")
@@ -1544,7 +1563,18 @@ local function MakeOptBtn(lbl,anchorFrame,fn)
     return b  -- teruggeven voor anchoring
 end
 
-local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",opt.extraHdr,function()
+-- Vault knop: open WeeklyRewardsFrame vanuit admin panel
+local ebVault=MakeOptBtn("🗝  Open The Vault (Great Vault)",opt.extraHdr,function()
+    if not C_AddOns.IsAddOnLoaded("Blizzard_WeeklyRewards") then
+        C_AddOns.LoadAddOn("Blizzard_WeeklyRewards")
+    end
+    if WeeklyRewardsFrame then
+        ToggleFrame(WeeklyRewardsFrame)
+    else
+        print(SA_PURPLE.."[WowTracker]|r Great Vault niet beschikbaar — bezoek de Vault NPC first.|r")
+    end
+end)
+local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",ebVault,function()
     if SlashCmdList["CSET"] then SlashCmdList["CSET"]("")
     elseif SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("") end
 end)

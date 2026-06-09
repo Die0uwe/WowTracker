@@ -18,6 +18,15 @@
 --   [LOGO-FIX-3] Anchor: TOP/CENTER → TOPLEFT (10, -7) (left-aligned)
 --   [LOGO-FIX-4] Alpha: 0.9 → 1.0 (full opacity, logo must be sharp)
 --   [LOGO-FIX-5] Added logoLine separator (1px, purple, 160px wide under logo)
+
+-- WTTheme: centraal kleurensysteem (Fase 3)
+local function TH()
+    return WTTheme or {
+        bg={main={r=0.01,g=0.01,b=0.02,a=0.98},card={r=0.05,g=0,b=0.10,a=0.95}},
+        border={main={r=0.30,g=0,b=0.50,a=1},card={r=0.20,g=0,b=0.40,a=1}},
+        c={gold="|cffccaa00",purple="|cffbf00ff",grey="|cff887799",blue="|cff00dfff"}
+    }
+end
 --   [LOGO-FIX-6] Title text reinstated to RIGHT of logo (TOPRIGHT anchor)
 --   [LOGO-FIX-7] Added subTitle (zone/edition) and versionTag below title
 --   [LOGO-FIX-8] HEADER_SPACE: 60 → 85 (accommodates 70px logo height)
@@ -277,8 +286,10 @@ frame:SetBackdrop({
     insets   = { left = 0, right = 0, top = 0, bottom = 0 }
 })
 
-frame:SetBackdropColor(0.01, 0.01, 0.02, 0.98)
-frame:SetBackdropBorderColor(0.3, 0, 0.5, 1)
+-- WTTheme: main frame
+local _ths=TH(); local _bgs=_ths.bg.main; local _brs=_ths.border.main
+frame:SetBackdropColor(_bgs.r,_bgs.g,_bgs.b,_bgs.a or 0.98)
+frame:SetBackdropBorderColor(_brs.r,_brs.g,_brs.b,_brs.a or 1)
 
 -------------------------------------------------
 -- MODEL FRAME (single declaration — FIX-1 removes duplicate)
@@ -296,8 +307,9 @@ local modelFrame = CreateFrame(
 modelFrame:SetSize(320, TOTAL_HEIGHT - 20)
 modelFrame:SetPoint("LEFT", frame, "RIGHT", 5, 0)
 modelFrame:SetBackdrop(frame:GetBackdrop())  -- now returns valid backdrop ✓
-modelFrame:SetBackdropColor(0, 0, 0, 0.95)
-modelFrame:SetBackdropBorderColor(0.3, 0, 0.5, 1)
+local _thm=TH(); local _brm=_thm.border.card
+modelFrame:SetBackdropColor(0,0,0,0.95)
+modelFrame:SetBackdropBorderColor(_brm.r,_brm.g,_brm.b,_brm.a or 1)
 
 -------------------------------------------------
 -- PLAYER MODEL
