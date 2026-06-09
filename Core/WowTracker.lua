@@ -359,7 +359,7 @@ UI.title:SetText(SA_PURPLE.."SLAYER ALLIANCE|r")
 UI.versionTxt = UI:CreateFontString(nil,"OVERLAY")
 UI.versionTxt:SetFont(C_2002,9,"")
 UI.versionTxt:SetPoint("TOPLEFT",UI.title,"BOTTOMLEFT",0,-3)
-UI.versionTxt:SetText(SA_GREY.."WowTracker v3.1.0 · Midnight 12.0.5|r")
+UI.versionTxt:SetText(SA_GREY.."WowTracker v3.2.0 · Midnight 12.0.7|r")
 
 UI.charInfo = UI:CreateFontString(nil,"OVERLAY")
 UI.charInfo:SetFont(C_2002,11,"OUTLINE")
@@ -528,12 +528,47 @@ UI.langBtn:SetScript("OnClick",function(self)
         for _,lang in ipairs(langs) do
             local l=lang
             root:CreateButton(l,function()
-                DelveTrackerDB.language=l
-                print(SA_PURPLE.."[WowTracker] Taal: "..l.." (herlaad UI voor effect)|r")
+                ApplyLanguage(l)  -- A-03: direct toepassen, geen reload nodig
+                print(SA_PURPLE.."[WowTracker] Taal: "..l.."|r")
             end)
         end
     end)
 end)
+
+-- A-03: ApplyLanguage — persistent taal systeem
+local function ApplyLanguage(lang)
+    if not lang or lang == "" then lang = "Nederlands" end
+    DelveTrackerDB.language = lang
+    local lCode = lang == "English" and "EN" or lang == "Deutsch" and "DE"
+        or lang == "Français" and "FR" or lang == "Español" and "ES" or "NL"
+    if lIco then lIco:SetText(SA_BLUE..lCode.."|r") end
+    local tabLabels
+    if lang == "English" then
+        tabLabels = {"GUILD","DELVES","BOUNTY","ROSTER","ARMORY","CURRENCY"}
+    elseif lang == "Deutsch" then
+        tabLabels = {"GILDE","DELVES","KOPFGELD","KADER","RÜSTUNG","WÄHRUNG"}
+    elseif lang == "Français" then
+        tabLabels = {"GUILDE","PLONGÉES","PRIME","LISTE","ARMURE","MONNAIE"}
+    elseif lang == "Español" then
+        tabLabels = {"HERMANDAD","INMERS","RECOMP","LISTA","ARMERÍA","DIVISA"}
+    else
+        tabLabels = {"GUILD","DELVES","BOUNTY","ROSTER","ARMORY","CURRENCY"}
+    end
+    if tabBtns and #tabBtns > 0 then
+        for i,btn in ipairs(tabBtns) do
+            if btn.lbl and tabLabels[i] then
+                local col = tabDefs and tabDefs[i] and tabDefs[i].col or "|cffffffff"
+                btn.lbl:SetText(col..tabLabels[i].."|r")
+            end
+        end
+    end
+    if Tab1 and Tab1.motdLabel then
+        local motdStr = lang == "English" and "Message of the Day"
+            or lang == "Deutsch" and "Nachricht des Tages" or "Bericht van de dag"
+        Tab1.motdLabel:SetText(SA_PURPLE.."─── "..motdStr.." ───|r")
+    end
+end
+DelveTracker.ApplyLanguage = ApplyLanguage
 
 -- ── TABS ──────────────────────────────────────────────────────────────────
 local TAB_Y = -(TICKER_H+HEADER_H)
@@ -740,8 +775,8 @@ Tab1.img:SetAlpha(0.92)
 
 -- DieOuwe: klein, rechterhoek van linker kolom, gespiegeld (wijst naar binnen)
 Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.dieouwe:SetSize(80,138)  -- proportioneel kleiner
-Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
+Tab1.dieouwe:SetSize(72,124)  -- A-01: iets kleiner zodat voeten op grond passen
+Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-2,0)  -- y=0 = voeten op vloer
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.75)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
@@ -1171,10 +1206,13 @@ end
 -- ============================================================================
 -- Roster ProfessionBuddy-stijl: kaartjes per karakter v2.0
 -- Race portrait + spec icoon + iLvl groot + professions onderaan
-local ROSTER_CARD_W = 230  -- 3 cols * 230 + 2*8 = 706px
-local ROSTER_CARD_H = 130  -- hoger voor profession rij + spec in hoek
-local ROSTER_COLS   = 3  -- 3 cols past binnen 760px UI
-local ROSTER_GAP    = 8
+-- A-02: 10% kleiner + gecentreerd
+local ROSTER_CARD_W = 207  -- was 230, 10% kleiner
+local ROSTER_CARD_H = 117  -- was 130, 10% kleiner
+local ROSTER_COLS   = 3
+local ROSTER_GAP    = 6    -- was 8, iets smaller gap
+-- Horizontale centering: (760 - 3*207 - 2*6) / 2 = (760-621-12)/2 = 63px padding
+local ROSTER_PAD_X  = math.max(0, math.floor((UI_W - ROSTER_COLS*ROSTER_CARD_W - (ROSTER_COLS-1)*ROSTER_GAP) / 2))
 
 -- Race icon lookup (Achievement_Character_{race}_{faction})
 local RACE_ICON_MAP = {
@@ -1229,7 +1267,7 @@ WT_UpdateRoster = function()
 
         local col = (i-1) % ROSTER_COLS
         local row = math.floor((i-1) / ROSTER_COLS)
-        local xPos = col * (ROSTER_CARD_W + ROSTER_GAP)
+        local xPos = ROSTER_PAD_X + col * (ROSTER_CARD_W + ROSTER_GAP)  -- A-02: gecentreerd
         local yPos = -(row * (ROSTER_CARD_H + ROSTER_GAP))
 
         local card = Tab4.scroll.content.rows[i]
@@ -1587,7 +1625,7 @@ opt.tit:SetText(SA_PURPLE.."WowTracker|r")
 opt.ver=opt:CreateFontString(nil,"OVERLAY")
 opt.ver:SetFont(C_2002,10,"")
 opt.ver:SetPoint("LEFT",opt.logo,"RIGHT",8,-20)
-opt.ver:SetText(SA_GREY.."v3.1.0 · Midnight 12.0.5.67314|r")
+opt.ver:SetText(SA_GREY.."v3.2.0 · Midnight 12.0.7|r")
 
 -- Sub onder versie
 opt.sub=opt:CreateFontString(nil,"OVERLAY")
@@ -2835,5 +2873,12 @@ UI:SetScript("OnEvent",function(self,event)
         if Tab2:IsShown() then UpdateCharacterList() end
         tickerDirty=true
         if event=="PLAYER_LOGIN" and IsInGuild() then GuildRoster() end
+        -- A-03: herstel taalinstelling na reload
+        if event=="PLAYER_LOGIN" then
+            C_Timer.After(0.8, function()
+                local savedLang = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
+                ApplyLanguage(savedLang)
+            end)
+        end
     end
 end)

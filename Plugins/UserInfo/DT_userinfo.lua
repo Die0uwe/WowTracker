@@ -844,6 +844,8 @@ end
 -- MakePanel: standard dark backdrop panel
 local function MakePanel(parent, x, y, w, h)
     local p = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    -- A-04: panels boven PlayerModel (model zit op level-2)
+    p:SetFrameLevel((parent:GetFrameLevel() or 1) + 6)
     p:SetSize(w, h)
     p:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
     p:SetBackdrop({
@@ -1049,7 +1051,9 @@ local modelBox = MakePanel(OV, 0, 0, LCOL, 248)
 local model    = CreateFrame("PlayerModel", nil, modelBox)
 model:SetPoint("TOPLEFT",     modelBox, "TOPLEFT",     2, -2)
 model:SetPoint("BOTTOMRIGHT", modelBox, "BOTTOMRIGHT", -2, 2)
-model:SetFrameLevel(modelBox:GetFrameLevel() + 1)
+-- A-04: model op laag FrameLevel zodat gear/stats eroverheen liggen
+model:SetFrameLevel(max(1, modelBox:GetFrameLevel() - 2))
+model:SetAlpha(0.85)  -- licht transparant = visueel "achter" de UI
 model:SetCamera(0); model:SetPortraitZoom(0)
 
 -- Spin model on hover
