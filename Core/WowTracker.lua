@@ -392,6 +392,38 @@ lIco:SetFont(C_2002,9,"OUTLINE"); lIco:SetPoint("CENTER")
 lIco:SetText("|cff44ffaa🌐|r")
 UI.langBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.langBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+
+-- Vault knop in header (links van langBtn) — opent WeeklyRewardsFrame direct
+UI.vaultBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
+UI.vaultBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
+UI.vaultBtn:SetPoint("RIGHT",UI.langBtn,"LEFT",-3,0)
+UI.vaultBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+UI.vaultBtn:SetBackdropColor(0.12,0.06,0.04,0.9)
+UI.vaultBtn:SetBackdropBorderColor(0.55,0.35,0.10,0.8)
+UI.vaultBtn:SetNormalTexture("Interface\\AddOns\\WowTracker\\Media\\vault.tga")
+UI.vaultBtn:GetNormalTexture():SetTexCoord(0.05,0.95,0.05,0.95)
+UI.vaultBtn:SetScript("OnEnter",function(s)
+    s:SetBackdropBorderColor(0.90,0.70,0.20,1)
+    GameTooltip:SetOwner(s,"ANCHOR_BOTTOMLEFT")
+    GameTooltip:SetText(SA_GOLD.."Great Vault|r")
+    GameTooltip:AddLine("Open de wekelijkse beloningen",0.8,0.8,0.8)
+    GameTooltip:Show()
+end)
+UI.vaultBtn:SetScript("OnLeave",function(s)
+    s:SetBackdropBorderColor(0.55,0.35,0.10,0.8)
+    GameTooltip:Hide()
+end)
+UI.vaultBtn:SetScript("OnClick",function()
+    if not C_AddOns.IsAddOnLoaded("Blizzard_WeeklyRewards") then
+        C_AddOns.LoadAddOn("Blizzard_WeeklyRewards")
+    end
+    if WeeklyRewardsFrame then
+        ToggleFrame(WeeklyRewardsFrame)
+    else
+        print(SA_PURPLE.."[WowTracker]|r Vault niet beschikbaar — bezoek de Vault NPC first.|r")
+    end
+end)
+
 -- Expose als global referentie voor andere plugins (Registry B knop)
 DelveTrackerFrame.langBtn  = UI.langBtn
 DelveTrackerFrame.themeBtn = UI.themeBtn
@@ -817,8 +849,8 @@ local DT_RaceIconShortName = {
     ["Orc"]                = "orc",
     ["Dwarf"]              = "dwarf",
     ["NightElf"]           = "nightelf",
-    ["Scourge"]            = "scourge",
-    ["Undead"]             = "scourge",
+    ["Scourge"]            = "Undead",   -- atlas: raceicon128-Undead-* (verified 12.0.5/67314)
+    ["Undead"]             = "Undead",   -- alias
     ["Tauren"]             = "tauren",
     ["Gnome"]              = "gnome",
     ["Troll"]              = "troll",
@@ -861,13 +893,19 @@ DT_LastRaceAtlasDebug = ""  -- debug global voor in-game diagnose
 
 -- Alle bekende atlas varianten per race (inclusief Midnight 12.x hernoemingen)
 local DT_RaceAtlasVariants = {
-    scourge = {
-        "raceicon128-scourge-{g}",       -- klassiek
-        "raceicon-scourge-{g}",          -- 64px variant
-        "raceicon128-Undead-{g}",        -- mogelijke 12.x hernoem
-        "raceicon128-undead-{g}",        -- lowercase variant
+    Undead = {
+        "raceicon128-Undead-{g}",        -- VERIFIED OK 12.0.5/67314 (wt-racedbg)
+        "raceicon128-undead-{g}",        -- lowercase variant ook OK
+        "raceicon128-scourge-{g}",       -- legacy (FAIL in 12.0.5/67314)
+        "raceicon-scourge-{g}",          -- legacy 64px
         "raceicon-Undead-{g}",
         "raceicon-undead-{g}",
+    },
+    scourge = {  -- alias voor DT_RaceIconShortName["Scourge"] = "Undead"
+        "raceicon128-Undead-{g}",
+        "raceicon128-undead-{g}",
+        "raceicon128-scourge-{g}",
+        "raceicon-scourge-{g}",
     },
     human = {
         "raceicon128-human-{g}",
@@ -1035,8 +1073,8 @@ local RACE_ICON_MAP = {
     ["KulTiran"]    = "kultiran",
     ["Mechagnome"]  = "mechagnome",
     ["Orc"]         = "orc",
-    ["Scourge"]     = "scourge",  -- UnitRace 2e return voor Undead
-    ["Undead"]      = "scourge",  -- alias
+    ["Scourge"]     = "Undead",   -- VERIFIED 12.0.5: raceicon128-Undead-*
+    ["Undead"]      = "Undead",   -- alias
     ["Tauren"]      = "tauren",
     ["Troll"]       = "troll",
     ["BloodElf"]    = "bloodelf",
@@ -1404,46 +1442,60 @@ Settings.RegisterAddOnCategory(category)
 UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
 
 -- ── HEADER (vaste posities — geen anchor chain) ──────────────────────────
--- Admin panel header: vault.tga als banner image
-opt.vaultHdr=opt:CreateTexture(nil,"ARTWORK")
-opt.vaultHdr:SetSize(180,48)
-opt.vaultHdr:SetPoint("TOPLEFT",8,-8)
-opt.vaultHdr:SetTexture("Interface\\AddOns\\WowTracker\\Media\\vault.tga")
-opt.vaultHdr:SetAlpha(0.92)
+-- Admin panel header — strak 2-kolom layout
+-- Links: MijnIcoon + WowTracker titel + versie + sub
+-- Rechts: DieOuwe character image
+-- Onderaan header: vault.tga banner + scheidingslijn
 
+-- DieOuwe character image (rechts)
+opt.charImg=opt:CreateTexture(nil,"ARTWORK")
+opt.charImg:SetSize(55,96)
+opt.charImg:SetPoint("TOPRIGHT",-10,-2)
+opt.charImg:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
+opt.charImg:SetAlpha(0.90)
+
+-- Logo (links)
 opt.logo=opt:CreateTexture(nil,"ARTWORK")
-opt.logo:SetSize(32,32)
-opt.logo:SetPoint("TOPLEFT",16,-14)
+opt.logo:SetSize(36,36)
+opt.logo:SetPoint("TOPLEFT",10,-6)
 opt.logo:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
-opt.logo:SetAlpha(0)  -- verborgen: vault.tga is de header
 
+-- Titel rechts van logo
 opt.tit=opt:CreateFontString(nil,"OVERLAY")
-opt.tit:SetFont(C_2002,15,"OUTLINE")
-opt.tit:SetPoint("TOPLEFT",62,-18)
-opt.tit:SetText(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v3.0.6|r")
+opt.tit:SetFont(C_2002,16,"OUTLINE")
+opt.tit:SetPoint("LEFT",opt.logo,"RIGHT",8,-2)
+opt.tit:SetText(SA_PURPLE.."WowTracker|r")
 
+-- Versie onder titel
+opt.ver=opt:CreateFontString(nil,"OVERLAY")
+opt.ver:SetFont(C_2002,10,"")
+opt.ver:SetPoint("LEFT",opt.logo,"RIGHT",8,-20)
+opt.ver:SetText(SA_GREY.."v3.0.8 · Midnight 12.0.5.67314|r")
+
+-- Sub onder versie
 opt.sub=opt:CreateFontString(nil,"OVERLAY")
 opt.sub:SetFont(C_2002,9,"")
-opt.sub:SetPoint("TOPLEFT",62,-38)
-opt.sub:SetText(SA_GREY.."Slayer Alliance · Midnight 12.0.5.67314|r")
+opt.sub:SetPoint("LEFT",opt.logo,"RIGHT",8,-34)
+opt.sub:SetText(SA_GREY.."Slayer Alliance|r")
 
-opt.charImg=opt:CreateTexture(nil,"ARTWORK")
-opt.charImg:SetSize(60,105)
-opt.charImg:SetPoint("TOPRIGHT",-14,-4)
-opt.charImg:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
-opt.charImg:SetAlpha(0.85)
+-- Vault.tga banner rechts naast DieOuwe image — decoratief
+opt.vaultHdr=opt:CreateTexture(nil,"ARTWORK")
+opt.vaultHdr:SetSize(120,36)
+opt.vaultHdr:SetPoint("BOTTOMRIGHT",opt.charImg,"BOTTOMLEFT",-6,0)
+opt.vaultHdr:SetTexture("Interface\\AddOns\\WowTracker\\Media\\vault.tga")
+opt.vaultHdr:SetAlpha(0.85)
 
--- Lijn Y=60
+-- Scheidingslijn Y≈60
 opt.hdrLine=opt:CreateTexture(nil,"OVERLAY")
 opt.hdrLine:SetHeight(1)
-opt.hdrLine:SetPoint("TOPLEFT",8,-60)
-opt.hdrLine:SetPoint("TOPRIGHT",-8,-60)
+opt.hdrLine:SetPoint("TOPLEFT",8,-62)
+opt.hdrLine:SetPoint("TOPRIGHT",-8,-62)
 opt.hdrLine:SetColorTexture(0.35,0.10,0.55,0.7)
 
 -- ── UI SCHAAL Y=70 ────────────────────────────────────────────────────────
 opt.scaleHdr=opt:CreateFontString(nil,"OVERLAY")
 opt.scaleHdr:SetFont(C_2002,10,"OUTLINE")
-opt.scaleHdr:SetPoint("TOPLEFT",8,-70)
+opt.scaleHdr:SetPoint("TOPLEFT",8,-74)
 opt.scaleHdr:SetText(SA_PURPLE.."UI SCHAAL|r")
 
 local function MakeSlider(parent,lbl,minV,maxV,step,dbKey,fn,y)
@@ -1668,18 +1720,7 @@ local function MakeOptBtn(lbl,anchorFrame,fn)
     return b  -- teruggeven voor anchoring
 end
 
--- Vault knop: open WeeklyRewardsFrame vanuit admin panel
-local ebVault=MakeOptBtn("🗝  Open The Vault (Great Vault)",opt.extraHdr,function()
-    if not C_AddOns.IsAddOnLoaded("Blizzard_WeeklyRewards") then
-        C_AddOns.LoadAddOn("Blizzard_WeeklyRewards")
-    end
-    if WeeklyRewardsFrame then
-        ToggleFrame(WeeklyRewardsFrame)
-    else
-        print(SA_PURPLE.."[WowTracker]|r Great Vault niet beschikbaar — bezoek de Vault NPC first.|r")
-    end
-end)
-local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",ebVault,function()
+local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",opt.extraHdr,function()
     if SlashCmdList["CSET"] then SlashCmdList["CSET"]("")
     elseif SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("") end
 end)
