@@ -858,7 +858,9 @@ end
 
 -- PanelTitle: [UPG-4] now uses GameFontNormalLarge for better readability
 local function PanelTitle(panel, text, y)
-    local t = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local t = panel:CreateFontString(nil, "OVERLAY")
+    t:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    t:SetTextColor(0.85, 0.85, 0.85, 1)
     t:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, y or -PAD + 2)
     t:SetText(text)
     return t
@@ -991,7 +993,9 @@ hdrBG:SetPoint("TOP", frame, "TOP", 0, -4)
 hdrBG:SetColorTexture(0.03, 0.07, 0.16, 1)
 
 -- [UPG-4] Header title uses GameFontNormalLarge
-local hdrT = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+local hdrT = frame:CreateFontString(nil, "OVERLAY")
+hdrT:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+hdrT:SetTextColor(0.85, 0.85, 0.85, 1)
 hdrT:SetPoint("LEFT", hdrBG, "LEFT", 12, 0)
 
 local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
@@ -1323,7 +1327,9 @@ local smryY = -(SLOT_SIZE * 2 + 24 * 2 + PAD + ROW_H + SLOT_PAD + 10)
 local gearDetailH = 102
 local gearDetail  = MakePanel(GR, 0, smryY - gearDetailH - 4, math.floor((FW-8-8)/2), gearDetailH)
 local GD = {}
-GD.title = gearDetail:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+GD.title = gearDetail:CreateFontString(nil, "OVERLAY")
+GD.title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+GD.title:SetTextColor(0.85, 0.85, 0.85, 1)
 GD.title:SetPoint("TOPLEFT", gearDetail, "TOPLEFT", PAD, -PAD)
 GD.title:SetText(Dim("← hover a slot for details"))
 
@@ -1661,11 +1667,15 @@ do  -- PvP layout block (auto-releases internal locals on exit)
     pvpInst         = MakePanel(PV, 0, pvSec3Y, pvW, 218)
     local instColW  = math.floor((pvW - PAD * 3) / 2)
 
-    local bgHdr = pvpInst:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local bgHdr = pvpInst:CreateFontString(nil, "OVERLAY")
+    bgHdr:SetFont("Fonts\\2002.ttf", 12, "")
+    bgHdr:SetTextColor(0.85, 0.85, 0.85, 1)
     bgHdr:SetPoint("TOPLEFT", pvpInst, "TOPLEFT", PAD, -PAD + 2)
     bgHdr:SetText(Green("Battlegrounds & Training Grounds"))
 
-    local amHdr = pvpInst:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local amHdr = pvpInst:CreateFontString(nil, "OVERLAY")
+    amHdr:SetFont("Fonts\\2002.ttf", 12, "")
+    amHdr:SetTextColor(0.85, 0.85, 0.85, 1)
     amHdr:SetPoint("TOPLEFT", pvpInst, "TOPLEFT", PAD + instColW + PAD, -PAD + 2)
     amHdr:SetText(Teal("Arena Maps & Decor Duels"))
 
@@ -1938,7 +1948,9 @@ local function MakeSeasonPanelWithIcon(parent, y, h,
     end
 
     -- [UPG-4] Section title uses GameFontNormalLarge
-    local t = p:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local t = p:CreateFontString(nil, "OVERLAY")
+    t:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    t:SetTextColor(0.85, 0.85, 0.85, 1)
     t:SetPoint("LEFT", iconF, "RIGHT", 6, 0)
     t:SetText(CC(titleColor, titleText))
 

@@ -340,13 +340,17 @@ logoLine:SetPoint("TOPLEFT", headerImg, "BOTTOMLEFT", 0, -2)
 logoLine:SetColorTexture(0.4, 0.1, 0.8, 0.4)
 
 -- Primary addon title — to the right of the logo
-local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+local title = frame:CreateFontString(nil, "OVERLAY")
+title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+title:SetTextColor(0.85, 0.85, 0.85, 1)
 title:SetPoint("TOPLEFT", headerImg, "TOPRIGHT", 16, -10)
 title:SetTextColor(0.78, 0.61, 1.0)
 title:SetText("MAJESTIC TRACKER")
 
 -- Subtitle — zone context line below the title
-local subTitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+local subTitle = frame:CreateFontString(nil, "OVERLAY")
+subTitle:SetFont("Fonts\\2002.ttf", 10, "")
+subTitle:SetTextColor(0.85, 0.85, 0.85, 1)
 subTitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 subTitle:SetTextColor(0.35, 0.22, 0.56)
 subTitle:SetText("Rare Beast Waypoints  ·  Midnight 12.0.5")
@@ -376,7 +380,9 @@ statusBg:SetBackdrop({
 statusBg:SetBackdropColor(0.05, 0, 0.1, 0.5)
 statusBg:SetBackdropBorderColor(0.2, 0, 0.4, 1)
 
-local statusText = statusBg:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+local statusText = statusBg:CreateFontString(nil, "OVERLAY")
+statusText:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+statusText:SetTextColor(0.85, 0.85, 0.85, 1)
 statusText:SetPoint("CENTER")
 statusText:SetScale(1.1)
 statusText:SetTextColor(0.8, 0.6, 1)
@@ -499,7 +505,7 @@ end
 -------------------------------------------------
 
 local function StyleButton(btn, r, g, b)
-    btn:SetNormalFontObject("GameFontNormalLarge")
+    btn:SetFont("Fonts\\2002.ttf", 14, "OUTLINE"); btn:SetTextColor(0.85,0.85,0.85,1)
 
     local bg = btn:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
@@ -568,7 +574,9 @@ for i, data in ipairs(rareData) do
     -- RARE NAME TEXT
     -------------------------------------------------
 
-    local text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local text = frame:CreateFontString(nil, "OVERLAY")
+    text:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    text:SetTextColor(0.85, 0.85, 0.85, 1)
     text:SetPoint("LEFT", btnMap, "RIGHT", 15, 0)
     text:SetScale(1.05)
     text:SetTextColor(0.7, 0.5, 1)
@@ -623,7 +631,9 @@ for i, data in ipairs(rareData) do
     -- ITEM COUNT TEXT
     -------------------------------------------------
 
-    local countText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local countText = frame:CreateFontString(nil, "OVERLAY")
+    countText:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    countText:SetTextColor(0.85, 0.85, 0.85, 1)
     countText:SetPoint("LEFT", lureBtn, "RIGHT", 10, 0)
     countText:SetScale(1.15)
     countText:SetTextColor(0.8, 0.8, 1)
@@ -724,13 +734,17 @@ popupClose:SetPoint("TOPRIGHT",popupFrame,"TOPRIGHT",-2,-2)
 popupClose:SetScript("OnClick", function() popupFrame:Hide() end)
 
 -- Header
-local popupHeader = popupFrame:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
+local popupHeader = popupFrame:CreateFontString(nil,"OVERLAY")
+popupHeader:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+popupHeader:SetTextColor(0.85, 0.85, 0.85, 1)
 popupHeader:SetPoint("TOP",popupFrame,"TOP",0,-12)
 popupHeader:SetTextColor(1.0,0.65,0.05)
 popupHeader:SetText("⚠  SIXTH SENSE")
 
 -- Zone line
-local popupZoneLine = popupFrame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+local popupZoneLine = popupFrame:CreateFontString(nil,"OVERLAY")
+popupZoneLine:SetFont("Fonts\\2002.ttf", 10, "")
+popupZoneLine:SetTextColor(0.85, 0.85, 0.85, 1)
 popupZoneLine:SetPoint("TOP",popupHeader,"BOTTOM",0,-5)
 popupZoneLine:SetTextColor(0.75,0.50,1.0)
 popupZoneLine:SetText("")

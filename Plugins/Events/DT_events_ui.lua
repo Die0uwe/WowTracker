@@ -50,7 +50,9 @@ EventsUI:Hide()
 --------------------------------------------------
 -- TITLE
 --------------------------------------------------
-local Title = EventsUI:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+local Title = EventsUI:CreateFontString(nil, "OVERLAY")
+Title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+Title:SetTextColor(0.85, 0.85, 0.85, 1)
 Title:SetPoint("TOP", 0, -12)
 Title:SetText("DelveTracker Events")
 
@@ -101,7 +103,9 @@ for i = 1, 10 do
         row:SetPoint("TOPLEFT", Rows[i - 1], "BOTTOMLEFT", 0, -4)
     end
 
-    row.Text = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    row.Text = row:CreateFontString(nil, "OVERLAY")
+    row.Text:SetFont("Fonts\\2002.ttf", 12, "")
+    row.Text:SetTextColor(0.85, 0.85, 0.85, 1)
     row.Text:SetAllPoints()
     row.Text:SetJustifyH("LEFT")
 

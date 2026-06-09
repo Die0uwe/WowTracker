@@ -1,5 +1,31 @@
 # CHANGELOG — WowTracker (Slayer Alliance Edition)
 
+## [v3.1.0-hotfix3] — 2026-06-09
+### Fixed
+- Debugger wit scherm: GameFontHighlightSmall geeft witte tekst in 12.0.5 — alle fontstrings vervangen door directe Fonts\2002.ttf + SetTextColor in Debugger, Charmory, CombatAnnouncer, CustomAFK, Events, Exchangebot, HelpGuide, QuickSet, Registry, SkinNRare, SystemTools, UserInfo (37 instances totaal)
+- TH() nil crash: TH() stond vóór de if-not-DelveTracker guard in Debugger, Exchangebot, Lockout, MailAttach, QuickSet — verplaatst naar na de guard
+- Roster crash (lijn 1214): pairs() op Button frame gaf functions als 'c' — vervangen door ipairs() met directe Hide check
+- TOC versie gebumpt naar v3.1.0
+- BossToast upvalue: bossToast lokaal in closure gereset bij elke RefreshDelves() — opgeslagen als scN.bossToast
+- Lua parse error in strat strings: Unicode em-dash en echte newlines in string literals — vervangen door ASCII en \n escapes
+
+### Added
+- deploy.sh in repo root — bouwt altijd correcte WowTracker/ ZIP zonder rommelmappen
+
+### Files Changed
+| Bestand | Type |
+|---------|------|
+| Core/WowTracker.lua | fix roster crash, fix ticker toast positie |
+| Plugins/Debugger/DT_Debugger.lua | fix wit scherm, fix TH() guard, SA styling |
+| Plugins/QuickSet/DT_QuickSet.lua | fix GameFont, TH() guard, BossToast upvalue, strat strings |
+| Plugins/Exchangebot/DT_exchangebot.lua | fix GameFont, TH() guard |
+| Plugins/Lockout/DT_Lockout.lua | fix TH() guard |
+| Plugins/MailAttach/DT_MailAttach.lua | fix TH() guard |
+| Plugins/[9 plugins] | fix GameFont 37x |
+| deploy.sh | nieuw — deployment helper |
+| WowTracker.toc | versie v3.1.0 |
+
+---
 ## [v3.1.0] — 2026-06-09
 ### Added
 - S3-02: Ticker toast config panel — slide-in paneel boven UI bij klik op ticker, SA dark stijl, 4 toggle knoppen (Events/Prey/Guild/Tijd), alles aan/uit

@@ -72,7 +72,9 @@ end
     sc:SetHeight(1)
     sf:SetScrollChild(sc)
 
-    local txt = sc:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+    local txt = sc:CreateFontString(nil,"OVERLAY")
+    txt:SetFont("Fonts\\2002.ttf", 10, "")
+    txt:SetTextColor(0.85, 0.85, 0.85, 1)
     txt:SetPoint("TOPLEFT",5,-5)
     txt:SetWidth(430)
     txt:SetJustifyH("LEFT")

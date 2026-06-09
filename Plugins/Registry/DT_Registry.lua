@@ -76,7 +76,9 @@ end
     Registry.header:SetHeight(45); Registry.header:SetPoint("TOPLEFT", 1, -1); Registry.header:SetPoint("TOPRIGHT", -1, -1)
     Registry.header:SetColorTexture(0.1, 0.08, 0.12, 1)
 
-    Registry.title = Registry:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    Registry.title = Registry:CreateFontString(nil, "OVERLAY")
+    Registry.title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    Registry.title:SetTextColor(0.85, 0.85, 0.85, 1)
     Registry.title:SetPoint("LEFT", Registry.header, "LEFT", 25, 0)
     Registry.title:SetText("|cffa335eeSLAYER ALLIANCE|r - CHARACTER INDEX")
 
@@ -99,7 +101,9 @@ end
                 local b = CreateFrame("Button", nil, f, "BackdropTemplate")
                 b:SetSize(165, 24); b:SetPoint("TOP", f.line, "BOTTOM", 0, -((j-1)*26) - 10)
                 b:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8"}); b:SetBackdropColor(1, 1, 1, 0.03)
-                b.text = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); b.text:SetPoint("CENTER")
+                b.text = b:CreateFontString(nil, "OVERLAY"); b.text:SetPoint("CENTER")
+                b.text:SetFont("Fonts\\2002.ttf", 10, "")
+                b.text:SetTextColor(0.85, 0.85, 0.85, 1)
                 f.chars[j] = b
             end
             headers[idx] = f

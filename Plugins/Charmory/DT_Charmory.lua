@@ -92,7 +92,9 @@ end
         local f = CreateFrame("Frame", nil, Armory, "BackdropTemplate")
         f:SetSize(380, 28); f:SetPoint("BOTTOM", 0, yOff)
         f:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8X8"}); f:SetBackdropColor(0, 0, 0, 0.4) 
-        f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); f.text:SetPoint("CENTER")
+        f.text = f:CreateFontString(nil, "OVERLAY"); f.text:SetPoint("CENTER")
+        f.text:SetFont("Fonts\\2002.ttf", 10, "")
+        f.text:SetTextColor(0.85, 0.85, 0.85, 1)
         return f
     end
     Armory.statPrimary = CreateStatBox(85)
@@ -100,7 +102,9 @@ end
 
     Armory.header = Armory:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge3")
     Armory.header:SetPoint("TOP", 0, -35); Armory.header:SetScale(1.1)
-    Armory.guildStr = Armory:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    Armory.guildStr = Armory:CreateFontString(nil, "OVERLAY")
+    Armory.guildStr:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    Armory.guildStr:SetTextColor(0.85, 0.85, 0.85, 1)
     Armory.guildStr:SetPoint("TOP", Armory.header, "BOTTOM", 0, -4)
     Armory.model = CreateFrame("PlayerModel", nil, Armory)
     Armory.model:SetSize(280, 320); Armory.model:SetPoint("CENTER", 0, 40)

@@ -361,13 +361,17 @@ local function NewTile(parent, idx)
     t.badgeTxt:SetJustifyH("CENTER")
 
     -- Delve name
-    t.nameTxt = t:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    t.nameTxt = t:CreateFontString(nil, "OVERLAY")
+    t.nameTxt:SetFont("Fonts\\2002.ttf", 12, "")
+    t.nameTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     t.nameTxt:SetPoint("TOPLEFT",  t.icon,  "TOPRIGHT", 8, -5)
     t.nameTxt:SetPoint("RIGHT",    t.badge, "LEFT",     -4,  0)
     t.nameTxt:SetJustifyH("LEFT")
 
     -- Story progress (e.g. "Story: 2/4")
-    t.storyTxt = t:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    t.storyTxt = t:CreateFontString(nil, "OVERLAY")
+    t.storyTxt:SetFont("Fonts\\2002.ttf", 10, "")
+    t.storyTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     t.storyTxt:SetPoint("BOTTOMLEFT", t.icon,  "BOTTOMRIGHT", 8, 12)
     t.storyTxt:SetPoint("RIGHT",      t.badge, "LEFT",        -4,  0)
     t.storyTxt:SetJustifyH("LEFT")
@@ -659,12 +663,16 @@ local function BuildGrid(container)
 
     -- Name
     local textAnchor = hdr.model
-    hdr.nameTxt = hdr:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    hdr.nameTxt = hdr:CreateFontString(nil, "OVERLAY")
+    hdr.nameTxt:SetFont("Fonts\\2002.ttf", 12, "")
+    hdr.nameTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     hdr.nameTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -4)
     hdr.nameTxt:SetText(CO.teal .. "Valeera Sanguinar|r")
 
     -- Level / rep
-    hdr.levelTxt = hdr:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    hdr.levelTxt = hdr:CreateFontString(nil, "OVERLAY")
+    hdr.levelTxt:SetFont("Fonts\\2002.ttf", 10, "")
+    hdr.levelTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     hdr.levelTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -18)
     hdr.levelTxt:SetText(CO.gray .. "Loading...")
 
@@ -682,7 +690,7 @@ local function BuildGrid(container)
     hdr.bar:SetStatusBarColor(0.0, 0.90, 0.80)
     hdr.bar:SetMinMaxValues(0, 1); hdr.bar:SetValue(0)
 
-    hdr.xpTxt = hdr.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    hdr.xpTxt = hdr.bar:CreateFontString(nil, "OVERLAY")
     hdr.xpTxt:SetPoint("CENTER", hdr.bar, "CENTER", 0, 0)
     hdr.xpTxt:SetText("")
 
@@ -727,7 +735,9 @@ local function BuildGrid(container)
         tb:SetSize(tabW, TAB_H)
         tb:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 1 + offsetX, 2)
         tb:SetBackdrop(BD(1))
-        local lbl = tb:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        local lbl = tb:CreateFontString(nil, "OVERLAY")
+        lbl:SetFont("Fonts\\2002.ttf", 12, "")
+        lbl:SetTextColor(0.85, 0.85, 0.85, 1)
         lbl:SetPoint("CENTER", tb, "CENTER", 0, 0)
         lbl:SetText(label)
         tb.lbl = lbl

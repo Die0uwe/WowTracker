@@ -143,7 +143,9 @@ end
         frame:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
         frame:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
 
-        local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        local title = frame:CreateFontString(nil, "OVERLAY")
+        title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+        title:SetTextColor(0.85, 0.85, 0.85, 1)
         title:SetPoint("TOP", 0, -15); title:SetText("SLAYER ALLIANCE"); title:SetTextColor(0.6, 0.4, 1)
 
         local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
@@ -155,7 +157,9 @@ end
             btn:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1})
             btn:SetBackdropColor(0.15, 0.15, 0.15, 1)
             btn:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
-            btn.t = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            btn.t = btn:CreateFontString(nil, "OVERLAY")
+            btn.t:SetFont("Fonts\\2002.ttf", 10, "")
+            btn.t:SetTextColor(0.85, 0.85, 0.85, 1)
             btn.t:SetPoint("CENTER"); btn.t:SetText(label)
             btn:SetScript("OnClick", func)
             return btn
@@ -190,7 +194,9 @@ end
         CreateSld("Scale", "CA_Size", -210, 0.5, 2.5)
 
         local function CreateEB(label, dbKey, y)
-            local t = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            local t = frame:CreateFontString(nil, "OVERLAY")
+            t:SetFont("Fonts\\2002.ttf", 10, "")
+            t:SetTextColor(0.85, 0.85, 0.85, 1)
             t:SetPoint("TOP", 0, y); t:SetText(label); t:SetTextColor(0.8, 0.8, 0.8)
             local eb = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
             eb:SetSize(220, 22); eb:SetPoint("TOP", 0, y-18); eb:SetAutoFocus(false)

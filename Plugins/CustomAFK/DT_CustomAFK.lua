@@ -128,10 +128,14 @@ local function CreateSlot(id, width, height, x, y, r, g, b)
     slot.gridBorder:SetAllPoints(slot)
     slot.gridBorder:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 2 })
     slot.gridBorder:SetBackdropBorderColor(1, 1, 1, 0.8); slot.gridBorder:Hide()
-    slot.txt = slot:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    slot.txt = slot:CreateFontString(nil, "OVERLAY")
+    slot.txt:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
+    slot.txt:SetTextColor(0.85, 0.85, 0.85, 1)
     if id == "MID_TOP" then slot.txt:SetPoint("TOP", slot, "TOP", 0, -20)
     else slot.txt:SetPoint("CENTER", 0, 0) end
-    slot.ID_txt = slot:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    slot.ID_txt = slot:CreateFontString(nil, "OVERLAY")
+    slot.ID_txt:SetFont("Fonts\\2002.ttf", 10, "")
+    slot.ID_txt:SetTextColor(0.85, 0.85, 0.85, 1)
     slot.ID_txt:SetPoint("BOTTOM", slot, "BOTTOM", 0, 4); slot.ID_txt:SetText("ID: " .. id); slot.ID_txt:Hide()
     f.Slots[id] = slot
     return slot
