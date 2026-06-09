@@ -14,6 +14,11 @@
 
 if not DelveTracker then
 
+
+    print("|cffff4444[DT_Debugger]:|r DelveTracker core not loaded — debugger disabled.")
+    return
+end
+
 -- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
 local function TH()
     return WTTheme or {
@@ -26,9 +31,6 @@ local function TH()
     }
 end
 
-    print("|cffff4444[DT_Debugger]:|r DelveTracker core not loaded — debugger disabled.")
-    return
-end
 
 -- ─────────────────────────────────────────────────────────────────────
 -- Internal log store
