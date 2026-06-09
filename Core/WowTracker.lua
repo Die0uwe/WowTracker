@@ -108,30 +108,114 @@ TickerClip:SetClipsChildren(true)
 DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
     events=true, guild=true, prey=true, time=true,
 }
--- Klik op ticker opent selectiemenu
-TickerClip:SetScript("OnClick", function(self)
-    if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
-    local ts = DelveTrackerDB.tickerShow
-    if not ts then return end  -- BUG-003: nil guard
-    MenuUtil.CreateContextMenu(self, function(_, root)
-        root:CreateTitle(SA_PURPLE.."Ticker inhoud|r")
-        local function ToggleItem(key, label)
-            local checked = ts[key] ~= false
-            root:CreateCheckbox(label, function() return ts[key]~=false end,
-                function() ts[key] = not (ts[key]~=false); tickerDirty=true end)
+-- S3-02: Ticker Toast Config Panel — slide-in boven UI bij klik
+-- Bouwt een persisterend paneel (niet MenuUtil) zodat de staat zichtbaar blijft
+local TickerToast = nil  -- lazy init
+
+local function BuildTickerToast()
+    if TickerToast then return TickerToast end
+
+    local toast = CreateFrame("Frame","DT_TickerToast",UI,"BackdropTemplate")
+    toast:SetSize(UI_W - 4, 110)
+    toast:SetPoint("BOTTOMLEFT",UI,"TOPLEFT",2,-2)  -- net boven UI
+    toast:SetFrameStrata("DIALOG")
+    toast:SetClampedToScreen(true)
+    toast:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    toast:SetBackdropColor(0.05,0.02,0.09,0.98)
+    toast:SetBackdropBorderColor(0.45,0.08,0.70,1)
+    toast:Hide()
+
+    -- Header
+    local hdr = toast:CreateFontString(nil,"OVERLAY")
+    hdr:SetFont(C_2002,11,"OUTLINE")
+    hdr:SetPoint("TOPLEFT",10,-8)
+    hdr:SetText(SA_PURPLE.."TICKER INHOUD|r  "..SA_GREY.."(klik om aan/uit te zetten)|r")
+
+    -- Sluit knop
+    local xBtn = CreateFrame("Button",nil,toast,"UIPanelCloseButton")
+    xBtn:SetSize(20,20); xBtn:SetPoint("TOPRIGHT",0,0)
+    xBtn:SetScript("OnClick",function() toast:Hide() end)
+
+    -- Checkbox items
+    local ITEMS = {
+        {key="events", lbl="World Events"},
+        {key="prey",   lbl="Prey Hunt"},
+        {key="guild",  lbl="Guild online"},
+        {key="time",   lbl="Server tijd"},
+    }
+    local btnW = math.floor((UI_W - 40) / #ITEMS)
+    toast.checkBtns = {}
+
+    for i,item in ipairs(ITEMS) do
+        local it = item
+        local btn = CreateFrame("Button",nil,toast,"BackdropTemplate")
+        btn:SetSize(btnW - 4, 36)
+        btn:SetPoint("TOPLEFT", 8 + (i-1)*(btnW), -28)
+        btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+
+        local lbl = btn:CreateFontString(nil,"OVERLAY")
+        lbl:SetFont(C_2002,10,"OUTLINE")
+        lbl:SetPoint("CENTER",0,0)
+
+        local function RefreshBtn()
+            local ts = DelveTrackerDB.tickerShow
+            local on = ts and ts[it.key] ~= false
+            btn:SetBackdropColor(on and 0.10 or 0.04, on and 0.04 or 0.02, on and 0.18 or 0.06, 1)
+            btn:SetBackdropBorderColor(on and 0.60 or 0.20, on and 0.10 or 0.05, on and 0.90 or 0.30, 1)
+            lbl:SetText((on and SA_PURPLE or SA_GREY)..it.lbl.."|r")
         end
-        ToggleItem("events",  "World Events (actief + aankomend)")
-        ToggleItem("prey",    "Prey Hunt status")
-        ToggleItem("guild",   "Guild online teller")
-        ToggleItem("time",    "Server tijd")
-        root:CreateDivider()
-        root:CreateButton("Alles aan", function()
-            for k in pairs(ts) do ts[k]=true end; tickerDirty=true
+        btn:SetScript("OnClick",function()
+            local ts = DelveTrackerDB.tickerShow
+            if ts then ts[it.key] = not (ts[it.key] ~= false); tickerDirty=true end
+            RefreshBtn()
         end)
-        root:CreateButton("Alles uit", function()
-            for k in pairs(ts) do ts[k]=false end; tickerDirty=true
-        end)
+        btn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.75,0.20,1.0,1) end)
+        btn:SetScript("OnLeave",function() RefreshBtn() end)
+        toast.checkBtns[i] = {btn=btn, refresh=RefreshBtn}
+    end
+
+    -- Alles aan/uit knoppen rechts
+    local allW = 80
+    local btnAan = CreateFrame("Button",nil,toast,"BackdropTemplate")
+    btnAan:SetSize(allW,16); btnAan:SetPoint("BOTTOMRIGHT",-8,8)
+    btnAan:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    btnAan:SetBackdropColor(0.04,0.10,0.04,1); btnAan:SetBackdropBorderColor(0.10,0.50,0.10,1)
+    local aanLbl=btnAan:CreateFontString(nil,"OVERLAY"); aanLbl:SetFont(C_2002,9,""); aanLbl:SetPoint("CENTER")
+    aanLbl:SetText(SA_GREY.."Alles aan|r")
+    btnAan:SetScript("OnClick",function()
+        local ts=DelveTrackerDB.tickerShow
+        if ts then for k in pairs(ts) do ts[k]=true end; tickerDirty=true end
+        for _,cb in ipairs(toast.checkBtns) do cb.refresh() end
     end)
+
+    local btnUit = CreateFrame("Button",nil,toast,"BackdropTemplate")
+    btnUit:SetSize(allW,16); btnUit:SetPoint("RIGHT",btnAan,"LEFT",-4,0)
+    btnUit:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    btnUit:SetBackdropColor(0.12,0.03,0.03,1); btnUit:SetBackdropBorderColor(0.50,0.10,0.10,1)
+    local uitLbl=btnUit:CreateFontString(nil,"OVERLAY"); uitLbl:SetFont(C_2002,9,""); uitLbl:SetPoint("CENTER")
+    uitLbl:SetText(SA_GREY.."Alles uit|r")
+    btnUit:SetScript("OnClick",function()
+        local ts=DelveTrackerDB.tickerShow
+        if ts then for k in pairs(ts) do ts[k]=false end; tickerDirty=true end
+        for _,cb in ipairs(toast.checkBtns) do cb.refresh() end
+    end)
+
+    -- Initialiseer states
+    toast:SetScript("OnShow",function()
+        for _,cb in ipairs(toast.checkBtns) do cb.refresh() end
+    end)
+
+    TickerToast = toast
+    return toast
+end
+
+TickerClip:SetScript("OnClick", function(self)
+    local toast = BuildTickerToast()
+    if toast:IsShown() then
+        toast:Hide()
+    else
+        toast:Show()
+    end
 end)
 
 local TickerScroll = CreateFrame("Frame",nil,TickerClip)
@@ -495,14 +579,39 @@ local function ShowTab(id)
     if id==1 then
         Tab1:Show()
         if IsInGuild() then
-            GuildRoster()
+            -- S3-01: Zet meteen wat we weten, GuildRoster() triggert GUILD_ROSTER_UPDATE
             local gName = GetGuildInfo("player")
-            Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r")
+            if Tab1.guildName then Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r") end
+            -- MOTD: laad wat gecached is, async update via GUILD_ROSTER_UPDATE event
             local motd = GetGuildRosterMOTD() or ""
-            Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY.."Laden...|r")
+            if Tab1.motdText then
+                if motd ~= "" then
+                    Tab1.motdText:SetText(SA_GREY..motd.."|r")
+                else
+                    -- Geen cached MOTD → request en toon placeholder
+                    Tab1.motdText:SetText(SA_GREY.."─ laden ─|r")
+                    -- GuildRoster heeft 10s throttle — C_GuildInfo.GuildRoster is de 12.x versie
+                    if C_GuildInfo and C_GuildInfo.GuildRoster then
+                        C_GuildInfo.GuildRoster()
+                    else
+                        GuildRoster()
+                    end
+                    -- Fallback: herlaad MOTD na korte delay voor geval event mist
+                    C_Timer.After(1.5, function()
+                        if Tab1:IsShown() and Tab1.motdText then
+                            local m2 = GetGuildRosterMOTD() or ""
+                            if m2 ~= "" then
+                                Tab1.motdText:SetText(SA_GREY..m2.."|r")
+                            else
+                                Tab1.motdText:SetText(SA_GREY.."Geen bericht van de dag.|r")
+                            end
+                        end
+                    end)
+                end
+            end
         else
-            Tab1.guildName:SetText(SA_GREY.."Geen guild|r")
-            Tab1.motdText:SetText(SA_GREY.."Geen guild lid.|r")
+            if Tab1.guildName then Tab1.guildName:SetText(SA_GREY.."Geen guild|r") end
+            if Tab1.motdText then Tab1.motdText:SetText(SA_GREY.."Geen guild lid.|r") end
         end
         WT_UpdateGuildOnline()
 

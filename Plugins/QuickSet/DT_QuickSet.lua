@@ -1032,42 +1032,22 @@ local function BuildGrid(container)
             t:Show()
         end
 
-        -- Required Items section header
-        local ITEMS_Y = iN * (TILE_H + TILE_G) + 6
+        -- S3-03: Required Items header VERWIJDERD (niet correct)
+        -- Items direct onder tiles, gecentreerd
+        local ITEMS_Y = iN * (TILE_H + TILE_G) + 8
 
-        if not scN.itemHeaderFrame then
-            local hbar = CreateFrame("Frame", nil, scN, "BackdropTemplate")
-            hbar:SetSize(SCROLL_W, 24)
-            hbar:SetBackdrop(BD(1))
-            hbar:SetBackdropColor(0.07, 0.00, 0.11, 0.97)
-            hbar:SetBackdropBorderColor(0.65, 0.10, 0.78, 1)
-
-            local hs = hbar:CreateTexture(nil, "ARTWORK")
-            hs:SetSize(4, 22); hs:SetPoint("LEFT", 1, 0)
-            hs:SetColorTexture(0.90, 0.15, 0.90, 1)
-
-            local hl = hbar:CreateTexture(nil, "OVERLAY")
-            hl:SetHeight(1)
-            hl:SetPoint("TOPLEFT",  1, -1); hl:SetPoint("TOPRIGHT", -1, -1)
-            hl:SetColorTexture(1.0, 0.35, 1.0, 0.75)
-
-            local hlbl = hbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            hlbl:SetPoint("LEFT", 12, 0)
-            hlbl:SetText(CO.magenta .. "Required Items|r")
-
-            scN.itemHeaderFrame = hbar
-        end
-
-        scN.itemHeaderFrame:SetPoint("TOPLEFT", 0, -ITEMS_Y)
-        scN.itemHeaderFrame:Show()
-        ITEMS_Y = ITEMS_Y + 28
+        -- Verberg itemHeaderFrame als die al bestaat van vorige versie
+        if scN.itemHeaderFrame then scN.itemHeaderFrame:Hide() end
 
         -- Item boxes (3 side by side)
         for i, item in ipairs(SPECIAL_ITEMS) do
             if not itemBoxes[i] then MakeItemBox(scN, item, i) end
             local box = itemBoxes[i]
             box:SetParent(scN)
-            box:SetPoint("TOPLEFT", box.xOffset, -ITEMS_Y)
+            -- S3-03: gecentreerd — berekend vanuit SCROLL_W
+            local totalItemW = 3 * ITEM_W + 2 * ITEM_GAP
+            local itemPad = math.max(0, math.floor((SCROLL_W - totalItemW) / 2))
+            box:SetPoint("TOPLEFT", itemPad + box.xOffset, -ITEMS_Y)
             box:Show()
 
             local name, _, _, _, _, _, _, _, _, texture = GetItemInfo(item.id)
@@ -1098,8 +1078,228 @@ local function BuildGrid(container)
             end
         end
 
-        -- ── ABUNDANCE BLOK onder Required Items ───────────────────────
-        local AB_Y = ITEMS_Y + ITEM_H + 10
+        -- ── S3-04: BOSS TACTICS KNOP ────────────────────────────────
+        local BOSS_Y = ITEMS_Y + ITEM_H + 8
+
+        if not scN.bossTacticsBtn then
+            local bossBtn = CreateFrame("Button",nil,scN,"BackdropTemplate")
+            bossBtn:SetSize(SCROLL_W, 28)
+            bossBtn:SetBackdrop(BD(1))
+            bossBtn:SetBackdropColor(0.08,0.00,0.14,0.97)
+            bossBtn:SetBackdropBorderColor(0.65,0.10,0.85,0.9)
+
+            -- Magenta stripe links
+            local bs = bossBtn:CreateTexture(nil,"ARTWORK")
+            bs:SetSize(4,26); bs:SetPoint("LEFT",1,0)
+            bs:SetColorTexture(1.0,0.20,0.90,1)
+
+            -- Top glow
+            local bg = bossBtn:CreateTexture(nil,"OVERLAY",nil,2)
+            bg:SetHeight(1); bg:SetPoint("TOPLEFT",1,-1); bg:SetPoint("TOPRIGHT",-1,-1)
+            bg:SetColorTexture(1.0,0.30,1.0,0.8); bg:SetAlpha(0)
+
+            local btxt = bossBtn:CreateFontString(nil,"OVERLAY")
+            btxt:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+            btxt:SetPoint("LEFT",12,0)
+            btxt:SetText(CO.magenta.."Boss Tactics: Nullaeus|r  "..CO.gray.."(klik voor strat)|r")
+
+            local barrow = bossBtn:CreateFontString(nil,"OVERLAY")
+            barrow:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+            barrow:SetPoint("RIGHT",-8,0)
+            barrow:SetText(CO.gray.."[+]|r")
+
+            bossBtn:SetScript("OnEnter",function(s)
+                bg:SetAlpha(1)
+                s:SetBackdropBorderColor(1.0,0.40,1.0,1)
+            end)
+            bossBtn:SetScript("OnLeave",function(s)
+                bg:SetAlpha(0)
+                s:SetBackdropBorderColor(0.65,0.10,0.85,0.9)
+            end)
+
+            -- Boss Tactics Toast popup
+            local bossToast = nil
+            local function BuildBossToast()
+                if bossToast then return bossToast end
+                local bt = CreateFrame("Frame","DT_BossTacticsToast",UIParent,"BackdropTemplate")
+                bt:SetSize(520,340)
+                bt:SetPoint("CENTER",UIParent,"CENTER",0,50)
+                bt:SetFrameStrata("DIALOG")
+                bt:SetMovable(true); bt:EnableMouse(true)
+                bt:RegisterForDrag("LeftButton")
+                bt:SetClampedToScreen(true)
+                bt:SetScript("OnDragStart",bt.StartMoving)
+                bt:SetScript("OnDragStop",bt.StopMovingOrSizing)
+                bt:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+                bt:SetBackdropColor(0.04,0.01,0.08,0.98)
+                bt:SetBackdropBorderColor(0.65,0.10,0.85,1)
+                bt:Hide()
+
+                -- Header
+                local bh = bt:CreateFontString(nil,"OVERLAY")
+                bh:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
+                bh:SetPoint("TOPLEFT",10,-10)
+                bh:SetText(CO.magenta.."NULLAEUS — Torment's Rise (Nemesis Delve)|r")
+
+                -- Sluit
+                local xb = CreateFrame("Button",nil,bt,"UIPanelCloseButton")
+                xb:SetSize(22,22); xb:SetPoint("TOPRIGHT",0,0)
+                xb:SetScript("OnClick",function() bt:Hide() end)
+
+                -- Scheidingslijn
+                local bl = bt:CreateTexture(nil,"OVERLAY")
+                bl:SetHeight(1); bl:SetPoint("TOPLEFT",8,-28); bl:SetPoint("TOPRIGHT",-8,-28)
+                bl:SetColorTexture(0.50,0.08,0.70,0.8)
+
+                -- Tab knoppen T8 / T11
+                local tabT8 = CreateFrame("Button",nil,bt,"BackdropTemplate")
+                tabT8:SetSize(80,20); tabT8:SetPoint("TOPLEFT",10,-34)
+                tabT8:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+
+                local tabT11 = CreateFrame("Button",nil,bt,"BackdropTemplate")
+                tabT11:SetSize(80,20); tabT11:SetPoint("LEFT",tabT8,"RIGHT",4,0)
+                tabT11:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+
+                local t8lbl = tabT8:CreateFontString(nil,"OVERLAY"); t8lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); t8lbl:SetPoint("CENTER"); t8lbl:SetText("Tier 8 (?)")
+                local t11lbl = tabT11:CreateFontString(nil,"OVERLAY"); t11lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); t11lbl:SetPoint("CENTER"); t11lbl:SetText("Tier 11 (??)")
+
+                -- Strat tekst scroll
+                local sf = CreateFrame("ScrollFrame",nil,bt,"UIPanelScrollFrameTemplate")
+                sf:SetPoint("TOPLEFT",8,-60); sf:SetPoint("BOTTOMRIGHT",-28,-8)
+                local sc = CreateFrame("Frame",nil,sf)
+                sc:SetWidth(480); sf:SetScrollChild(sc)
+
+                local txt = sc:CreateFontString(nil,"OVERLAY")
+                txt:SetFont("Fonts\\2002.ttf",11,"")
+                txt:SetPoint("TOPLEFT",4,-4)
+                txt:SetWidth(476)
+                txt:SetJustifyH("LEFT")
+                txt:SetWordWrap(true)
+
+                local STRAT_T8 = "|cffff88ccNULLAEUS — TIER 8 STRAT|r
+
+"..
+                    "|cffccaa00VALEERA ROL:|r Healer (auto-dispelt DoT en Ravager bleeds)
+
+"..
+                    "|cffff4444KRITIEK:|r |cffffffff"Emptiness of the Void"|r — ALTIJD interruppen!
+"..
+                    "Dit is een AoE one-shot als het doorgaat. Bouw je hele rotation
+around dit interrupt.
+
+"..
+                    "|cffbf00ffFASE 1 (100-75%):|r
+"..
+                    "• Interrupt Emptiness of the Void (letale AoE)
+"..
+                    "• Dispel/vermijd Devouring Essence DoT (shadow, 18 sec)
+"..
+                    "• Valeera Healer dispelt automatisch
+
+"..
+                    "|cffbf00ffINTERMISSION 75%:|r (~30 sec)
+"..
+                    "• Nullaeus = untargetable, kanalized Void Orb
+"..
+                    "• Kill 2x Razorshell Ravager snel!
+"..
+                    "• Spiny Leap = cirkel op verste speler — ga DICHTERBIJ staan
+"..
+                    "• Spiny Thorns = bleed DoT, Valeera Healer cleant dit
+
+"..
+                    "|cffbf00ffFASE 2 (75-50%):|r
+"..
+                    "• Zelfde als Fase 1 + Void Zone (1/3 kamer) — roteer weg
+"..
+                    "• Interrupt prio boven alles
+
+"..
+                    "|cffbf00ffINTERMISSION 50%:|r
+"..
+                    "• AoE + CC 7x Spitting Ticks DIRECT
+"..
+                    "• Beweeg weg van Black Hole (trekt in alles)
+
+"..
+                    "|cffbf00ffFASE 3 (50-0%):|r
+"..
+                    "• Boss + Void Zone + Black Hole tegelijk
+"..
+                    "• Interrupt blijft #1 prio, roteer constant
+"..
+                    "• Cooldowns gebruiken — niet sparen"
+
+                local STRAT_T11 = "|cffff88ccNULLAEUS — TIER 11 STRAT (??)|r
+
+"..
+                    "|cffccaa00VEREIST:|r Tier 10 gecleared met 1+ leven over
+"..
+                    "|cffccaa00SOLO KILL:|r = |cffccaa00Arcanovoid Construct mount|r
+
+"..
+                    "|cffffffff"Let Me Solo Him: Nullaeus" achievement
+vereist solo Tier 11 kill.|r
+
+"..
+                    "|cffff4444KRITIEK (zwaarder dan T8):|r
+"..
+                    "• Emptiness of the Void = hard enrage als gemist
+"..
+                    "• Alle mechanics tegelijk sneller/harder
+"..
+                    "• Razorshell Ravagers doen meer schade
+
+"..
+                    "|cffbf00ffSTRATEGIE:|r Zelfde fasestructuur als T8 maar:
+"..
+                    "• Interrupt CD management = kritiek (alt interrupts gebruiken)
+"..
+                    "• Black Hole + Void Zone overlap = meest dодelijk moment
+"..
+                    "• Als Healer: Valeera DPS voor interrupt hulp
+"..
+                    "• Als DPS/Tank: Valeera Healer (dispelt DoT + bleeds)
+
+"..
+                    "|cff44ff88RECOMMENDED iLvl:|r 274+
+"..
+                    "|cff44ff88VALEERA ROL T11:|r DPS als je healer bent of
+lange interrupt CD hebt, anders Healer"
+
+                local currentTier = "T8"
+                local function ShowTier(tier)
+                    currentTier = tier
+                    txt:SetText(tier == "T8" and STRAT_T8 or STRAT_T11)
+                    sc:SetHeight(txt:GetStringHeight() + 20)
+                    sf:SetVerticalScroll(0)
+                    tabT8:SetBackdropColor(tier=="T8" and 0.12 or 0.04, tier=="T8" and 0.02 or 0.01, tier=="T8" and 0.20 or 0.07, 1)
+                    tabT8:SetBackdropBorderColor(tier=="T8" and 0.65 or 0.20, 0.05, tier=="T8" and 0.90 or 0.30, 1)
+                    tabT11:SetBackdropColor(tier=="T11" and 0.12 or 0.04, tier=="T11" and 0.02 or 0.01, tier=="T11" and 0.20 or 0.07, 1)
+                    tabT11:SetBackdropBorderColor(tier=="T11" and 0.65 or 0.20, 0.05, tier=="T11" and 0.90 or 0.30, 1)
+                end
+
+                tabT8:SetScript("OnClick",function() ShowTier("T8") end)
+                tabT11:SetScript("OnClick",function() ShowTier("T11") end)
+                bt:SetScript("OnShow",function() ShowTier(currentTier) end)
+
+                bossToast = bt
+                return bt
+            end
+
+            bossBtn:SetScript("OnClick",function()
+                local toast = BuildBossToast()
+                if toast:IsShown() then toast:Hide()
+                else toast:Show() end
+            end)
+
+            scN.bossTacticsBtn = bossBtn
+        end
+        scN.bossTacticsBtn:SetPoint("TOPLEFT",0,-BOSS_Y)
+        scN.bossTacticsBtn:Show()
+
+        -- ── ABUNDANCE BLOK onder Boss Tactics ────────────────────────────
+        local AB_Y = BOSS_Y + 28 + 8
         if not scN.abundanceFrame then
             local abf = CreateFrame("Frame", nil, scN, "BackdropTemplate")
             abf:SetSize(SCROLL_W, 60)
@@ -1133,7 +1333,14 @@ local function BuildGrid(container)
         local abData = DT_GetAbundanceData and DT_GetAbundanceData()
         if abData and abData.active then
             scN.abundanceFrame:SetBackdropBorderColor(0.30,0.90,0.30,1)
-            scN.abundanceFrame.title:SetText("|cff44cc66✦ Abundance Actief: |r|cffffffff"..(abData.zone or "?").."|r")
+            -- S3-05: correcte cave naam tonen ipv generieke zone naam
+            local ABCAVE_NAMES = {
+                [2393]="Watha'nan Crypts", [2395]="Watha'nan Crypts",
+                [2437]="Loaknit Den", [2413]="Floaret Grotto",
+                [2405]="Abundant Voidburrow",
+            }
+            local caveName = (abData.mapID and ABCAVE_NAMES[abData.mapID]) or abData.zone or "?"
+            scN.abundanceFrame.title:SetText("|cff44cc66✦ Abundance Actief: |r|cffffffff"..caveName.."|r")
             local timeStr = ""
             if abData.secondsLeft and abData.secondsLeft > 0 then
                 local h=math.floor(abData.secondsLeft/3600)
@@ -1151,7 +1358,17 @@ local function BuildGrid(container)
             scN.abundanceFrame:SetBackdropBorderColor(0.20,0.40,0.20,0.6)
             scN.abundanceFrame.title:SetText("|cff887799✦ Abundance|r")
             scN.abundanceFrame.timer:SetText("")
-            scN.abundanceFrame.info:SetText("|cff887799Geen actieve Abundant Harvest in Quel'Thalas|r")
+            -- S3-05: correcte zone namen tonen
+            local ABCAVES = {
+                [2393]="Watha'nan Crypts (Eversong)",
+                [2395]="Watha'nan Crypts (Eversong)",
+                [2437]="Loaknit Den (Zul'Aman)",
+                [2413]="Floaret Grotto (Harandar)",
+                [2405]="Abundant Voidburrow (Voidstorm)",
+            }
+            scN.abundanceFrame.info:SetText("|cff887799Geen actieve Abundance cave gevonden.
+"..
+                "Roteert elke 8u: Eversong · Zul'Aman · Harandar · Voidstorm|r")
         end
         scN.abundanceFrame:Show()
 

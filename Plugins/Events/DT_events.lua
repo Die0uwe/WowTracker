@@ -151,15 +151,19 @@ local DT_AbundanceData = {
 -- Alle Midnight mapIDs waar Abundance actief kan zijn
 -- Abundance roteert elke 8 uur over 4 caves: Eversong, Zul'Aman, Harandar, Voidstorm
 -- Silvermoon en Sunfury Spire zijn hubs maar kunnen ook abundance events hebben
+-- S3-05: Abundance roteert ALLEEN over 4 cave locaties (geverifieerd via Wowhead)
+-- Silvermoon en Sunfury Spire zijn hubs — geen abundance caves
+-- Cave locaties: Watha'nan Crypts (Eversong), Loaknit Den (Zul'Aman),
+--               Floaret Grotto (Harandar), Abundant Voidburrow (Voidstorm)
 local ABUNDANCE_MAPS = {
-    2393,  -- Eversong Woods (outdoor)
-    2395,  -- Eversong Woods (alt/instanced)
-    2437,  -- Zul'Aman (combat zone — abundance roots hier)
-    2413,  -- Harandar
-    2405,  -- Voidstorm
-    2444,  -- Silvermoon City (hub)
-    2536,  -- Sunfury Spire
-    2394,  -- Eversong fly-through (ook checken)
+    2393,  -- Eversong Woods outdoor (Watha'nan Crypts: /way 56.78 65.79)
+    2395,  -- Eversong Woods alt zone
+    2437,  -- Zul'Aman combat zone (Loaknit Den: /way 31.62 26.14)
+    2413,  -- Harandar (Floaret Grotto: /way 66.14 61.69)
+    2405,  -- Voidstorm (Abundant Voidburrow: /way 38.82 53.31)
+    2394,  -- Eversong fly-through (zekerheidshalve)
+    -- 2444 Silvermoon: GEEN abundance cave (enkel hub) — verwijderd
+    -- 2536 Sunfury Spire: GEEN abundance cave — verwijderd
 }
 
 local function IsAbundancePOI(info)
@@ -253,6 +257,8 @@ local _abFrame = CreateFrame("Frame")
 _abFrame:RegisterEvent("AREA_POIS_UPDATED")
 _abFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 _abFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+_abFrame:RegisterEvent("WORLD_STATE_TIMER_START")  -- S3-05: ook bij timer events
+_abFrame:RegisterEvent("DISPLAY_SIZE_CHANGED")     -- fallback re-scan
 _abFrame:SetScript("OnEvent", function(self, event)
     -- Throttle: max 1x per 30 sec
     if GetTime() - DT_AbundanceData.lastScan < 30 and event ~= "PLAYER_ENTERING_WORLD" then return end
