@@ -107,6 +107,7 @@ TickerClip:SetClipsChildren(true)
 -- Ticker instellingen in DB
 DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
     events=true, guild=true, prey=true, time=true,
+    abundance=false, warbandgold=false,  -- C-02: extra items, standaard uit
 }
 -- S3-02: Ticker Toast Config Panel — slide-in boven UI bij klik
 -- Bouwt een persisterend paneel (niet MenuUtil) zodat de staat zichtbaar blijft
@@ -138,19 +139,26 @@ local function BuildTickerToast()
 
     -- Checkbox items
     local ITEMS = {
-        {key="events", lbl="World Events"},
-        {key="prey",   lbl="Prey Hunt"},
-        {key="guild",  lbl="Guild online"},
-        {key="time",   lbl="Server tijd"},
+        {key="events",     lbl="World Events"},
+        {key="prey",       lbl="Prey Hunt"},
+        {key="guild",      lbl="Guild online"},
+        {key="time",       lbl="Server tijd"},
+        {key="abundance",  lbl="Abundance"},   -- C-02
+        {key="warbandgold",lbl="Warband goud"},-- C-02
     }
-    local btnW = math.floor((UI_W - 40) / #ITEMS)
+    -- C-02: 6 items = 2 rijen van 3
+    local ITEMS_PER_ROW = 3
+    local btnW = math.floor((UI_W - 40) / ITEMS_PER_ROW)
+    toast:SetSize(UI_W - 4, 160)  -- hoger voor 2 rijen
     toast.checkBtns = {}
 
     for i,item in ipairs(ITEMS) do
         local it = item
         local btn = CreateFrame("Button",nil,toast,"BackdropTemplate")
+        local row = math.floor((i-1) / ITEMS_PER_ROW)
+        local col = (i-1) % ITEMS_PER_ROW
         btn:SetSize(btnW - 4, 36)
-        btn:SetPoint("TOPLEFT", 8 + (i-1)*(btnW), -28)
+        btn:SetPoint("TOPLEFT", 8 + col*(btnW), -28 + row*(-42))
         btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 
         local lbl = btn:CreateFontString(nil,"OVERLAY")
@@ -301,6 +309,34 @@ local function BuildTickerStr()
     if ts.time ~= false then
         local h,m = GetGameTime()
         table.insert(parts,SA_GOLD.."🕐 Server: "..string.format("%02d:%02d",h,m).."|r")
+    end
+    -- C-02: Abundance status
+    if ts.abundance then
+        local abData = DT_GetAbundanceData and DT_GetAbundanceData()
+        if abData and abData.active then
+            local ABCAVE={[2393]="Eversong",[2395]="Eversong",
+                [2437]="Zul'Aman",[2413]="Harandar",[2405]="Voidstorm"}
+            local zone=(abData.mapID and ABCAVE[abData.mapID]) or abData.zone or "?"
+            local tLeft=""
+            if abData.secondsLeft and abData.secondsLeft>0 then
+                local h2=math.floor(abData.secondsLeft/3600)
+                local m2=math.floor((abData.secondsLeft%3600)/60)
+                tLeft=h2>0 and string.format(" %dh%dm",h2,m2) or string.format(" %dm",m2)
+            end
+            table.insert(parts,"|cff44cc66Abundance: "..zone..tLeft.."|r")
+        end
+    end
+    -- C-02: Warband goud totaal
+    if ts.warbandgold then
+        local totalG=0
+        for _,d in pairs(DelveTrackerDB.characters or {}) do
+            totalG=totalG+(d.gold or 0)
+        end
+        if totalG>0 then
+            local gp=math.floor(totalG/10000)
+            local gs=gp>=1000 and string.format("%.1fk",gp/1000) or tostring(gp)
+            table.insert(parts,SA_GOLD.."Warband: "..gs.."g|r")
+        end
     end
 
     if #parts == 0 then
@@ -1699,13 +1735,41 @@ WT_UpdateGuildOnline = function()
         r:SetPoint("TOPLEFT",0,-(i-1)*ROW_H)
         r:Show()
 
-        -- Status dot
+        -- C-01: klikbaar frame
+        r:EnableMouse(true)
+        r:SetScript("OnEnter", function(self)
+            self:SetBackdropColor and self:SetBackdropColor(0.12,0.06,0.18,0.6)
+            GameTooltip:SetOwner(self,"ANCHOR_LEFT")
+            local _cct = C_ClassColor and C_ClassColor.GetClassColor(member.class or "")
+            local ct = (_cct and type(_cct)=="table" and _cct.r) and _cct or {r=0.8,g=0.8,b=0.8}
+            GameTooltip:SetText(string.format("|cff%02x%02x%02x%s|r",
+                math.floor(ct.r*255),math.floor(ct.g*255),math.floor(ct.b*255), member.name))
+            GameTooltip:AddLine(SA_GREY..(member.class or "?").." · Lvl "..(member.level or "?").."|r")
+            if member.zone and member.zone ~= "" then
+                GameTooltip:AddLine("|cff44ff88"..member.zone.."|r")
+            end
+            GameTooltip:AddLine(SA_GREY.."Klik → /who|r",0.6,0.6,0.6)
+            GameTooltip:Show()
+        end)
+        r:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+        r:SetScript("OnMouseDown", function()
+            SendChatMessage("/who "..member.name, "WHISPER", nil, member.name)
+            -- /who via chat
+            local eb = ChatFrame1EditBox or DEFAULT_CHAT_FRAME.editBox
+            if eb then
+                eb:Show(); eb:SetText("/who "..member.name); eb:Insert("")
+            end
+        end)
+
+        -- Pulserende groene dot
         r.dot = r.dot or r:CreateTexture(nil,"OVERLAY")
         r.dot:SetSize(6,6)
         r.dot:SetPoint("LEFT",2,0)
-        r.dot:SetColorTexture(0.20,0.90,0.40,1)  -- groen = online
+        r.dot:SetColorTexture(0.15,0.95,0.40,1)
 
-        -- Naam in klasse kleur
+        -- Naam in klaskleur
         r.nm = r.nm or r:CreateFontString(nil,"OVERLAY")
         r.nm:SetFont(C_2002,11,"")
         r.nm:SetPoint("LEFT",12,0)
