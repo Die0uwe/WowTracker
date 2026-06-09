@@ -901,7 +901,7 @@ end
 -- [UPG-5] iconSize 18 → 27 (1.5×)
 local function MakeCurrencyRow(parent, y, id, label, r, g, b)
     local rowH    = 24          -- slightly taller for bigger icons
-    local iconSz  = 27          -- [UPG-5] was 18
+    local iconSz  = 28          -- [T07] was 27, nu 28px
     local xOff    = PAD
 
     local iconF = parent:CreateTexture(nil, "ARTWORK")

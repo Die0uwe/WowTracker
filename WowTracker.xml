@@ -10,6 +10,12 @@
     <!-- CORE ENGINE                                            -->
     <!-- Definieert DelveTracker global + plugin API           -->
     <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- THEME SYSTEEM — ALTIJD EERSTE                          -->
+    <!-- Definieert WTTheme global: kleuren, fonts, theme API   -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Core\DT_Theme.lua"/>
+
     <Script file="Core\WowTracker.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->

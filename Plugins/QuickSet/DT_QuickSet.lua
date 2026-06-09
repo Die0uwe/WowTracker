@@ -388,16 +388,17 @@ local function StyleTile(t, d, isBountiful, isNemesis)
     t.iconRim:SetColorTexture(1, 1, 1, 0)  -- always transparent
 
     if isBountiful then
-        t:SetBackdropColor(0.10, 0.04, 0.00, 0.95)
-        t:SetBackdropBorderColor(1.0, 0.55, 0.0, 0.85)
-        t.stripe:SetColorTexture(1.0, 0.55, 0.0, 1)
-        t.badge:SetColorTexture(0.85, 0.45, 0.0, 0.92)
-        t.glowBar:SetColorTexture(1.0, 0.70, 0.0, 1)
-        t.glowLeft:SetColorTexture(1.0, 0.70, 0.0, 1)
-        t.badgeTxt:SetText("|cff0d0500BOUNTY|r")
-        t.typeTxt:SetText(CO.orange .. "Bountiful Delve")
-        t._gr, t._gg, t._gb = 1.0, 0.75, 0.10
-        t._br, t._bg, t._bb, t._ba = 1.0, 0.55, 0.0, 0.85
+        -- T06: Bountiful → SA gold-purple tint (was te oranje)
+        t:SetBackdropColor(0.08, 0.04, 0.12, 0.95)
+        t:SetBackdropBorderColor(0.65, 0.45, 0.0, 0.85)
+        t.stripe:SetColorTexture(0.80, 0.67, 0.0, 1)
+        t.badge:SetColorTexture(0.55, 0.38, 0.0, 0.92)
+        t.glowBar:SetColorTexture(0.80, 0.67, 0.0, 1)
+        t.glowLeft:SetColorTexture(0.80, 0.67, 0.0, 1)
+        t.badgeTxt:SetText("|cff100800BOUNTY|r")
+        t.typeTxt:SetText("|cffccaa00Bountiful Delve|r")
+        t._gr, t._gg, t._gb = 0.80, 0.67, 0.00
+        t._br, t._bg, t._bb, t._ba = 0.65, 0.45, 0.0, 0.85
 
     elseif isNemesis then
         t:SetBackdropColor(0.08, 0.00, 0.12, 0.95)
@@ -443,7 +444,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
         local prefix = isBountiful and "[BOUNTY] " or (isNemesis and "[NEMESIS] " or "")
         GameTooltip:AddLine(CO.white .. prefix .. d.name .. "|r")
         if isBountiful then
-            GameTooltip:AddLine(CO.orange .. "Bountiful Delve|r")
+            GameTooltip:AddLine("|cffccaa00Bountiful Delve|r")
         elseif isNemesis then
             GameTooltip:AddLine(CO.magenta .. "Nemesis Delve|r")
         else
@@ -723,11 +724,11 @@ local function BuildGrid(container)
     end
 
     local tabNem  = MakeTabBtn(CO.magenta .. "Nemesis|r",   0)
-    local tabBoun = MakeTabBtn(CO.orange  .. "Bountiful|r", tabW)
+    local tabBoun = MakeTabBtn("|cffccaa00" .. "Bountiful|r", tabW)
     local tabNorm = MakeTabBtn(CO.blue    .. "Normal|r",    tabW * 2)
 
     tabNem.glowBar:SetColorTexture(1.0, 0.30, 1.0, 1)
-    tabBoun.glowBar:SetColorTexture(1.0, 0.70, 0.0, 1)
+    tabBoun.glowBar:SetColorTexture(0.80, 0.67, 0.0, 1)  -- T06: gold ipv oranje
     tabNorm.glowBar:SetColorTexture(0.30, 0.70, 1.0, 1)
 
     -- ════════════════════════════════════════════════
@@ -773,8 +774,8 @@ local function BuildGrid(container)
         tabNem:SetBackdropColor(0.04, 0.01, 0.07, 1)
         tabNem:SetBackdropBorderColor(0.35, 0.10, 0.35, 1)
         tabNem.glowBar:SetAlpha(0)
-        tabBoun:SetBackdropColor(0.06, 0.02, 0.00, 1)
-        tabBoun:SetBackdropBorderColor(0.35, 0.20, 0.00, 1)
+        tabBoun:SetBackdropColor(0.06, 0.03, 0.09, 1)  -- T06: neutral dark
+        tabBoun:SetBackdropBorderColor(0.25, 0.18, 0.30, 1)  -- subtle border
         tabBoun.glowBar:SetAlpha(0)
         tabNorm:SetBackdropColor(0.02, 0.04, 0.10, 1)
         tabNorm:SetBackdropBorderColor(0.10, 0.20, 0.35, 1)
@@ -786,8 +787,8 @@ local function BuildGrid(container)
             tabNem:SetBackdropBorderColor(1.0, 0.20, 0.90, 1)
             tabNem.glowBar:SetAlpha(1)
         elseif n == 2 then
-            tabBoun:SetBackdropColor(0.16, 0.06, 0.00, 1)
-            tabBoun:SetBackdropBorderColor(1.0, 0.55, 0.00, 1)
+            tabBoun:SetBackdropColor(0.10, 0.06, 0.14, 1)  -- T06: purple tint
+            tabBoun:SetBackdropBorderColor(0.65, 0.45, 0.00, 1)  -- gold border
             tabBoun.glowBar:SetAlpha(1)
         else
             tabNorm:SetBackdropColor(0.03, 0.07, 0.18, 1)

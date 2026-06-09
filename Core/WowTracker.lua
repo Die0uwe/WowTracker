@@ -878,7 +878,19 @@ local function DT_SetRaceIcon(texture, raceName, gender)
         end
     end
 
-    -- Stap 4: klasse kleur achtergrond is al zichtbaar — geen vraagteken
+    -- Stap 4: legacy texture fallback voor bekende rassen
+    -- Undead/Scourge: "raceicon128-scourge-male/female" moet bestaan in 12.x
+    -- Als C_Texture.GetAtlasInfo niet beschikbaar is, probeer SetAtlas zonder validate
+    if not (C_Texture and C_Texture.GetAtlasInfo) then
+        -- Geen validatie mogelijk — probeer direct
+        local tryAtlas = "raceicon128-"..shortName.."-"..gStr
+        pcall(function() texture:SetAtlas(tryAtlas) end)
+        return true
+    end
+
+    -- Stap 5: texture path fallback (legacy ClassIcon methode)
+    local legacyTex = "Interface\\TargetingFrame\\UI-CLASSES-CIRCLES"
+    -- Geen class icon hier — laat klasse kleur achtergrond zichtbaar blijven
     return false
 end
 
