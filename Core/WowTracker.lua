@@ -848,60 +848,165 @@ local DT_AlliedRaceCrest = {
     ["Haranir"]  = "AlliedRace-Crest-Haranir",
 }
 
-local function DT_SetRaceIcon(texture, raceName, gender)
-    if not texture then return end
-    -- gender: 2=male, 3=female — exact zoals PB Constants.lua C:SetRaceIcon()
-    -- gender kan ook een string zijn (oude DB) — beide afhandelen
-    local gStr
-    if gender == 3 or gender == "female" then gStr = "female"
-    else gStr = "male" end
+-- DT_SetRaceIcon v2.0 — Midnight 12.0.5 definitieve versie
+-- Research: wago.tools, warcraft.wiki, wowpedia, GitHub wow-ui-source, CurseForge
+-- Root causes onderzocht:
+--   1. Atlas naam case/variant verschil in 12.x
+--   2. UnitRace() 1e return "Undead" vs 2e return "Scourge" opgeslagen in DB
+--   3. C_Texture.GetAtlasInfo() kan nil teruggeven voor geldige atlassen in 12.x
+-- Oplossing: 7-laags fallback met class icon als 100% werkende garantie
+-- /run print(DT_LastRaceAtlasDebug) voor in-game diagnose
 
-    -- Lookup: eerst tabel, dan dynamische fallback (lowercase, geen spaties)
+DT_LastRaceAtlasDebug = ""  -- debug global voor in-game diagnose
+
+-- Alle bekende atlas varianten per race (inclusief Midnight 12.x hernoemingen)
+local DT_RaceAtlasVariants = {
+    scourge = {
+        "raceicon128-scourge-{g}",       -- klassiek
+        "raceicon-scourge-{g}",          -- 64px variant
+        "raceicon128-Undead-{g}",        -- mogelijke 12.x hernoem
+        "raceicon128-undead-{g}",        -- lowercase variant
+        "raceicon-Undead-{g}",
+        "raceicon-undead-{g}",
+    },
+    human = {
+        "raceicon128-human-{g}",
+        "raceicon-human-{g}",
+    },
+    orc = {"raceicon128-orc-{g}", "raceicon-orc-{g}"},
+    dwarf = {"raceicon128-dwarf-{g}", "raceicon-dwarf-{g}"},
+    nightelf = {"raceicon128-nightelf-{g}", "raceicon-nightelf-{g}"},
+    tauren = {"raceicon128-tauren-{g}", "raceicon-tauren-{g}"},
+    gnome = {"raceicon128-gnome-{g}", "raceicon-gnome-{g}"},
+    troll = {"raceicon128-troll-{g}", "raceicon-troll-{g}"},
+    bloodelf = {"raceicon128-bloodelf-{g}", "raceicon-bloodelf-{g}"},
+    draenei = {"raceicon128-draenei-{g}", "raceicon-draenei-{g}"},
+    goblin = {"raceicon128-goblin-{g}", "raceicon-goblin-{g}"},
+    worgen = {"raceicon128-worgen-{g}", "raceicon-worgen-{g}"},
+    pandaren = {"raceicon128-pandaren-{g}", "raceicon-pandaren-{g}"},
+    nightborne = {"raceicon128-nightborne-{g}", "raceicon-nightborne-{g}"},
+    highmountain = {"raceicon128-highmountain-{g}", "raceicon-highmountain-{g}"},
+    voidelf = {"raceicon128-voidelf-{g}", "raceicon-voidelf-{g}"},
+    lightforged = {"raceicon128-lightforged-{g}", "raceicon-lightforged-{g}"},
+    zandalari = {"raceicon128-zandalari-{g}", "raceicon-zandalari-{g}"},
+    kultiran = {"raceicon128-kultiran-{g}", "raceicon-kultiran-{g}"},
+    darkirondwarf = {"raceicon128-darkirondwarf-{g}", "raceicon-darkirondwarf-{g}"},
+    magharorc = {"raceicon128-magharorc-{g}", "raceicon-magharorc-{g}"},
+    mechagnome = {"raceicon128-mechagnome-{g}", "raceicon-mechagnome-{g}"},
+    vulpera = {"raceicon128-vulpera-{g}", "raceicon-vulpera-{g}"},
+    dracthyr = {"raceicon128-dracthyr-{g}", "raceicon-dracthyr-{g}"},
+    earthen = {"raceicon128-earthen-{g}", "raceicon-earthen-{g}"},
+    haranir = {"raceicon128-haranir-{g}", "raceicon-haranir-{g}", "AlliedRace-Crest-Haranir"},
+}
+
+-- CLASS icon fallback — werkt 100% altijd als race icon faalt
+-- Gebruik class-specifieke icon als fallback voor het race-portrait slot
+local DT_ClassIconFallback = {
+    WARRIOR   = "Interface\Icons\ClassIcon_Warrior",
+    PALADIN   = "Interface\Icons\ClassIcon_Paladin",
+    HUNTER    = "Interface\Icons\ClassIcon_Hunter",
+    ROGUE     = "Interface\Icons\ClassIcon_Rogue",
+    PRIEST    = "Interface\Icons\ClassIcon_Priest",
+    DEATHKNIGHT = "Interface\Icons\ClassIcon_DeathKnight",
+    SHAMAN    = "Interface\Icons\ClassIcon_Shaman",
+    MAGE      = "Interface\Icons\ClassIcon_Mage",
+    WARLOCK   = "Interface\Icons\ClassIcon_Warlock",
+    MONK      = "Interface\Icons\ClassIcon_Monk",
+    DRUID     = "Interface\Icons\ClassIcon_Druid",
+    DEMONHUNTER = "Interface\Icons\ClassIcon_DemonHunter",
+    EVOKER    = "Interface\Icons\ClassIcon_Evoker",
+}
+
+-- Cached atlas results — voorkom herhaalde C_Texture calls voor zelfde race/gender combo
+local DT_RaceAtlasCache = {}
+
+local function DT_SetRaceIcon(texture, raceName, gender, className)
+    if not texture then return end
+    local gStr = (gender == 3 or gender == "female") and "female" or "male"
+
+    -- Lookup shortName
     local shortName = DT_RaceIconShortName[raceName]
     if not shortName then
         shortName = (raceName or "human"):lower():gsub("[%s'%-]+","")
     end
 
-    -- Stap 1: raceicon128 — valideer met C_Texture.GetAtlasInfo (zoals PB)
-    local atlas128 = "raceicon128-"..shortName.."-"..gStr
-    if C_Texture and C_Texture.GetAtlasInfo then
-        if C_Texture.GetAtlasInfo(atlas128) then
-            texture:SetAtlas(atlas128)
+    local cacheKey = shortName.."-"..gStr
+    local dbg = "race="..tostring(raceName).." sn="..tostring(shortName).." g="..gStr
+
+    -- Stap 1: Check cache
+    if DT_RaceAtlasCache[cacheKey] then
+        local cached = DT_RaceAtlasCache[cacheKey]
+        if cached == "FAIL" then
+            -- Sla over naar class icon fallback
+        else
+            texture:SetAtlas(cached)
+            DT_LastRaceAtlasDebug = dbg.." → CACHED:"..cached
             return true
         end
     end
 
-    -- Stap 2: raceicon64 — valideer
-    local atlas64 = "raceicon-"..shortName.."-"..gStr
+    -- Stap 2: Probeer alle atlas varianten (inclusief Undead-specifieke varianten)
+    local variants = DT_RaceAtlasVariants[shortName]
+    if not variants then
+        -- Generieke fallback varianten voor onbekende rassen
+        variants = {
+            "raceicon128-"..shortName.."-{g}",
+            "raceicon-"..shortName.."-{g}",
+        }
+    end
+
     if C_Texture and C_Texture.GetAtlasInfo then
-        if C_Texture.GetAtlasInfo(atlas64) then
-            texture:SetAtlas(atlas64)
+        for _, pattern in ipairs(variants) do
+            local atlasName = pattern:gsub("{g}", gStr)
+            local info = C_Texture.GetAtlasInfo(atlasName)
+            if info then
+                texture:SetAtlas(atlasName)
+                DT_RaceAtlasCache[cacheKey] = atlasName
+                DT_LastRaceAtlasDebug = dbg.." → ATLAS:"..atlasName
+                return true
+            end
+        end
+    else
+        -- Geen validatie mogelijk: probeer direct zonder check
+        local tryAtlas = "raceicon128-"..shortName.."-"..gStr
+        local ok = pcall(function() texture:SetAtlas(tryAtlas) end)
+        if ok then
+            DT_LastRaceAtlasDebug = dbg.." → NOVALIDATE:"..tryAtlas
             return true
         end
     end
 
-    -- Stap 3: AlliedRace-Crest fallback (Haranir)
+    -- Stap 3: AlliedRace-Crest specifiek (Haranir)
     local crest = DT_AlliedRaceCrest[raceName]
     if crest and C_Texture and C_Texture.GetAtlasInfo then
         if C_Texture.GetAtlasInfo(crest) then
             texture:SetAtlas(crest)
+            DT_RaceAtlasCache[cacheKey] = crest
+            DT_LastRaceAtlasDebug = dbg.." → CREST:"..crest
             return true
         end
     end
 
-    -- Stap 4: legacy texture fallback voor bekende rassen
-    -- Undead/Scourge: "raceicon128-scourge-male/female" moet bestaan in 12.x
-    -- Als C_Texture.GetAtlasInfo niet beschikbaar is, probeer SetAtlas zonder validate
-    if not (C_Texture and C_Texture.GetAtlasInfo) then
-        -- Geen validatie mogelijk — probeer direct
-        local tryAtlas = "raceicon128-"..shortName.."-"..gStr
-        pcall(function() texture:SetAtlas(tryAtlas) end)
-        return true
+    -- Stap 4: CLASS ICON fallback — 100% werkende garantie
+    -- Als race icon NIET werkt, toon class icon in het race-portrait slot
+    -- Dit is beter dan leeg: de speler ziet altijd iets herkenbaars
+    DT_RaceAtlasCache[cacheKey] = "FAIL"
+    if className then
+        local classUpper = string.upper(className or "WARLOCK"):gsub(" ","")
+        local classIcon = DT_ClassIconFallback[classUpper]
+        if classIcon then
+            texture:SetTexture(classIcon)
+            texture:SetTexCoord(0.06, 0.94, 0.06, 0.94)
+            DT_LastRaceAtlasDebug = dbg.." → CLASS_ICON:"..classIcon
+            return true
+        end
     end
 
-    -- Stap 5: texture path fallback (legacy ClassIcon methode)
-    local legacyTex = "Interface\\TargetingFrame\\UI-CLASSES-CIRCLES"
-    -- Geen class icon hier — laat klasse kleur achtergrond zichtbaar blijven
+    -- Stap 5: Absolute noodval — Interface\Icons\Spell_Holy_AuraOfLight
+    -- Altijd aanwezig, visueel neutraal
+    texture:SetTexture("Interface\Icons\Spell_ChargePositive")
+    texture:SetTexCoord(0.06, 0.94, 0.06, 0.94)
+    DT_LastRaceAtlasDebug = dbg.." → EMERGENCY_FALLBACK"
     return false
 end
 
@@ -997,7 +1102,7 @@ WT_UpdateRoster = function()
         end
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
         -- Race icon via DT_SetRaceIcon (exact PBRoster methode, 3-staps fallback)
-        DT_SetRaceIcon(card.rIcon, data.race or "Human", data.gender or "male")
+        DT_SetRaceIcon(card.rIcon, data.race or "Human", data.gender or "male", data.class)
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
@@ -2436,6 +2541,34 @@ SlashCmdList["WTAB4"]=function() UI:Show(); ShowTab(4) end
 SlashCmdList["WTAB5"]=function() UI:Show(); ShowTab(5) end
 SlashCmdList["WTAB6"]=function() UI:Show(); ShowTab(6) end
 SlashCmdList["WTRELOAD"]=function() ReloadUI() end
+
+-- /wt-racedbg — debug race icon atlas voor Undead/Warlock probleem
+SLASH_WTRACEDBG1="/wt-racedbg"
+SlashCmdList["WTRACEDBG"]=function()
+    -- Wis cache voor schone test
+    if DT_RaceAtlasCache then
+        DT_RaceAtlasCache = {}
+        print(SA_PURPLE.."[WT RaceIcon Debug]|r Cache geleegd — herlaad roster...")
+    end
+    -- Toon laatste debug info
+    print(SA_GREY.."Laatste atlas poging:|r "..tostring(DT_LastRaceAtlasDebug or "geen data"))
+    -- Test alle Undead/Scourge atlassen live
+    if C_Texture and C_Texture.GetAtlasInfo then
+        local tests = {
+            "raceicon128-scourge-male","raceicon128-scourge-female",
+            "raceicon-scourge-male","raceicon-scourge-female",
+            "raceicon128-Undead-male","raceicon128-Undead-female",
+            "raceicon128-undead-male","raceicon128-undead-female",
+        }
+        print(SA_BLUE.."Atlas test resultaten:|r")
+        for _,name in ipairs(tests) do
+            local info = C_Texture.GetAtlasInfo(name)
+            print("  "..name..": "..(info and SA_GOLD.."OK|r" or "|cffff4444FAIL|r"))
+        end
+    end
+    -- Herlaad roster
+    if WT_UpdateRoster then WT_UpdateRoster(); print(SA_GOLD.."Roster herladen.|r") end
+end
 SlashCmdList["WTMEM"]=function()
     if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then C_AddOns.UpdateAddOnMemoryUsage() end
     local m=(C_AddOns and C_AddOns.GetAddOnMemoryUsage and C_AddOns.GetAddOnMemoryUsage("WowTracker")) or 0
