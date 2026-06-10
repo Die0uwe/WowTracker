@@ -185,6 +185,8 @@ end
             s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
             local bg=s:CreateTexture(nil,"BACKGROUND"); bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
             s.Text = s:CreateFontString(nil, "OVERLAY")
+s.Text:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+s.Text:SetTextColor(1,1,1,1)
             s.Text:SetPoint("BOTTOM", s, "TOP", 0, 2); s:SetValue(DelveTrackerDB[dbKey] or 1)
             s:SetScript("OnValueChanged", function(self, v) DelveTrackerDB[dbKey] = v; self.Text:SetText(label .. " (" .. string.format("%.1f", v) .. ")") end)
             s.Text:SetText(label .. " (" .. string.format("%.1f", s:GetValue()) .. ")")

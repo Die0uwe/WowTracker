@@ -268,7 +268,10 @@ end
             bookBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
             do local _b=TH().bg.card; bookBtn:SetBackdropColor(_b.r,_b.g,_b.b,0.95) end
             bookBtn:SetBackdropBorderColor(0.45,0.12,0.70,0.9)
-            bookBtn.t = bookBtn:CreateFontString(nil, "OVERLAY"); bookBtn.t:SetPoint("CENTER"); bookBtn.t:SetText("|cffa335eeB|r")
+            bookBtn.t = bookBtn:CreateFontString(nil, "OVERLAY")
+bookBtn.t:SetFont("Fonts\\2002.ttf",10,"")
+bookBtn.t:SetTextColor(0.85,0.85,0.85,1)
+bookBtn.t:SetPoint("CENTER"); bookBtn.t:SetText("|cffa335eeB|r")
             bookBtn:SetScript("OnClick", function() if Registry:IsShown() then Registry:Hide() else Registry:Show() end end)
         end
     end)

@@ -553,6 +553,8 @@ scrollFrame:SetScrollChild(content)
 
 -- Status bar at bottom of frame (auto-clears after 5 s)
 local statusBar = EB:CreateFontString(nil, "OVERLAY")
+statusBar:SetFont("Fonts\\2002.ttf",10,"")
+statusBar:SetTextColor(0.85,0.85,0.85,1)
 statusBar:SetPoint("BOTTOM", 0, 47)
 statusBar:SetText("")
 
@@ -882,6 +884,8 @@ local scDown = MakeDarkButton(EB, 26, 20, "  -  ",
 scDown:SetPoint("BOTTOMLEFT", 12, 12)
 
 EB.scaleLabel = EB:CreateFontString(nil, "OVERLAY")
+EB.scaleLabel:SetFont("Fonts\\2002.ttf",10,"")
+EB.scaleLabel:SetTextColor(0.85,0.85,0.85,1)
 EB.scaleLabel:SetPoint("BOTTOMLEFT", 42, 15)
 EB.scaleLabel:SetWidth(50); EB.scaleLabel:SetJustifyH("CENTER")
 EB.scaleLabel:SetText("|cff8866aa1.00x|r")
@@ -895,6 +899,8 @@ local scReset = MakeDarkButton(EB, 48, 20, "Reset",
 scReset:SetPoint("BOTTOMLEFT", 126, 12)
 
 local verLabel = EB:CreateFontString(nil, "OVERLAY")
+verLabel:SetFont("Fonts\\2002.ttf",9,"")
+verLabel:SetTextColor(0.85,0.85,0.85,1)
 verLabel:SetPoint("BOTTOMLEFT", 185, 15)
 verLabel:SetText("|cff28183aExchangeBot v19.0|r")
 

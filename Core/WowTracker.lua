@@ -2642,7 +2642,7 @@ MakePluginBtn("[prey] Skin","|cff44cc66", 4+BTN_W+GAP, function()
     elseif SlashCmdList["SNR"] then SlashCmdList["SNR"]("") end
 end)
 MakePluginBtn("[>] Prey+","|cffff6644", 4+(BTN_W+GAP)*2, function()
-    if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
+    if SlashCmdList["DTPREY"] and DelveTrackerDB and DelveTrackerDB.PluginStates and DelveTrackerDB.PluginStates["PreyTracker"] ~= false then SlashCmdList["DTPREY"]("") end
 end)
 
 -- Rechts: Debug naast de +/- schaal knoppen
@@ -2907,7 +2907,7 @@ end
 -- Klik links: toggle UI . Rechts: volledig context menu . R-drag: verplaats
 -- ============================================================================
 -- -- Murloc Button - exact origineel zoals het was -----------------------
-local MBtn = CreateFrame("Button","DT_MurlocBtn",UIParent)
+local MBtn = CreateFrame("Button","DT_MurlocBtn",UIParent,"BackdropTemplate")
 MBtn:SetSize(55,55)
 MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-120,-240)  -- rechtsboven, naast minimap
 MBtn:SetMovable(true)
@@ -2958,7 +2958,7 @@ local function DT_OpenMurlocMenu(owner)
 
         root:CreateTitle(SA_BLUE.."Trackers|r")
         root:CreateButton("|cffffffff[>]  Prey Tracker|r", function()
-            if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
+            if SlashCmdList["DTPREY"] and DelveTrackerDB and DelveTrackerDB.PluginStates and DelveTrackerDB.PluginStates["PreyTracker"] ~= false then SlashCmdList["DTPREY"]("") end
         end)
         root:CreateButton("|cffffffff[mail]  Bounty|r",       function() UI:Show(); ShowTab(3) end)
         root:CreateButton("|cffffffff[log]  Roster|r",       function() UI:Show(); ShowTab(4) end)

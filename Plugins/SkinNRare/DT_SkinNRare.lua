@@ -357,6 +357,8 @@ subTitle:SetText("Rare Beast Waypoints  .  Midnight 12.0.5")
 
 -- Version tag - smallest line, same column
 local versionTag = frame:CreateFontString(nil, "OVERLAY")
+versionTag:SetFont("Fonts\\2002.ttf",9,"")
+versionTag:SetTextColor(0.7,0.7,0.7,1)
 versionTag:SetPoint("TOPLEFT", subTitle, "BOTTOMLEFT", 0, -3)
 versionTag:SetTextColor(0.22, 0.14, 0.36)
 versionTag:SetText("Build 2025-05-16 v7  .  Dieouwe")
@@ -790,11 +792,15 @@ popupGlow:SetAlpha(0.55)
 
 -- Labels
 local popupIdleLabel  = popupFrame:CreateFontString(nil,"OVERLAY")
+popupIdleLabel:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+popupIdleLabel:SetTextColor(0.85,0.85,0.85,1)
 popupIdleLabel:SetPoint("TOP",popupLureBtn,"BOTTOM",0,-6)
 popupIdleLabel:SetTextColor(0.55,0.38,0.70)
 popupIdleLabel:SetText("CLICK TO PLACE LURE")
 
 local popupHintLine = popupFrame:CreateFontString(nil,"OVERLAY")
+popupHintLine:SetFont("Fonts\\2002.ttf",10,"")
+popupHintLine:SetTextColor(0.7,0.7,0.7,1)
 popupHintLine:SetPoint("TOP",popupIdleLabel,"BOTTOM",0,-4)
 popupHintLine:SetTextColor(0.38,0.25,0.58)
 popupHintLine:SetText("")

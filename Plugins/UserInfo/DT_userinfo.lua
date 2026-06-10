@@ -1307,6 +1307,8 @@ do
     sp:SetBackdropColor(0.02, 0.04, 0.14, 1)
     sp:SetBackdropBorderColor(0.10, 0.20, 0.42, 0.7)
     _G81.spFS = sp:CreateFontString(nil, "OVERLAY")
+_G81.spFS:SetFont("Fonts\\2002.ttf",10,"")
+_G81.spFS:SetTextColor(0.85,0.85,0.85,1)
     _G81.spFS:SetPoint("LEFT", sp, "LEFT", 10, 0)
     _G81.spFS:SetWidth(220)
     _G81.spFS:SetText("|cff4a6a9a(Loading spec...)|r")

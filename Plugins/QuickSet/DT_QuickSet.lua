@@ -691,6 +691,8 @@ local function BuildGrid(container)
     hdr.bar:SetMinMaxValues(0, 1); hdr.bar:SetValue(0)
 
     hdr.xpTxt = hdr.bar:CreateFontString(nil, "OVERLAY")
+hdr.xpTxt:SetFont("Fonts\\2002.ttf",10,"")
+hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     hdr.xpTxt:SetPoint("CENTER", hdr.bar, "CENTER", 0, 0)
     hdr.xpTxt:SetText("")
 
