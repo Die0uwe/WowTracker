@@ -1,5 +1,5 @@
 -- =========================================================================
--- DT_ClothWidget v14.5.1 — WARBAND EDITION
+-- DT_ClothWidget v14.5.1 - WARBAND EDITION
 -- World of Warcraft: Midnight 12.0.5 / build 67314
 -- =========================================================================
 -- .toc requirements:
@@ -7,18 +7,18 @@
 --   ## SavedVariablesPerCharacter: ClothCharDB
 --
 -- Commands: /cbud  or  /cloth
---   /cbud           — toggle main widget
---   /cbud archive   — toggle archive window
---   /cbud reset     — reset session (with confirmation)
---   /cbud scan      — manually re-scan profession cooldowns
---   /cbud clear     — wipe all warband data (with confirmation)
---   /cbud help      — show command reference
+--   /cbud           - toggle main widget
+--   /cbud archive   - toggle archive window
+--   /cbud reset     - reset session (with confirmation)
+--   /cbud scan      - manually re-scan profession cooldowns
+--   /cbud clear     - wipe all warband data (with confirmation)
+--   /cbud help      - show command reference
 -- =========================================================================
 
 local ADDON_NAME = "DelveTracker"
 local VERSION    = "14.5.1"  -- Removed Bright Linen Bolt (no cooldown)
 
--- WTTheme: centraal kleurensysteem (Fase 3) — fallback als WTTheme nog niet geladen
+-- WTTheme: centraal kleurensysteem (Fase 3) - fallback als WTTheme nog niet geladen
 local function TH()
     return WTTheme or {
         bg={main={r=0.03,g=0.01,b=0.07,a=0.97},card={r=0.05,g=0.02,b=0.10,a=0.95}},
@@ -36,14 +36,14 @@ local CLOTH_DATA = {
       tiers={[237018]=2,[237017]=3}, extra={} },
 }
 
--- Central item→cloth lookup (built once, no duplicate matches possible)
+-- Central item->cloth lookup (built once, no duplicate matches possible)
 local ITEM_LOOKUP = {}
 -- BUG FIX: process tiers BEFORE registering f.id as tier=1.
 -- Original code registered f.id as tier=1 first, then the
 -- "first entry wins" guard blocked the correct tier=2 (Silver)
--- overwrite → Silver items were counted in total but never in t2.
+-- overwrite -> Silver items were counted in total but never in t2.
 for _,f in ipairs(CLOTH_DATA) do
-    -- 1. Explicit tiers always take priority (no guard — overwrite allowed)
+    -- 1. Explicit tiers always take priority (no guard - overwrite allowed)
     if f.tiers then
         for itemID,tier in pairs(f.tiers) do
             ITEM_LOOKUP[itemID] = { cloth=f.name, tier=tier }
@@ -64,45 +64,45 @@ for _,f in ipairs(CLOTH_DATA) do
 end
 
 local TAILOR_COOLDOWNS = {
-    -- Midnight 12.0.5 recipe IDs — verified in-game build 67314
-    -- Bright Linen Bolt has NO cooldown — not tracked
+    -- Midnight 12.0.5 recipe IDs - verified in-game build 67314
+    -- Bright Linen Bolt has NO cooldown - not tracked
     { name="Sunfire Silk Bolt",  recipeID=1228060, cloth="Sunfire Silk",
       color={1.0,0.50,0.20},  duration=86400 },
     { name="Arcanoweave Bolt",   recipeID=1227926, cloth="Arcanoweave",
       color={0.65,0.40,1.0},  duration=86400 },
 }
 
--- ── Drop source data (Midnight 12.0.5) ───────────────────────────────────
--- Midnight zones: Eversong Woods · Zul'Aman · Harandar · Voidstorm
+-- -- Drop source data (Midnight 12.0.5) -----------------------------------
+-- Midnight zones: Eversong Woods . Zul'Aman . Harandar . Voidstorm
 -- ALL three cloth types drop from humanoid mobs across ALL zones.
 -- Sunfire Silk and Arcanoweave require 20 KP in Nimble Needlework first.
 -- Sorted highest drop rate first. Source: Method.gg farming guide.
--- ─────────────────────────────────────────────────────────────────────────
+-- -------------------------------------------------------------------------
 local CLOTH_SOURCES = {
     ["Bright Linen"] = {
         -- Best solo: any Delve (Grudge Pit = fastest reset in Harandar)
-        -- Best group: Zul'Aman Broken Throne — ~200-300 per 30 min
-        { type="Delve",      zone="Harandar",           rate="★★★", detail="The Grudge Pit — fastest reset, smallest delve" },
-        { type="Open World", zone="Zul'Aman",           rate="★★★", detail="Broken Throne SW — Twilight Blade Cultists" },
-        { type="Delve",      zone="Voidstorm",          rate="★★",  detail="Shadowguard Point — larger pulls" },
-        { type="Open World", zone="Eversong Woods",     rate="★★",  detail="Humanoid circuit — relaxed farm" },
-        { type="Dungeon",    zone="Any Midnight dungeon",rate="★",   detail="All humanoid trash packs" },
+        -- Best group: Zul'Aman Broken Throne - ~200-300 per 30 min
+        { type="Delve",      zone="Harandar",           rate="***", detail="The Grudge Pit - fastest reset, smallest delve" },
+        { type="Open World", zone="Zul'Aman",           rate="***", detail="Broken Throne SW - Twilight Blade Cultists" },
+        { type="Delve",      zone="Voidstorm",          rate="**",  detail="Shadowguard Point - larger pulls" },
+        { type="Open World", zone="Eversong Woods",     rate="**",  detail="Humanoid circuit - relaxed farm" },
+        { type="Dungeon",    zone="Any Midnight dungeon",rate="*",   detail="All humanoid trash packs" },
     },
     ["Sunfire Silk"] = {
         -- Requires: 20 KP in Nimble Needlework (Tailoring specialisation)
-        { type="Delve",      zone="Harandar",           rate="★★★", detail="The Grudge Pit — same circuit as Bright Linen" },
-        { type="Open World", zone="Zul'Aman",           rate="★★★", detail="Broken Throne SW — same group farm spot" },
-        { type="Delve",      zone="Voidstorm",          rate="★★",  detail="Shadowguard Point — mixed cloth drop" },
-        { type="Open World", zone="Harandar",           rate="★★",  detail="Humanoid clusters — Harandar jungle area" },
-        { type="Dungeon",    zone="Den of Nalorakk",    rate="★",   detail="Zul'Aman dungeon — humanoid trash" },
+        { type="Delve",      zone="Harandar",           rate="***", detail="The Grudge Pit - same circuit as Bright Linen" },
+        { type="Open World", zone="Zul'Aman",           rate="***", detail="Broken Throne SW - same group farm spot" },
+        { type="Delve",      zone="Voidstorm",          rate="**",  detail="Shadowguard Point - mixed cloth drop" },
+        { type="Open World", zone="Harandar",           rate="**",  detail="Humanoid clusters - Harandar jungle area" },
+        { type="Dungeon",    zone="Den of Nalorakk",    rate="*",   detail="Zul'Aman dungeon - humanoid trash" },
     },
     ["Arcanoweave"] = {
         -- Requires: 20 KP in Nimble Needlework (Tailoring specialisation)
-        { type="Delve",      zone="Harandar",           rate="★★★", detail="The Grudge Pit — same circuit, all cloth" },
-        { type="Open World", zone="Zul'Aman",           rate="★★★", detail="Broken Throne SW — same group farm spot" },
-        { type="Open World", zone="Voidstorm",          rate="★★",  detail="Void-touched humanoids near Howling Ridge" },
-        { type="Delve",      zone="Eversong Woods",     rate="★★",  detail="Any Eversong delve — humanoid enemies" },
-        { type="Dungeon",    zone="Maisara Caverns",    rate="★",   detail="Zul'Aman dungeon — M+ Season 1 rotation" },
+        { type="Delve",      zone="Harandar",           rate="***", detail="The Grudge Pit - same circuit, all cloth" },
+        { type="Open World", zone="Zul'Aman",           rate="***", detail="Broken Throne SW - same group farm spot" },
+        { type="Open World", zone="Voidstorm",          rate="**",  detail="Void-touched humanoids near Howling Ridge" },
+        { type="Delve",      zone="Eversong Woods",     rate="**",  detail="Any Eversong delve - humanoid enemies" },
+        { type="Dungeon",    zone="Maisara Caverns",    rate="*",   detail="Zul'Aman dungeon - M+ Season 1 rotation" },
     },
 }
 
@@ -125,7 +125,7 @@ local T_BAR_X    = 260    -- pushed right to make room for 33px icon + wider lab
 local T_BOX_PAD  = 10
 local T_BOX_GAP  = 12
 
--- ── Helpers ──────────────────────────────────────────────────────────────
+-- -- Helpers --------------------------------------------------------------
 local function GetSafeIcon(id)
     local _,_,_,_,icon = GetItemInfoInstant(id); return icon or 134400
 end
@@ -147,7 +147,7 @@ local function GetCharKey()
 end
 local function GetShortName(k) return k and k:match("^([^%-]+)") or k or "?" end
 
--- ── Session ───────────────────────────────────────────────────────────────
+-- -- Session ---------------------------------------------------------------
 local session = { startTime=0, currentZone="", counts={} }
 local function ResetSession()
     session.startTime   = GetTime()
@@ -155,7 +155,7 @@ local function ResetSession()
     for _,f in ipairs(CLOTH_DATA) do session.counts[f.name]={total=0,t2=0,t3=0} end
 end
 
--- ── Database ──────────────────────────────────────────────────────────────
+-- -- Database --------------------------------------------------------------
 local function InitDB()
     ClothWarbandDB        = ClothWarbandDB or {}
     ClothWarbandDB.runs   = ClothWarbandDB.runs   or {}
@@ -180,7 +180,7 @@ local function InitDB()
     ClothWarbandDB.chars[key].cooldowns    = ClothWarbandDB.chars[key].cooldowns    or {}
 end
 
--- ── Save run ──────────────────────────────────────────────────────────────
+-- -- Save run --------------------------------------------------------------
 local function SaveRun()
     if not ClothWarbandDB then return end
     local tot=0
@@ -195,11 +195,11 @@ local function SaveRun()
     end
     table.insert(ClothWarbandDB.runs,1,entry)
     while #ClothWarbandDB.runs>200 do table.remove(ClothWarbandDB.runs) end
-    print(string.format("|cffb58cffClothWidget:|r Saved — |cffffff00%d|r cloth from |cffcc99ff%s|r (%s)",
+    print(string.format("|cffb58cffClothWidget:|r Saved - |cffffff00%d|r cloth from |cffcc99ff%s|r (%s)",
         tot,session.currentZone,FormatTime(dur)))
 end
 
--- ── UI helpers ────────────────────────────────────────────────────────────
+-- -- UI helpers ------------------------------------------------------------
 local function ApplyWindowStyle(f,r,g,b)
     f:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
         edgeFile="Interface\\ChatFrame\\ChatFrameBackground",edgeSize=2})
@@ -254,7 +254,7 @@ local function MakeCloseBtn(parent,onClose)
     return btn
 end
 
--- ── Progress bar ──────────────────────────────────────────────────────────
+-- -- Progress bar ----------------------------------------------------------
 local function CreateProgressBar(parent,w,h)
     local con=CreateFrame("Frame",nil,parent,"BackdropTemplate")
     con:SetSize(w,h)
@@ -287,16 +287,16 @@ local function CreateProgressBar(parent,w,h)
     end
     function con:SetNotLearned(name)
         self.fill:SetWidth(self._maxW); self.fill:SetColorTexture(0.14,0.14,0.18,0.55)
-        self.label:SetText("|cff666677"..(name or "").."  — Not Learned|r")
+        self.label:SetText("|cff666677"..(name or "").."  - Not Learned|r")
     end
     function con:SetUnscanned(name)
         self.fill:SetWidth(self._maxW); self.fill:SetColorTexture(0.10,0.10,0.14,0.35)
-        self.label:SetText("|cff555566"..(name or "").."  — Open Professions to scan|r")
+        self.label:SetText("|cff555566"..(name or "").."  - Open Professions to scan|r")
     end
     return con
 end
 
--- ── Main widget ───────────────────────────────────────────────────────────
+-- -- Main widget -----------------------------------------------------------
 local F=CreateFrame("Frame","ClothWidgetFrame",UIParent,"BackdropTemplate")
 F:SetSize(458,195); F:SetPoint("CENTER",0,-150); F:Hide()
 F:SetMovable(true); F:EnableMouse(true); F:RegisterForDrag("LeftButton")
@@ -327,14 +327,14 @@ F.compactBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
     edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
 F.compactBtn:SetBackdropColor(0.12,0.05,0.22,1)
 F.compactBtn:SetBackdropBorderColor(0.45,0.22,0.75,0.8)
-F.compactBtn:SetText("◎")
+F.compactBtn:SetText("o")
 local cfs=F.compactBtn:GetFontString()
 if cfs then cfs:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); cfs:SetTextColor(0.70,0.55,1,1) end
 F.compactBtn:SetScript("OnEnter",function(s)
     s:SetBackdropColor(0.22,0.08,0.38,1); s:SetBackdropBorderColor(0.80,0.50,1.0,1)
     GameTooltip:SetOwner(s,"ANCHOR_BOTTOM"); GameTooltip:ClearLines()
     GameTooltip:AddLine("|cffcc99ffCompact mode|r")
-    GameTooltip:AddLine("|cff888888Hides chrome — shows only cloth tiles|r",1,1,1)
+    GameTooltip:AddLine("|cff888888Hides chrome - shows only cloth tiles|r",1,1,1)
     GameTooltip:Show()
 end)
 F.compactBtn:SetScript("OnLeave",function(s)
@@ -434,7 +434,7 @@ local botLine=F:CreateTexture(nil,"ARTWORK")
 botLine:SetPoint("BOTTOMLEFT",2,22); botLine:SetPoint("BOTTOMRIGHT",-2,22)
 botLine:SetHeight(1); botLine:SetColorTexture(0.38,0.18,0.65,0.45)
 
--- ── Scale helper ─────────────────────────────────────────────────────────
+-- -- Scale helper ---------------------------------------------------------
 local Archive
 
 local function ApplyScale(delta)
@@ -453,7 +453,7 @@ local function ApplyScale(delta)
 end
 
 -- Scale buttons: small [-] and [+] in bottom-left corner
--- Scale button factory — all anchored via fixed BOTTOMLEFT offsets from F
+-- Scale button factory - all anchored via fixed BOTTOMLEFT offsets from F
 local function MakeScaleBtn(text, xOffset)
     local b = CreateFrame("Button",nil,F,"BackdropTemplate")
     b:SetSize(20,18)
@@ -472,7 +472,7 @@ local function MakeScaleBtn(text, xOffset)
         GameTooltip:SetOwner(s,"ANCHOR_TOP"); GameTooltip:ClearLines()
         local sc = ClothWarbandDB and ClothWarbandDB.scale or 1.0
         GameTooltip:AddLine("|cffcc99ffScale: "..string.format("%.1f",sc).."x|r")
-        GameTooltip:AddLine("|cff888888Click - or + to resize  (0.5 – 2.0)|r",1,1,1)
+        GameTooltip:AddLine("|cff888888Click - or + to resize  (0.5 - 2.0)|r",1,1,1)
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave",function(s)
@@ -530,7 +530,7 @@ end
 F.saveBtn:SetScript("OnClick",function() SaveRun(); ResetSession(); F:UpdateUI() end)
 F.resetBtn:SetScript("OnClick",function() StaticPopup_Show("CLOTHWIDGET_CONFIRM_RESET") end)
 
--- ── Archive window ────────────────────────────────────────────────────────
+-- -- Archive window --------------------------------------------------------
 -- Forward-declare scanning functions so the Scan button closure
 -- (defined inside the Archive header) can reference them.
 -- The actual implementations follow later in the file.
@@ -547,7 +547,7 @@ MakeHeaderStripe(Archive,40)
 MakeTitle(Archive,"|cffaa55ffCLOTH|r |cffddbbffARCHIVE|r  |cff554477| Warband Statistics|r",14,-13,13)
 MakeCloseBtn(Archive,function() Archive:Hide() end)
 
--- ── Scale buttons on Archive (mirror of main widget) ─────────────────────
+-- -- Scale buttons on Archive (mirror of main widget) ---------------------
 local function MakeAScaleBtn(text, xOff)
     local b=CreateFrame("Button",nil,Archive,"BackdropTemplate")
     b:SetSize(20,18); b:SetPoint("TOPRIGHT",Archive,"TOPRIGHT",xOff,-8)
@@ -563,7 +563,7 @@ local function MakeAScaleBtn(text, xOff)
         GameTooltip:SetOwner(s,"ANCHOR_BOTTOM"); GameTooltip:ClearLines()
         local sc=ClothWarbandDB and ClothWarbandDB.scale or 1.0
         GameTooltip:AddLine("|cffcc99ffScale: "..string.format("%.1f",sc).."x|r")
-        GameTooltip:AddLine("|cff888888Range 0.5 – 2.0  (applies to both windows)|r",1,1,1)
+        GameTooltip:AddLine("|cff888888Range 0.5 - 2.0  (applies to both windows)|r",1,1,1)
         GameTooltip:Show()
     end)
     b:SetScript("OnLeave",function(s)
@@ -572,7 +572,7 @@ local function MakeAScaleBtn(text, xOff)
     end)
     return b
 end
--- Layout (right→left, inside the X button at -6):  [X](-6) [-48][lbl][-70][+](-92)
+-- Layout (right->left, inside the X button at -6):  [X](-6) [-48][lbl][-70][+](-92)
 Archive.aScalePlus  = MakeAScaleBtn("+", -46)
 Archive.aScaleMinus = MakeAScaleBtn("-", -92)
 Archive.aScaleLbl   = Archive:CreateFontString(nil,"OVERLAY")
@@ -637,7 +637,7 @@ Archive.tailorScanBtn:SetPoint("RIGHT",-154,0)
 StyleButton(Archive.tailorScanBtn,"Scan Cooldowns")
 Archive.tailorScanBtn:SetScript("OnClick",function()
     if not (C_TradeSkillUI and C_TradeSkillUI.GetAllRecipeIDs) then
-        print("|cffb58cffClothWidget:|r Tailoring not open — open your profession window first, then scan.")
+        print("|cffb58cffClothWidget:|r Tailoring not open - open your profession window first, then scan.")
         return
     end
     ScanTailoringProfession(); ScanCooldowns()
@@ -725,14 +725,14 @@ local function SetActiveTab(tab)
     end
 end
 
--- ── History tab ───────────────────────────────────────────────────────────
+-- -- History tab -----------------------------------------------------------
 local function BuildHistoryTab()
     currentTab="runs"; ClearContent()
     Archive.tailorOuter:Hide(); Archive.scroll:Show()
     if not ClothWarbandDB or not ClothWarbandDB.runs or #ClothWarbandDB.runs==0 then
         local e=Archive.content:CreateFontString(nil,"OVERLAY")
         e:SetFont("Fonts\\2002.ttf",11,"OUTLINE"); e:SetPoint("CENTER")
-        e:SetText("|cff665577No runs saved yet — go farm!|r")
+        e:SetText("|cff665577No runs saved yet - go farm!|r")
         Archive.content:SetHeight(40); return
     end
     local ch=Archive.content:CreateFontString(nil,"OVERLAY")
@@ -810,7 +810,7 @@ local function BuildHistoryTab()
     Archive.content:SetHeight(math.abs(y)+10)
 end
 
--- ── Totals tab ────────────────────────────────────────────────────────────
+-- -- Totals tab ------------------------------------------------------------
 local function BuildTotalsTab()
     currentTab="stats"; ClearContent()
     Archive.tailorOuter:Hide(); Archive.scroll:Show()
@@ -996,7 +996,7 @@ local function BuildTotalsTab()
     Archive.content:SetHeight(math.abs(y)+20)
 end
 
--- ── Tailors tab ───────────────────────────────────────────────────────────
+-- -- Tailors tab -----------------------------------------------------------
 local activeCooldownBars={}
 
 local function BuildTailorTab()
@@ -1064,7 +1064,7 @@ local function BuildTailorTab()
                 ico:SetSize(33,33)
                 ico:SetPoint("TOPLEFT", box, "TOPLEFT", icoX, icoY)
                 ico:SetTexture(cdIcon); ico:SetTexCoord(0.08,0.92,0.08,0.92)
-                -- Label anchored to RIGHT of icon — always on same line
+                -- Label anchored to RIGHT of icon - always on same line
                 local lbl=box:CreateFontString(nil,"OVERLAY"); lbl:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
                 lbl:SetPoint("LEFT", ico, "RIGHT", 8, 0)
                 lbl:SetTextColor(col[1],col[2],col[3],1.0)
@@ -1137,7 +1137,7 @@ F.archiveBtn:SetScript("OnClick",function()
     else SetActiveTab(Archive.tabRuns); BuildHistoryTab(); Archive:Show() end
 end)
 
--- ── Profession scanning ───────────────────────────────────────────────────
+-- -- Profession scanning ---------------------------------------------------
 ScanTailoringProfession = function()
     local has=false; local p1,p2=GetProfessions()
     for _,pi in ipairs({p1,p2}) do
@@ -1157,7 +1157,7 @@ ScanCooldowns = function()
     if not (C_TradeSkillUI and C_TradeSkillUI.GetAllRecipeIDs) then return end
     local recipes=C_TradeSkillUI.GetAllRecipeIDs(); if not recipes then return end
     local key=GetCharKey()
-    if not ClothCharDB then return end  -- BUG-004B: nil guard vóór indexeren
+    if not ClothCharDB then return end  -- BUG-004B: nil guard voor indexeren
     ClothCharDB.knownRecipes=ClothCharDB.knownRecipes or {}
     local wbc=ClothWarbandDB and ClothWarbandDB.chars[key]
     if wbc then wbc.knownRecipes=wbc.knownRecipes or {}; wbc.cooldowns=wbc.cooldowns or {} end
@@ -1181,7 +1181,7 @@ ScanCooldowns = function()
     end
 end
 
--- ── StaticPopup pre-registration (load time, not per-click) ─────────────
+-- -- StaticPopup pre-registration (load time, not per-click) -------------
 StaticPopupDialogs["CLOTHWIDGET_CONFIRM_RESET"] = {
     text    = "Reset current session without saving?",
     button1 = "Reset", button2 = "Cancel",
@@ -1200,7 +1200,7 @@ StaticPopupDialogs["CLOTHWIDGET_CLEAR_ALL"] = {
     timeout=0, whileDead=true, hideOnEscape=true,
 }
 
--- ── Events ────────────────────────────────────────────────────────────────
+-- -- Events ----------------------------------------------------------------
 local evtFrame=CreateFrame("Frame","ClothEvtFrame")
 evtFrame:RegisterEvent("ADDON_LOADED"); evtFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 evtFrame:RegisterEvent("CHAT_MSG_LOOT"); evtFrame:RegisterEvent("TRADE_SKILL_SHOW")
@@ -1255,7 +1255,7 @@ C_Timer.NewTicker(1,function()
     if F:IsShown() then F:UpdateUI() end; UpdateActiveCooldownBars()
 end)
 
--- ── Slash commands ────────────────────────────────────────────────────────
+-- -- Slash commands --------------------------------------------------------
 SLASH_CBUD1="/cbud"; SLASH_CBUD2="/cloth"
 SlashCmdList["CBUD"]=function(msg)
     local cmd=(msg or ""):lower():match("^%s*(.-)%s*$")
@@ -1272,21 +1272,21 @@ SlashCmdList["CBUD"]=function(msg)
         StaticPopup_Show("CLOTHWIDGET_CLEAR_ALL")
     elseif cmd=="help" then
         print("|cffb58cffClothWidget|r v"..VERSION.." commands:")
-        print("  |cffddbbff/cbud|r           — toggle main widget")
-        print("  |cffddbbff/cbud archive|r   — toggle archive window")
-        print("  |cffddbbff/cbud reset|r     — reset session (confirmation)")
-        print("  |cffddbbff/cbud scan|r      — manually scan profession cooldowns")
-        print("  |cffddbbff/cbud clear|r     — wipe all data (confirmation)")
-        print("  |cffddbbff/cbud help|r      — this help list")
+        print("  |cffddbbff/cbud|r           - toggle main widget")
+        print("  |cffddbbff/cbud archive|r   - toggle archive window")
+        print("  |cffddbbff/cbud reset|r     - reset session (confirmation)")
+        print("  |cffddbbff/cbud scan|r      - manually scan profession cooldowns")
+        print("  |cffddbbff/cbud clear|r     - wipe all data (confirmation)")
+        print("  |cffddbbff/cbud help|r      - this help list")
     else
         if F:IsShown() then F:Hide() else F:Show() end
     end
 end
 
-print(string.format("|cffb58cffClothWidget v%s|r loaded — type |cffddbbff/cbud|r to open",VERSION))
+print(string.format("|cffb58cffClothWidget v%s|r loaded - type |cffddbbff/cbud|r to open",VERSION))
 
 -- ============================================================================
--- DELVETRACKER PLUGIN REGISTRATIE — ClothCounter
+-- DELVETRACKER PLUGIN REGISTRATIE - ClothCounter
 -- ============================================================================
 local _dtInt_Cloth = CreateFrame("Frame")
 _dtInt_Cloth:RegisterEvent("PLAYER_LOGIN")
@@ -1294,6 +1294,6 @@ _dtInt_Cloth:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("ClothCounter", function() end)
-    -- Plugin registratie alleen — niet automatisch tonen bij login
+    -- Plugin registratie alleen - niet automatisch tonen bij login
     -- Gebruiker opent via slash command of murloc menu
 end)

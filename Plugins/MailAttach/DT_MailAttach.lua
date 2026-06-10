@@ -2,14 +2,14 @@
 -- WowTracker Plugin: Mail Attach v1.0
 -- Retail 12.0.5 / Build 67314 (Midnight)
 -- Integreert Quick Attach panel bij het openen van de mailbox
--- Categorieen: Cloth · Leather · Metal · Herb · Enchanting · Inscription
---              Jewelcrafting · Cooking · Elemental · Optional · Parts · Other
+-- Categorieen: Cloth . Leather . Metal . Herb . Enchanting . Inscription
+--              Jewelcrafting . Cooking . Elemental . Optional . Parts . Other
 -- ============================================================================
 local addonName, addonTable = ...
 
 if not DelveTracker then return end
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -28,7 +28,7 @@ local SA_GOLD   = "|cffccaa00"
 local SA_PURPLE = "|cffa335ee"
 local SA_GREY   = "|cff887799"
 
--- ── ITEM CATEGORIEEN ─────────────────────────────────────────────────────
+-- -- ITEM CATEGORIEEN -----------------------------------------------------
 local CATEGORIES = {
     {label="Cloth",        type=7,  subtype=2},
     {label="Leather",      type=7,  subtype=4},
@@ -60,7 +60,7 @@ local CAT_ICONS = {
     ["Other"]       = "Interface\\Icons\\inv_misc_bag_07",
 }
 
--- ── MAIN FRAME ────────────────────────────────────────────────────────────
+-- -- MAIN FRAME ------------------------------------------------------------
 local QA = CreateFrame("Frame","DT_MailAttachFrame",UIParent,"BackdropTemplate")
 QA:SetSize(220,420)
 QA:SetPoint("LEFT",UIParent,"CENTER",-500,0)  -- naast mailbox
@@ -102,7 +102,7 @@ hdrTxt:SetText(SA_GOLD.."Quick Attach|r")
 local closeBtn = CreateFrame("Button",nil,QA,"UIPanelCloseButton")
 closeBtn:SetPoint("TOPRIGHT",QA,"TOPRIGHT",2,-2)
 
--- ── CATEGORIE KNOPPEN (2 kolommen) ────────────────────────────────────────
+-- -- CATEGORIE KNOPPEN (2 kolommen) ----------------------------------------
 local BTN_W = 96
 local BTN_H = 26
 local BTN_GAP = 4
@@ -255,8 +255,8 @@ for i,cat in ipairs(CATEGORIES) do
     local xPos = 8 + col*(BTN_W+BTN_GAP)
     local yPos = -36 - row*(BTN_H+BTN_GAP)
 
-    -- Maar wacht — we willen de categorieën boven de itemlijst
-    -- Volgorde: header → cat grid → item scroll → footer
+    -- Maar wacht - we willen de categorieën boven de itemlijst
+    -- Volgorde: header -> cat grid -> item scroll -> footer
 end
 
 -- Herbouw layout: cat knoppen bovenaan
@@ -319,7 +319,7 @@ itemScroll:ClearAllPoints()
 itemScroll:SetPoint("TOPLEFT",8,-(36+CAT_AREA_H+4))
 itemScroll:SetPoint("BOTTOMRIGHT",-22,-56)
 
--- ── FOOTER: Send to Character ─────────────────────────────────────────────
+-- -- FOOTER: Send to Character ---------------------------------------------
 local ftrBG = QA:CreateTexture(nil,"BACKGROUND")
 ftrBG:SetHeight(50)
 ftrBG:SetPoint("BOTTOMLEFT",1,1)
@@ -355,7 +355,7 @@ charSearch:SetScript("OnEnterPressed",function(self)
     self:ClearFocus()
 end)
 
--- ── EVENT: open bij mailbox ────────────────────────────────────────────────
+-- -- EVENT: open bij mailbox ------------------------------------------------
 local mailEvent = CreateFrame("Frame")
 mailEvent:RegisterEvent("MAIL_SHOW")
 mailEvent:RegisterEvent("MAIL_CLOSED")
@@ -376,13 +376,13 @@ mailEvent:SetScript("OnEvent",function(self,event)
     end
 end)
 
--- ── SLASH COMMAND ─────────────────────────────────────────────────────────
+-- -- SLASH COMMAND ---------------------------------------------------------
 SLASH_DTMAIL1 = "/dtmail"
 SlashCmdList["DTMAIL"] = function()
     if QA:IsShown() then QA:Hide() else QA:Show() end
 end
 
--- ── PLUGIN REGISTRATIE ────────────────────────────────────────────────────
+-- -- PLUGIN REGISTRATIE ----------------------------------------------------
 local _dtMailReg = CreateFrame("Frame")
 _dtMailReg:RegisterEvent("PLAYER_LOGIN")
 _dtMailReg:SetScript("OnEvent",function(self)
@@ -393,7 +393,7 @@ _dtMailReg:SetScript("OnEvent",function(self)
 end)
 
 -- ============================================================================
--- FILE CARD — DT_MailAttach.lua | v1.0 | 2026-06-07
--- Role  : Quick Attach panel bij mailbox — MailVault integratie
--- Status: Production · Retail 12.0.5.67314 Midnight
+-- FILE CARD - DT_MailAttach.lua | v1.0 | 2026-06-07
+-- Role  : Quick Attach panel bij mailbox - MailVault integratie
+-- Status: Production . Retail 12.0.5.67314 Midnight
 -- ============================================================================

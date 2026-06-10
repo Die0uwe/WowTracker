@@ -5,7 +5,7 @@
 
 if DelveTracker then
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -235,8 +235,8 @@ end
             group:Show()
 
             -- Kolom layout:
-            -- Rij 0 (boven): kolom 0 t/m 6  → alle 7 plaatsen vol
-            -- Rij 1+ (onder): kolom 3 overslaan → 0,1,2 vol | 3 leeg | 4,5 vol | 6 leeg (kabouter)
+            -- Rij 0 (boven): kolom 0 t/m 6  -> alle 7 plaatsen vol
+            -- Rij 1+ (onder): kolom 3 overslaan -> 0,1,2 vol | 3 leeg | 4,5 vol | 6 leeg (kabouter)
             col = col + 1
             if col >= 7 then col = 0; row = row + 1 end
             if row >= 1 and col == 3 then col = 4 end

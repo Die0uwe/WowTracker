@@ -1,16 +1,16 @@
 -- ============================================================================
--- DT_Theme.lua — WowTracker Centraal Theme Systeem
+-- DT_Theme.lua - WowTracker Centraal Theme Systeem
 -- Retail 12.0.7 / Midnight (Interface 120007)
--- v1.0.0 — 2026-06-09
+-- v1.0.0 - 2026-06-09
 --
--- MOET als EERSTE worden geladen in WowTracker.xml (vóór alle plugins)
+-- MOET als EERSTE worden geladen in WowTracker.xml (voor alle plugins)
 -- Alle DT_ files refereren: WTTheme.c.gold, WTTheme.c.purple etc.
 --
 -- Gebruik:
---   WTTheme.c.gold    → color string  "|cffccaa00"
---   WTTheme.r.gold    → {r,g,b} table {r=0.80,g=0.67,b=0.00}
---   WTTheme.Apply(frame, "border") → zet backdrop border kleur
---   WTTheme.SetActiveTheme("Midnight Dark") → wissel theme
+--   WTTheme.c.gold    -> color string  "|cffccaa00"
+--   WTTheme.r.gold    -> {r,g,b} table {r=0.80,g=0.67,b=0.00}
+--   WTTheme.Apply(frame, "border") -> zet backdrop border kleur
+--   WTTheme.SetActiveTheme("Midnight Dark") -> wissel theme
 -- ============================================================================
 
 local addonName, addonTable = ...
@@ -20,7 +20,7 @@ local addonName, addonTable = ...
 -- ============================================================================
 local THEMES = {
 
-    -- ── Slayer Alliance (default) ──────────────────────────────────────────
+    -- -- Slayer Alliance (default) ------------------------------------------
     ["Slayer Alliance"] = {
         -- Kleur strings (gebruik in FontString:SetText)
         c = {
@@ -78,7 +78,7 @@ local THEMES = {
         font = "Fonts\\2002.ttf",
     },
 
-    -- ── Midnight Dark (alternatief) ────────────────────────────────────────
+    -- -- Midnight Dark (alternatief) ----------------------------------------
     ["Midnight Dark"] = {
         c = {
             gold      = "|cffccaa00",
@@ -130,7 +130,7 @@ local THEMES = {
         font = "Fonts\\2002.ttf",
     },
 
-    -- ── Horde Red ──────────────────────────────────────────────────────────
+    -- -- Horde Red ----------------------------------------------------------
     ["Horde Red"] = {
         c = {
             gold      = "|cffccaa00",
@@ -184,7 +184,7 @@ local THEMES = {
 }
 
 -- ============================================================================
--- EXTRA THEMES — Industrial, Elven, Void (icon sheet 2026-06-10)
+-- EXTRA THEMES - Industrial, Elven, Void (icon sheet 2026-06-10)
 -- ============================================================================
 THEMES["Industrial"] = {
     bg = {
@@ -275,57 +275,57 @@ local _activeTheme = "Slayer Alliance"
 -- Geregistreerde frames voor live reload
 local _registeredFrames = {}
 
--- ── Intern: theme ophalen ──────────────────────────────────────────────────
+-- -- Intern: theme ophalen --------------------------------------------------
 local function GetTheme()
     return THEMES[_activeTheme] or THEMES["Slayer Alliance"]
 end
 
--- ── Kleur strings ──────────────────────────────────────────────────────────
+-- -- Kleur strings ----------------------------------------------------------
 WTTheme.c = setmetatable({}, {
     __index = function(_, k)
         return GetTheme().c[k] or "|cffffffff"
     end
 })
 
--- ── RGB tables ────────────────────────────────────────────────────────────
+-- -- RGB tables ------------------------------------------------------------
 WTTheme.r = setmetatable({}, {
     __index = function(_, k)
         return GetTheme().r[k] or {r=1,g=1,b=1}
     end
 })
 
--- ── Background tables ─────────────────────────────────────────────────────
+-- -- Background tables -----------------------------------------------------
 WTTheme.bg = setmetatable({}, {
     __index = function(_, k)
         return GetTheme().bg[k] or {r=0,g=0,b=0,a=0.95}
     end
 })
 
--- ── Border tables ─────────────────────────────────────────────────────────
+-- -- Border tables ---------------------------------------------------------
 WTTheme.border = setmetatable({}, {
     __index = function(_, k)
         return GetTheme().border[k] or {r=0.3,g=0.1,b=0.5,a=0.8}
     end
 })
 
--- ── Tab tables ────────────────────────────────────────────────────────────
+-- -- Tab tables ------------------------------------------------------------
 WTTheme.tab = setmetatable({}, {
     __index = function(_, k)
         return GetTheme().tab[k] or {r=0.06,g=0.03,b=0.10,a=1}
     end
 })
 
--- ── Font ──────────────────────────────────────────────────────────────────
+-- -- Font ------------------------------------------------------------------
 function WTTheme.Font()
     return GetTheme().font or "Fonts\\2002.ttf"
 end
 
--- ── Actief theme naam ─────────────────────────────────────────────────────
+-- -- Actief theme naam -----------------------------------------------------
 function WTTheme.GetActive()
     return _activeTheme
 end
 
--- ── Alle beschikbare themes ───────────────────────────────────────────────
+-- -- Alle beschikbare themes -----------------------------------------------
 function WTTheme.GetThemeNames()
     local names = {}
     for k in pairs(THEMES) do table.insert(names, k) end
@@ -333,7 +333,7 @@ function WTTheme.GetThemeNames()
     return names
 end
 
--- ── Theme wisselen ────────────────────────────────────────────────────────
+-- -- Theme wisselen --------------------------------------------------------
 function WTTheme.SetActiveTheme(name)
     if not THEMES[name] then return false end
     _activeTheme = name
@@ -348,14 +348,14 @@ function WTTheme.SetActiveTheme(name)
     return true
 end
 
--- ── Frame registreren voor live theme reload ──────────────────────────────
+-- -- Frame registreren voor live theme reload ------------------------------
 function WTTheme.Register(callback)
     if type(callback) == "function" then
         table.insert(_registeredFrames, callback)
     end
 end
 
--- ── Helper: backdrop border snel zetten ───────────────────────────────────
+-- -- Helper: backdrop border snel zetten -----------------------------------
 function WTTheme.ApplyBorder(frame, borderKey)
     local b = WTTheme.border[borderKey or "card"]
     if frame and frame.SetBackdropBorderColor then
@@ -363,7 +363,7 @@ function WTTheme.ApplyBorder(frame, borderKey)
     end
 end
 
--- ── Helper: backdrop background snel zetten ───────────────────────────────
+-- -- Helper: backdrop background snel zetten -------------------------------
 function WTTheme.ApplyBg(frame, bgKey)
     local b = WTTheme.bg[bgKey or "card"]
     if frame and frame.SetBackdropColor then
@@ -371,14 +371,14 @@ function WTTheme.ApplyBg(frame, bgKey)
     end
 end
 
--- ── Helper: FontString kleur snel zetten ──────────────────────────────────
+-- -- Helper: FontString kleur snel zetten ----------------------------------
 function WTTheme.ColorText(fs, colorKey, text)
     if fs and fs.SetText then
         fs:SetText((WTTheme.c[colorKey] or "|cffffffff") .. (text or "") .. "|r")
     end
 end
 
--- ── Initialisatie: laad DB theme bij login ────────────────────────────────
+-- -- Initialisatie: laad DB theme bij login --------------------------------
 local initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("ADDON_LOADED")
 initFrame:SetScript("OnEvent", function(self, event, arg1)
@@ -396,9 +396,9 @@ end)
 
 -- ============================================================================
 -- LEGACY COMPATIBILITEIT
--- Oude code gebruikt SA_GOLD, SA_PURPLE, SA_BLUE — blijven werken
+-- Oude code gebruikt SA_GOLD, SA_PURPLE, SA_BLUE - blijven werken
 -- maar zijn nu dynamisch (wisselen mee met theme)
--- NOTE: core WowTracker.lua definieert deze als locals — die blijven static.
+-- NOTE: core WowTracker.lua definieert deze als locals - die blijven static.
 -- Plugins die WTTheme gebruiken moeten WTTheme.c.gold etc gebruiken.
 -- ============================================================================
 
@@ -408,6 +408,6 @@ end)
 --[[
   File    : DT_Theme.lua
   Version : 1.0.0   Created : 2026-06-09   Updated : 2026-06-09
-  Status  : New — Centraal theme systeem voor WowTracker suite
-  Author  : DieOuwe · www.dieouwe.nl · discord.gg/y8Pu5qsEbQ
+  Status  : New - Centraal theme systeem voor WowTracker suite
+  Author  : DieOuwe . www.dieouwe.nl . discord.gg/y8Pu5qsEbQ
 ]]

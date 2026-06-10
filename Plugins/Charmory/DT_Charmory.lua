@@ -4,7 +4,7 @@
 
 if DelveTracker then
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -66,7 +66,7 @@ end
         Armory:EnableMouse(true)
         Armory:SetFrameStrata("DIALOG")
         Armory:ClearAllPoints()
-        -- Gecentreerd links van scherm midden — altijd zichtbaar
+        -- Gecentreerd links van scherm midden - altijd zichtbaar
         Armory:SetPoint("CENTER", UIParent, "CENTER", -250, 20)
     end
 
@@ -135,7 +135,7 @@ end
         Armory.buttons[info[1]] = b
     end
 
-    -- ── STATS PANEL (rechts naast model in Tab5) ─────────────────────────
+    -- -- STATS PANEL (rechts naast model in Tab5) -------------------------
     local StatsPanel = CreateFrame("Frame", "DT_ArmoryStatsPanel", Armory, "BackdropTemplate")
     StatsPanel:SetSize(480, 500)
     StatsPanel:SetPoint("TOPLEFT", Armory, "TOPRIGHT", 4, 0)
@@ -168,32 +168,32 @@ end
     end
 
     -- Bouw stat rijen
-    SecHdr("── KARAKTER ──", -12)
+    SecHdr("-- KARAKTER --", -12)
     local _,  vClass  = StatRow("Klasse",  -26)
     local _,  vSpec   = StatRow("Spec",    -42)
     local _,  vLevel  = StatRow("Level",   -58)
     local _,  vIlvl   = StatRow("iLvl",    -74)
     local _,  vGuild  = StatRow("Guild",   -90)
 
-    SecHdr("── STATS ──", -114)
+    SecHdr("-- STATS --", -114)
     local _,  vStam   = StatRow("Stamina",  -128)
     local _,  vStr    = StatRow("Strength", -144)
     local _,  vAgi    = StatRow("Agility",  -160)
     local _,  vInt    = StatRow("Intellect",-176)
     local _,  vArmor  = StatRow("Armor",    -192)
 
-    SecHdr("── CURRENCIES ──", -216)
+    SecHdr("-- CURRENCIES --", -216)
     local _,  vKeys   = StatRow("Coffer Keys",   -230)
     local _,  vShards = StatRow("Key Shards",    -246)
     local _,  vDundun = StatRow("Shard of Dundun",-262)
     local _,  vMana   = StatRow("Dawnlight Manaflux",-278)
 
-    SecHdr("── DELVES DEZE WEEK ──", -302)
+    SecHdr("-- DELVES DEZE WEEK --", -302)
     local _,  vD4     = StatRow("Threshold 4",  -316)
     local _,  vD8     = StatRow("Threshold 8",  -332)
     local _,  vD12    = StatRow("Threshold 12", -348)
 
-    SecHdr("── GOUD ──", -372)
+    SecHdr("-- GOUD --", -372)
     local _,  vGold   = StatRow("Totaal",  -386)
 
     StatsPanel.Fill = function(data)
@@ -218,7 +218,7 @@ end
             vInt:SetText("|cffffffff"..(data.stats.int or 0).."|r")
             vArmor:SetText("|cffffffff"..(data.stats.armor or 0).."|r")
         else
-            for _, v in ipairs({vStam,vStr,vAgi,vInt,vArmor}) do v:SetText("|cff554466—|r") end
+            for _, v in ipairs({vStam,vStr,vAgi,vInt,vArmor}) do v:SetText("|cff554466-|r") end
         end
 
         -- Currencies
@@ -242,10 +242,10 @@ end
                 end
             end
             for i=#data.delves+1,3 do
-                if targets[i] then targets[i]:SetText("|cff554466—|r") end
+                if targets[i] then targets[i]:SetText("|cff554466-|r") end
             end
         else
-            for _,v in ipairs({vD4,vD8,vD12}) do v:SetText("|cff554466—|r") end
+            for _,v in ipairs({vD4,vD8,vD12}) do v:SetText("|cff554466-|r") end
         end
 
         -- Gold

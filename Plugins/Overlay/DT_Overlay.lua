@@ -1,6 +1,6 @@
 local function CreateTextures(f)
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},

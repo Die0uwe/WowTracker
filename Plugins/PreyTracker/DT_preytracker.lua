@@ -1,5 +1,5 @@
 -- ============================================================================
--- DelveTracker — Prey Tracker Logic V3.5
+-- DelveTracker - Prey Tracker Logic V3.5
 -- Retail 12.0.5 / Build 67314 (Midnight)
 -- File: Plugins/DT_preytracker.lua
 -- ============================================================================
@@ -8,10 +8,10 @@
 -- VERIFIED FACTS (cross-referenced Preydator/Preybreaker/World-Quest-Tracker):
 --
 --   1. Blizzard ONLY exposes 4 stage transitions (Cold/Warm/Hot/Final).
---      No real percentages — ever. progressState 0-3 is all we get.
+--      No real percentages - ever. progressState 0-3 is all we get.
 --
 --   2. GetNextWaypointForMap returns nil at Cold(0) and Warm(1).
---      This is INTENTIONAL game design — the target location is hidden.
+--      This is INTENTIONAL game design - the target location is hidden.
 --
 --   3. widget.shownState must be checked against Enum.WidgetShownState.Shown
 --      (value = 1), not just "!= 0". shownState=0 means widget hidden (no hunt).
@@ -30,13 +30,13 @@
 --   6. Ambush detection: UNIT_COMBAT + UNIT_TARGET events fire on ambush.
 --      Preybreaker uses locale-independent quest/task/widget refresh signals.
 --
---   7. Blood Mist trail appears after ambush. No direct API — only visual.
+--   7. Blood Mist trail appears after ambush. No direct API - only visual.
 --      Track via progressState jump after QUEST_LOG_UPDATE post-ambush.
 --
 -- THREE-TIER COMPASS (unchanged, proven correct):
 --   T1: Blizzard waypoint API     (works at Hot=2, Final=3)
 --   T2: Distance trilateration    (in-zone, needs movement samples)
---   T3: Zone entry point          (always — Cold/Warm, cross-map)
+--   T3: Zone entry point          (always - Cold/Warm, cross-map)
 -- ============================================================================
 local addonName, addonTable = ...
 
@@ -113,24 +113,24 @@ local STATE_STAGE    = { [0]=1,    [1]=2,    [2]=3,    [3]=4    }
 --   - wow-professions.com profession treasure locations
 -- mapIDs: 2393=Eversong, 2394=Zul'Aman, 2405=Voidstorm, 2413=Harandar
 -- ============================================================================
--- ZONE ENTRY POINTS — Tier 3 kompas fallback
+-- ZONE ENTRY POINTS - Tier 3 kompas fallback
 -- Wanneer speler buiten de hunt-zone is, wijst de naald naar het portaal/hub
 -- in de hunt-zone zodat je weet WELKE KANT OP te gaan.
 --
 -- SILVERMOON (speler staat hier bij Astalor's Table):
---   Portalen vanuit Silvermoon gaan naar Eversong Woods → Harandar, Voidstorm, Zul'Aman
+--   Portalen vanuit Silvermoon gaan naar Eversong Woods -> Harandar, Voidstorm, Zul'Aman
 --   Portaal coördinaten in Eversong/Silvermoon zijn bij de portal plaza
 --
 -- FIX v3.6: Silvermoon sub-zones (2444, 2536) krijgen eigen entries die wijzen naar
 --   de portaalzone (Eversong Woods 2393) als doorgang naar de hunt-zones.
 --   Dit voorkomt dat de naald direct naar Voidstorm (2405) wijst terwijl je in
---   Silvermoon staat — in plaats daarvan wijst hij naar de portaalrichting in Eversong.
+--   Silvermoon staat - in plaats daarvan wijst hij naar de portaalrichting in Eversong.
 local ZONE_ENTRY = {
     -- EVERSONG WOODS (hoofd-zone, portaal hub naar alle andere zones)
     [2393] = { fx=0.50, fy=0.60, name="Eversong Woods" },  -- Faro'shan / centraal hub
     [2395] = { fx=0.50, fy=0.60, name="Eversong Woods" },  -- continent sub-map alias
 
-    -- ZUL'AMAN (fly via Eversong 2393→2394, geen portaal vanuit Silvermoon)
+    -- ZUL'AMAN (fly via Eversong 2393->2394, geen portaal vanuit Silvermoon)
     [2394] = { fx=0.32, fy=0.80, name="Zul'Aman"       },  -- SW entry
     [2437] = { fx=0.32, fy=0.80, name="Zul'Aman"       },  -- continent sub-map
 
@@ -142,11 +142,11 @@ local ZONE_ENTRY = {
     [2413] = { fx=0.50, fy=0.38, name="Harandar"       },  -- The Den hub
 
     -- SILVERMOON STAD SUB-ZONES (speler accepteert quest bij Astalor's Table)
-    -- Als de HUNT in Eversong is → wijst naar Eversong hub (deur van stad)
-    -- Als de HUNT elders is → ook Eversong hub, want portalen zijn in Eversong Woods
+    -- Als de HUNT in Eversong is -> wijst naar Eversong hub (deur van stad)
+    -- Als de HUNT elders is -> ook Eversong hub, want portalen zijn in Eversong Woods
     -- We slaan Silvermoon zelf op als "wijst naar Eversong uitgang" coördinaten
-    [2444] = { fx=0.55, fy=0.75, name="Eversong (portaal)" }, -- Silvermoon City → Eversong exit
-    [2536] = { fx=0.55, fy=0.75, name="Eversong (portaal)" }, -- Sunfury Spire area → Eversong exit
+    [2444] = { fx=0.55, fy=0.75, name="Eversong (portaal)" }, -- Silvermoon City -> Eversong exit
+    [2536] = { fx=0.55, fy=0.75, name="Eversong (portaal)" }, -- Sunfury Spire area -> Eversong exit
 }
 
 -- PORTAAL OVERRIDE: Als speler in Silvermoon is en hunt in Voidstorm/Harandar/Zul'Aman,
@@ -156,12 +156,12 @@ local PORTAL_PLAZA = { mapID=2393, fx=0.50, fy=0.45 }  -- Eversong portal plaza 
 local NON_EVERSONG_HUNT = { [2394]=true, [2405]=true, [2413]=true, [2424]=true, [2437]=true }
 
 -- ============================================================================
--- PREY NPC DATABASE — 90 quest IDs (30 NPCs × 3 difficulties)
--- Source: wowhead.com questIDs 91095–91269, verified 12.0.5.67314 (June 2026)
--- Zone from contract, NOT player location — player may be in Silvermoon
+-- PREY NPC DATABASE - 90 quest IDs (30 NPCs x 3 difficulties)
+-- Source: wowhead.com questIDs 91095-91269, verified 12.0.5.67314 (June 2026)
+-- Zone from contract, NOT player location - player may be in Silvermoon
 -- ============================================================================
 local PREY_DB = {
-    -- EVERSONG WOODS ─────────────────────────────────────────────────────────
+    -- EVERSONG WOODS ---------------------------------------------------------
     [91095]={name="Magister Sunbreaker",        zone="Eversong Woods",mapID=2393},
     [91096]={name="Magistrix Emberlash",         zone="Eversong Woods",mapID=2393},
     [91097]={name="Senior Tinker Ozwold",        zone="Eversong Woods",mapID=2393},
@@ -186,7 +186,7 @@ local PREY_DB = {
     [91223]={name="Phaseblade Talasha",            zone="Eversong Woods",mapID=2393},
     [91224]={name="Nexus-Edge Hadim",              zone="Eversong Woods",mapID=2393},
     [91225]={name="Nexus-Edge Hadim",              zone="Eversong Woods",mapID=2393},
-    -- ZUL'AMAN ───────────────────────────────────────────────────────────────
+    -- ZUL'AMAN ---------------------------------------------------------------
     [91103]={name="Jo'zolo the Breaker",          zone="Zul'Aman",      mapID=2394},
     [91104]={name="Zadu, Fist of Nalorakk",       zone="Zul'Aman",      mapID=2394},
     [91105]={name="The Talon of Jan'alai",         zone="Zul'Aman",      mapID=2394},
@@ -199,7 +199,7 @@ local PREY_DB = {
     [91231]={name="The Talon of Jan'alai",         zone="Zul'Aman",      mapID=2394},
     [91232]={name="The Wing of Akil'zon",          zone="Zul'Aman",      mapID=2394},
     [91233]={name="The Wing of Akil'zon",          zone="Zul'Aman",      mapID=2394},
-    -- HARANDAR ───────────────────────────────────────────────────────────────
+    -- HARANDAR ---------------------------------------------------------------
     [91107]={name="Ranger Swiftglade",            zone="Harandar",      mapID=2413},
     [91108]={name="Lieutenant Blazewing",          zone="Harandar",      mapID=2413},
     [91109]={name="Petyoll the Razorleaf",         zone="Harandar",      mapID=2413},
@@ -218,7 +218,7 @@ local PREY_DB = {
     [91243]={name="Crusader Luxia Maxwell",        zone="Harandar",      mapID=2413},
     [91256]={name="High Vindicator Vureem",        zone="Harandar",      mapID=2413},
     [91257]={name="Crusader Luxia Maxwell",        zone="Harandar",      mapID=2413},
-    -- VOIDSTORM ──────────────────────────────────────────────────────────────
+    -- VOIDSTORM --------------------------------------------------------------
     [91113]={name="Praetor Singularis",           zone="Voidstorm",     mapID=2405},
     [91114]={name="Consul Nebulor",                zone="Voidstorm",     mapID=2405},
     [91115]={name="Executor Kaenius",              zone="Voidstorm",     mapID=2405},
@@ -291,7 +291,7 @@ end
 local function CalcAngle(dx, dy, facingCCW, offset)
     if not dx or not dy or not facingCCW then return nil end
     if dx == 0 and dy == 0 then return nil end
-    -- WoW Y-axis grows downward → negate dx in atan2 to correct east/west
+    -- WoW Y-axis grows downward -> negate dx in atan2 to correct east/west
     local targetCW = NormAngle(math_atan2(-dx, dy))
     local facingCW = NormAngle(TWO_PI - facingCCW)
     return NormAngle(targetCW - facingCW + (offset or 0))
@@ -299,9 +299,9 @@ end
 
 -- ============================================================================
 -- WORLD-YARD COORDINATE SYSTEM
--- All Midnight zones on same Quel'Thalas continent → yards are comparable.
--- C_Map.GetMapWorldSize(mapID) → (width, height) in yards.
--- Convert both player and target to yards → cross-map direction works.
+-- All Midnight zones on same Quel'Thalas continent -> yards are comparable.
+-- C_Map.GetMapWorldSize(mapID) -> (width, height) in yards.
+-- Convert both player and target to yards -> cross-map direction works.
 -- ============================================================================
 local worldSizeCache = {}
 
@@ -361,7 +361,7 @@ local function CollectWaypointCandidates(questID, currentMapID, superID)
         end
         return false
     end
-    -- Source 1: GetNextWaypoint — returns mapID, most complete source
+    -- Source 1: GetNextWaypoint - returns mapID, most complete source
     if C_QuestLog_GetNextWaypoint then
         local ok, wm, wx, wy = pcall(C_QuestLog_GetNextWaypoint, questID)
         if ok then add(wm, wx, wy, "GetNextWaypoint") end
@@ -381,7 +381,7 @@ local function CollectWaypointCandidates(questID, currentMapID, superID)
             local ok3, tx, ty = pcall(C_TaskQuest.GetQuestLocation, questID, mapID)
             if ok3 then add(mapID, tx, ty, "TQ["..mapID.."]") end
         end
-        -- Source 5: QuestsOnMap POI — scans for BOTH contract quest AND
+        -- Source 5: QuestsOnMap POI - scans for BOTH contract quest AND
         --           any prey world quest active in this zone (dual-quest-layer fix)
         if C_QuestLog_GetQuestsOnMap then
             local ok4, pois = pcall(C_QuestLog_GetQuestsOnMap, mapID)
@@ -416,7 +416,7 @@ local function TryCandidate(prey, cand, pMapID, pFx, pFy, facing)
 end
 
 -- ============================================================================
--- TIER 2: DISTANCE TRILATERATION (in-zone, needs ≥3 movement samples)
+-- TIER 2: DISTANCE TRILATERATION (in-zone, needs >=3 movement samples)
 -- ============================================================================
 local bearQuestID, bearMapID = nil, nil
 local bearSamples = {}
@@ -474,11 +474,11 @@ local function TryTrilateration(prey, facing)
 end
 
 -- ============================================================================
--- TIER 3: ZONE ENTRY POINT (Cold/Warm — always available)
+-- TIER 3: ZONE ENTRY POINT (Cold/Warm - always available)
 -- Uses real portal/hub arrival coordinates from ZONE_ENTRY table.
 -- If already in hunt zone: keep last valid angle for 5 seconds.
 -- ============================================================================
--- TIER 3: ZONE ENTRY POINT (Cold/Warm — always available)
+-- TIER 3: ZONE ENTRY POINT (Cold/Warm - always available)
 -- FIX v3.6: Silvermoon-speler wordt nu via portaalplaza (Eversong 2393) gerouted,
 -- niet direct naar de hunt-zone. Dit voorkomt verkeerde richting vanuit Silvermoon stad.
 local function TryZoneEntry(prey, huntMapID, pMapID, pFx, pFy, facing)
@@ -491,7 +491,7 @@ local function TryZoneEntry(prey, huntMapID, pMapID, pFx, pFy, facing)
     end
 
     -- Silvermoon check: speler in Silvermoon stad, hunt in andere zone
-    -- → Wijs naar Eversong portaalplaza als eerste stap
+    -- -> Wijs naar Eversong portaalplaza als eerste stap
     if SILVERMOON_MAPS[pMapID] and NON_EVERSONG_HUNT[huntMapID] then
         if not pFx then return false end
         local angle = WorldAngle(pMapID, pFx, pFy,
@@ -499,13 +499,13 @@ local function TryZoneEntry(prey, huntMapID, pMapID, pFx, pFy, facing)
             facing, prey.needleOffset)
         if not angle then return false end
         prey.angle=angle; prey.angleReady=true
-        prey.angleSource="silvermoon_portal→"..tostring(huntMapID)
+        prey.angleSource="silvermoon_portal->"..tostring(huntMapID)
         prey.lastAngleTime=GetTime()
         return true
     end
 
     -- Silvermoon check: speler in Silvermoon, hunt IN Eversong
-    -- → Wijs naar Eversong hub (uitgang van stad)
+    -- -> Wijs naar Eversong hub (uitgang van stad)
     if SILVERMOON_MAPS[pMapID] and not NON_EVERSONG_HUNT[huntMapID] then
         if not pFx then return false end
         local entry = ZONE_ENTRY[pMapID]  -- Silvermoon exit coördinaten
@@ -515,7 +515,7 @@ local function TryZoneEntry(prey, huntMapID, pMapID, pFx, pFy, facing)
             facing, prey.needleOffset)
         if not angle then return false end
         prey.angle=angle; prey.angleReady=true
-        prey.angleSource="silvermoon_exit→eversong"
+        prey.angleSource="silvermoon_exit->eversong"
         prey.lastAngleTime=GetTime()
         return true
     end
@@ -533,8 +533,8 @@ end
 
 -- ============================================================================
 -- AFFIX DETECTION (new in V3.5)
--- Uses C_UnitAuras.GetPlayerAuraBySpellID — synchronous, no polling overhead.
--- Called once per compass tick (not every frame — already throttled by ticker).
+-- Uses C_UnitAuras.GetPlayerAuraBySpellID - synchronous, no polling overhead.
+-- Called once per compass tick (not every frame - already throttled by ticker).
 -- ============================================================================
 local function ScanAffixes(prey)
     if not C_UnitAuras_GetAura then
@@ -626,7 +626,7 @@ end
 
 local function TryAutoTrack(questID)
     if not C_SuperTrack_SetQuestID then return end
-    -- Skip als WindTools al de prey supertrackt — voorkomt "Start tracking" spam
+    -- Skip als WindTools al de prey supertrackt - voorkomt "Start tracking" spam
     if WindToolsPreyActive() then return end
     local now = GetTime()
     if (now-lastAutoTrack) < AUTOTRACK_CD then return end
@@ -654,7 +654,7 @@ local function ResetPreyState()
 end
 
 -- ============================================================================
--- MAIN UPDATE — called every ticker tick from DT_prey_ui.lua (50 FPS)
+-- MAIN UPDATE - called every ticker tick from DT_prey_ui.lua (50 FPS)
 -- ============================================================================
 function PreyFrame:UpdateCompass()
     local prey = addonTable.DT_preytracker
@@ -711,8 +711,8 @@ function PreyFrame:UpdateCompass()
     local ok4, dSq = pcall(C_QuestLog_GetDistanceSqToQuest, questID)
     prey.distance = (ok4 and dSq and dSq > 0) and math_sqrt(dSq) or 0
 
-    -- === COMPASS — THREE-TIER PRIORITY SYSTEM ===
-    -- Facing read EVERY TICK → needle rotates as player turns/walks
+    -- === COMPASS - THREE-TIER PRIORITY SYSTEM ===
+    -- Facing read EVERY TICK -> needle rotates as player turns/walks
     local pMapID = C_Map_GetBestMapForUnit("player")
     local facing = _GetPlayerFacing()
 
@@ -739,7 +739,7 @@ function PreyFrame:UpdateCompass()
             if TryTrilateration(prey, facing) then found=true end
         end
 
-        -- TIER 3: Zone entry point (Cold/Warm — always available cross-map)
+        -- TIER 3: Zone entry point (Cold/Warm - always available cross-map)
         if not found then
             local huntMapID = dbEntry and dbEntry.mapID
             if huntMapID and px then
@@ -764,7 +764,7 @@ function PreyFrame:UpdateCompass()
 end
 
 -- ============================================================================
--- EVENTS — full lifecycle (added QUEST_ACCEPTED, QUEST_TURNED_IN, QUEST_REMOVED,
+-- EVENTS - full lifecycle (added QUEST_ACCEPTED, QUEST_TURNED_IN, QUEST_REMOVED,
 --          SUPER_TRACKING_CHANGED, UNIT_AURA from Preydator analysis)
 -- ============================================================================
 PreyFrame:RegisterEvent("PLAYER_LOGIN")
@@ -788,7 +788,7 @@ PreyFrame:SetScript("OnEvent", function(self, event, arg1)
         addonTable.DT_preytracker.preyWidgetID=nil; ClearBear(); self:UpdateCompass()
 
     elseif event == "QUEST_TURNED_IN" or event == "QUEST_REMOVED" then
-        -- Hunt complete or abandoned — if it was the active prey quest, reset
+        -- Hunt complete or abandoned - if it was the active prey quest, reset
         local prey = addonTable.DT_preytracker
         if prey.questID and prey.questID == arg1 then ResetPreyState() end
 
@@ -835,7 +835,7 @@ addonTable.PreyDebugInfo = function()
               or src:find("trilat")     and "|cffffff00 T2:Trilaterate|r"
               or src ~= "none"          and "|cff00ff88 T1:Waypoint|r"
               or "|cffff4444 NONE|r"
-    print("|cff00dfff[PreyDebug v3.5]|r ─────────────────────────")
+    print("|cff00dfff[PreyDebug v3.5]|r -------------------------")
     print(string.format(" quest=|cffff9900%s|r  name=|cffffff00%s|r",
         tostring(prey.questID), tostring(prey.enemyName)))
     print(string.format(" zone=|cff00dfff%s|r  diff=|cffff9900%s|r  ps=%d  stage=%d",
@@ -843,10 +843,10 @@ addonTable.PreyDebugInfo = function()
         prey.progressState or 0, prey.stage or 1))
     print(string.format(" playerMap=%s  huntMap=%s  dist=|cffffff00%.0f|r yd",
         tostring(pMap), tostring(db and db.mapID), prey.distance or 0))
-    print(string.format(" angleReady=%s  tier=%s  angle=%.1f°  facing=%.1f°",
+    print(string.format(" angleReady=%s  tier=%s  angle=%.1f  facing=%.1f",
         tostring(prey.angleReady), tier,
         (prey.angle or 0)*180/math_pi, (facing or 0)*180/math_pi))
-    print(string.format(" offset=%.1f°  trilat_samples=%d",
+    print(string.format(" offset=%.1f  trilat_samples=%d",
         (prey.needleOffset or 0)*180/math_pi, #bearSamples))
     -- Affix status
     local affixes = {}
@@ -866,9 +866,9 @@ addonTable.PreyDebugInfo = function()
         end
         if #cands == 0 then
             local ps = prey.progressState or 0
-            print(string.format("|cffff9900 T1 nil — stage=%d (%s)|r", ps,
+            print(string.format("|cffff9900 T1 nil - stage=%d (%s)|r", ps,
                 ps < 2 and "expected at Cold/Warm" or "UNEXPECTED"))
         end
     end
-    print("|cff00dfff[PreyDebug]|r ─────────────────────────")
+    print("|cff00dfff[PreyDebug]|r -------------------------")
 end

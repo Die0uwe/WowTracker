@@ -1,30 +1,30 @@
 -- ============================================================================
--- DelveTracker — Prey Tracker HUD V4
+-- DelveTracker - Prey Tracker HUD V4
 -- Retail 12.0.5 / Build 67314 (Midnight)
 -- File: Plugins/DT_prey_ui.lua
 -- ============================================================================
 -- V4 CHANGES:
---   1. SETTINGS PANEL — ⚙ knop opent een volledig settings popup (apart frame,
+--   1. SETTINGS PANEL - [S] knop opent een volledig settings popup (apart frame,
 --      niet embedded in compass). Bevat: Scale, Opacity, Needle Offset + 4
 --      toggles (Auto-show, Combat fade, Ticker, Affix badges). Alles saved in
 --      DelveTrackerDB.preySettings. Scale en opacity schalen het HELE frame.
 --
---   2. SCALING — SetScale() op PreyUI schaalt alles: ring, naald, bar, tekst.
+--   2. SCALING - SetScale() op PreyUI schaalt alles: ring, naald, bar, tekst.
 --      Alle textures/bars zijn kinderen van PreyUI, dus meteen mee. Settings
 --      panel staat BUITEN PreyUI (op UIParent) zodat het zelf niet meeschaalt.
 --
---   3. TICKER — ActionText hints te lang? Dan scrollt een horizontale marquee
+--   3. TICKER - ActionText hints te lang? Dan scrollt een horizontale marquee
 --      via accumulated pixel offset op een ClipFrame. Reset automatisch.
 --      Uitschakelbaar via settings toggle.
 --
---   4. BADGE GRID — Affix/vignette badges wrappen nu. WoW heeft geen flexbox,
+--   4. BADGE GRID - Affix/vignette badges wrappen nu. WoW heeft geen flexbox,
 --      dus we bouwen 4 vaste badge-FontStrings die per tick aan/uit gaan. Max
 --      twee rijen van twee. Unicode emojis verwijderd (WoW font crash).
 --
---   5. DIFFICULTY BADGE — Kleine gekleurde label in de ring ONDER de naam.
+--   5. DIFFICULTY BADGE - Kleine gekleurde label in de ring ONDER de naam.
 --      EnemyText toont alleen naam (geen difficulty dubbeling meer).
 --
---   6. RING + NAALD + BAR — Identiek aan V3 qua TGA-paden en fallback logica.
+--   6. RING + NAALD + BAR - Identiek aan V3 qua TGA-paden en fallback logica.
 --      Enige wijziging: afmetingen licht bijgesteld voor een compactere ring.
 -- ============================================================================
 local addonName, addonTable = ...
@@ -39,7 +39,7 @@ local math_sin = math.sin
 local math_cos = math.cos
 
 -- ============================================================================
--- SAVED SETTINGS — defaults + load/save helpers
+-- SAVED SETTINGS - defaults + load/save helpers
 -- Stored in DelveTrackerDB.preySettings
 -- ============================================================================
 local SETTINGS_DEFAULTS = {
@@ -99,7 +99,7 @@ local STATE_COL = { [0]=C_COLD, [1]=C_WARM, [2]=C_HOT,  [3]=C_FINAL }
 local STATE_LBL = { [0]="COLD", [1]="WARM",  [2]="HOT",  [3]="FINAL" }
 
 -- ============================================================================
--- LAYOUT CONSTANTS (base size — scale applied via SetScale)
+-- LAYOUT CONSTANTS (base size - scale applied via SetScale)
 -- ============================================================================
 local UI_W      = 420
 local CALIB_H   = 28
@@ -176,7 +176,7 @@ local function ApplyScale(sc)
     PreyUI:SetScale(sc)
 end
 
--- Apply alpha/opacity — ALLEEN op de achtergrond (backdrop), NIET op tekst/images.
+-- Apply alpha/opacity - ALLEEN op de achtergrond (backdrop), NIET op tekst/images.
 -- SetAlpha() op het hele frame schaalt ook kinderframes (tekst, naald, ring) mee,
 -- wat ongewenst is. In plaats daarvan passen we alleen de backdrop-kleur alpha aan.
 local BASE_BG_R, BASE_BG_G, BASE_BG_B = 0, 0, 0
@@ -209,15 +209,15 @@ C_Timer.After(0.1, function()
 end)
 
 -- ============================================================================
--- COMBAT FADE — respects S.alpha and S.combatFade
+-- COMBAT FADE - respects S.alpha and S.combatFade
 -- ============================================================================
 local FADE_S    = 0.05
 local tgtAlpha  = 1.0
 local curAlpha  = 1.0
 
--- COMBAT FADE — alleen op backdrop, NIET op tekst/naald/ring.
+-- COMBAT FADE - alleen op backdrop, NIET op tekst/naald/ring.
 -- GetOutCombatAlpha/GetInCombatAlpha retourneren een backdrop-multiplier (0..1).
--- StepFade past SetBackdropColor alpha aan — tekst en images blijven volledig zichtbaar.
+-- StepFade past SetBackdropColor alpha aan - tekst en images blijven volledig zichtbaar.
 local function GetOutCombatAlpha() return S.alpha or 1.0 end
 local function GetInCombatAlpha()
     if not S.combatFade then return S.alpha or 1.0 end
@@ -252,7 +252,7 @@ PreyUI:HookScript("OnShow", function()
 end)
 
 -- ============================================================================
--- GEAR BUTTON (⚙) — top-left, opens settings panel
+-- GEAR BUTTON ([S]) - top-left, opens settings panel
 -- ============================================================================
 local GearBtn = CreateFrame("Button", nil, PreyUI)
 GearBtn:SetSize(22, 22)
@@ -270,7 +270,7 @@ GearBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self,"ANCHOR_BOTTOMRIGHT")
     GameTooltip:SetText("Prey Tracker Settings",1,1,1,1,true)
     GameTooltip:AddLine("|cffaaaaaa Click to open settings panel|r",1,1,1,true)
-    GameTooltip:AddLine("|cffaaaaaa /prey cal  — needle offset only|r",1,1,1,true)
+    GameTooltip:AddLine("|cffaaaaaa /prey cal  - needle offset only|r",1,1,1,true)
     GameTooltip:Show()
 end)
 GearBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -302,7 +302,7 @@ RingCenter:SetSize(2, 2)
 RingCenter:SetPoint("TOP", PreyUI, "TOP", 0, RING_CY)
 
 -- ============================================================================
--- COMPASS NEEDLE (identical V3 logic — TGA + fallback, no race condition)
+-- COMPASS NEEDLE (identical V3 logic - TGA + fallback, no race condition)
 -- ============================================================================
 local ArrowTex = PreyUI:CreateTexture(nil,"OVERLAY")
 ArrowTex:SetSize(ARROW_SZ, ARROW_SZ)
@@ -363,7 +363,7 @@ local function SetNeedleVisible(show)
 end
 
 -- ============================================================================
--- RING TEXT — StateText, DistText, EnemyText, DiffBadge, NoAngleTxt
+-- RING TEXT - StateText, DistText, EnemyText, DiffBadge, NoAngleTxt
 -- ============================================================================
 local StateText = PreyUI:CreateFontString(nil,"OVERLAY")
 StateText:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
@@ -403,14 +403,14 @@ NoAngleTxt:SetWidth(RING_SIZE-60)
 NoAngleTxt:Hide()
 
 -- ============================================================================
--- INFO STRIP — separator, badge grid (4 badges max), InfoText
+-- INFO STRIP - separator, badge grid (4 badges max), InfoText
 -- ============================================================================
 local Sep1 = PreyUI:CreateTexture(nil,"ARTWORK")
 Sep1:SetSize(UI_W-40, 1)
 Sep1:SetPoint("TOP", PreyUI, "TOP", 0, SEP_Y)
 Sep1:SetColorTexture(0.5,0.05,0.05,0.7)
 
--- Badge grid: 4 FontStrings arranged 2×2
+-- Badge grid: 4 FontStrings arranged 2x2
 -- Positions: TL, TR (row 1), BL, BR (row 2)
 -- We calculate positions manually since WoW has no flexbox
 local BADGE_SLOT_W = (UI_W - 40) / 2 - 4
@@ -443,7 +443,7 @@ Sep2:SetPoint("TOP", InfoText, "BOTTOM", 0, -(GAP_BAR-4))
 Sep2:SetColorTexture(0.5,0.05,0.05,0.45)
 
 -- ============================================================================
--- PROGRESS BAR (identical to V3 — original TGA preserved)
+-- PROGRESS BAR (identical to V3 - original TGA preserved)
 -- ============================================================================
 local BarFrame = CreateFrame("Frame", nil, PreyUI)
 BarFrame:SetSize(BAR_W, BAR_H)
@@ -533,7 +533,7 @@ local function StepTicker()
         end
         return
     end
-    -- Scroll: move left by SPD * dt. dt ≈ 0.02
+    -- Scroll: move left by SPD * dt. dt ~ 0.02
     tickerOffset = tickerOffset + TICKER_SPD * 0.02
     local totalWidth = tickerWidth + TICKER_PAD
     if tickerOffset >= totalWidth then tickerOffset = 0 end
@@ -542,7 +542,7 @@ local function StepTicker()
 end
 
 -- ============================================================================
--- SETTINGS PANEL — separate frame on UIParent (not child of PreyUI)
+-- SETTINGS PANEL - separate frame on UIParent (not child of PreyUI)
 -- This frame does NOT scale with the compass. It's always full-size.
 -- ============================================================================
 local SETT_W, SETT_H = 340, 322
@@ -614,7 +614,7 @@ SCloseBtn:SetScript("OnClick", function()
     GearTxt:SetText(C_DIM.."S|r")
 end)
 
--- Helper to create a labeled slider row (NO OptionsSliderTemplate — removed in 12.x)
+-- Helper to create a labeled slider row (NO OptionsSliderTemplate - removed in 12.x)
 -- Volledig handmatige implementatie: achtergrond + thumb via SetThumbTexture
 local function MakeSlider(parent, name, globalName, yOff, min, max, step, fmt)
     local lbl = parent:CreateFontString(nil,"OVERLAY")
@@ -651,7 +651,7 @@ local function MakeSlider(parent, name, globalName, yOff, min, max, step, fmt)
     val:SetPoint("TOPLEFT", parent, "TOPLEFT", 286, yOff)
     val:SetWidth(40)
     val:SetJustifyH("LEFT")
-    val:SetText(C_WHITE.."—|r")
+    val:SetText(C_WHITE.."-|r")
 
     return sl, val, lbl
 end
@@ -675,17 +675,17 @@ AlphaSl:SetScript("OnValueChanged", function(self, v)
     ApplyAlpha(pct / 100.0)   -- past alleen backdrop alpha aan
     if not InCombatLockdown() then
         tgtAlpha = S.alpha; curAlpha = S.alpha
-        -- ApplyAlpha zet al de backdrop — geen SetAlpha() op het hele frame nodig
+        -- ApplyAlpha zet al de backdrop - geen SetAlpha() op het hele frame nodig
     end
     SaveSettings()
 end)
 
 -- Needle offset slider
 local OffsetSl, OffsetVal = MakeSlider(SettPanel, "Needle offset", "DT_PreyOffsetSl",
-    -90, -180, 180, 1, "%+d°")
+    -90, -180, 180, 1, "%+d")
 OffsetSl:SetScript("OnValueChanged", function(self, v)
     local deg = math.floor(v + 0.5)
-    OffsetVal:SetText(string.format(C_WHITE.."%+d°|r", deg))
+    OffsetVal:SetText(string.format(C_WHITE.."%+d|r", deg))
     local rad = deg * math_pi / 180.0
     S.needleOffset = rad
     if addonTable.SaveNeedleOffset then
@@ -705,10 +705,10 @@ local OffResetBG = OffReset:CreateTexture(nil,"BACKGROUND")
 OffResetBG:SetAllPoints(); OffResetBG:SetColorTexture(0.18,0.06,0.06,0.95)
 local OffResetTxt = OffReset:CreateFontString(nil,"OVERLAY")
 OffResetTxt:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
-OffResetTxt:SetPoint("CENTER"); OffResetTxt:SetText(C_GREY.."  0°  |r")
+OffResetTxt:SetPoint("CENTER"); OffResetTxt:SetText(C_GREY.."  0  |r")
 OffReset:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self,"ANCHOR_BOTTOM")
-    GameTooltip:SetText("Reset needle offset to 0°",1,1,1); GameTooltip:Show()
+    GameTooltip:SetText("Reset needle offset to 0",1,1,1); GameTooltip:Show()
 end)
 OffReset:SetScript("OnLeave", function() GameTooltip:Hide() end)
 OffReset:SetScript("OnClick", function() OffsetSl:SetValue(0) end)
@@ -828,7 +828,7 @@ local function SyncSettingsUI()
     AlphaSl:SetValue(al)
     AlphaVal:SetText(C_WHITE..al.."%|r")
     OffsetSl:SetValue(off)
-    OffsetVal:SetText(string.format(C_WHITE.."%+d°|r", off))
+    OffsetVal:SetText(string.format(C_WHITE.."%+d|r", off))
     AutoShowCB:SetChecked(S.autoShow ~= false)
     CombatCB:SetChecked(S.combatFade ~= false)
     TickerCB:SetChecked(S.tickerOn ~= false)
@@ -873,7 +873,7 @@ local function CheckAutoShow()
 end
 
 -- ============================================================================
--- BADGE DATA — defines content for each badge slot
+-- BADGE DATA - defines content for each badge slot
 -- Returns up to 4 badge strings (nil = slot unused)
 -- ============================================================================
 local function GetBadgeData(prey)
@@ -895,7 +895,7 @@ local function GetBadgeData(prey)
 end
 
 -- ============================================================================
--- REFRESH HUD — reads addonTable.DT_preytracker, updates all visuals
+-- REFRESH HUD - reads addonTable.DT_preytracker, updates all visuals
 -- ============================================================================
 local function RefreshPreyUI()
     local prey = addonTable.DT_preytracker
@@ -907,7 +907,7 @@ local function RefreshPreyUI()
         InfoText:SetText(C_GREY.."Start a hunt at Astalor's Table|r")
         PreyBar:SetValue(0)
         BarPctTxt:SetText(C_GREY.."Hunt Progress  0%|r")
-        UpdateTickerText("|cffaaaaaa—|r")
+        UpdateTickerText("|cffaaaaaa-|r")
         TrapModeTxt:Hide(); NoAngleTxt:Hide()
         SetNeedleVisible(false)
         for _, b in ipairs(BadgeFrames) do b:Hide() end
@@ -979,7 +979,7 @@ local function RefreshPreyUI()
         end
     end
 
-    -- INFO LINE (stage + zone, no difficulty — it's in badge)
+    -- INFO LINE (stage + zone, no difficulty - it's in badge)
     local zoneStr = prey.zoneName and (C_GREY.."  "..prey.zoneName.."|r") or ""
     InfoText:SetText(string.format(C_GREY.."Stage %d|r"..zoneStr, prey.stage or 1))
 
@@ -989,28 +989,28 @@ local function RefreshPreyUI()
     local pct = math.floor(prog * 100)
     BarPctTxt:SetText(string.format(C_WHITE.."%d%%|r  "..C_GREY.."Hunt Progress|r", pct))
 
-    -- ACTION TICKER — build hints list then set ticker
+    -- ACTION TICKER - build hints list then set ticker
     local hints = {}
     if ps == 0 then
         hints[#hints+1] = C_COLD.."Go to "..(prey.zoneName or "the zone").."|r"
-        hints[#hints+1] = C_GREY.."Warm up — world quests, rares, traps|r"
+        hints[#hints+1] = C_GREY.."Warm up - world quests, rares, traps|r"
     elseif ps == 1 then
         hints[#hints+1] = C_WARM.."Follow the needle|r"
         if (prey.nearbyTraps or 0) > 0   then hints[#hints+1] = C_TRAP.."Disarm traps!|r"  end
         if (prey.nearbyAnguish or 0) > 0 then hints[#hints+1] = C_ANG.."Kill Anguish!|r"  end
     elseif ps == 2 then
-        hints[#hints+1] = C_HOT.."Crystal found — close in!|r"
+        hints[#hints+1] = C_HOT.."Crystal found - close in!|r"
         if (prey.nearbyTraps or 0) > 0   then hints[#hints+1] = C_TRAP.."Bring traps|r"   end
         if (prey.nearbyAnguish or 0) > 0 then hints[#hints+1] = C_ANG.."Avoid Anguish|r"  end
     elseif ps == 3 then
-        hints[#hints+1] = C_FINAL.."BOSS LOCATED — Attack!|r"
+        hints[#hints+1] = C_FINAL.."BOSS LOCATED - Attack!|r"
     end
     if prey.affix_echo   then hints[#hints+1] = C_ECHO.."KITE the Echo!|r"           end
     if prey.affix_bloody then hints[#hints+1] = C_WARN.."KILL anything! (Bloody)|r" end
     if #hints == 0 then hints[#hints+1] = C_GREY.."Follow the needle|r" end
 
     -- Join with separator. If tickerOn, scroll; otherwise show static
-    local sep = S.tickerOn and "   |cff444444·|r   " or "   "
+    local sep = S.tickerOn and "   |cff444444.|r   " or "   "
     UpdateTickerText(table.concat(hints, sep))
 end
 
@@ -1090,13 +1090,13 @@ SlashCmdList["DTPREY"] = function(msg)
         OpenSettings()
     elseif msg == "help" or msg == "?" then
         print("|cff00dfff[PreyTracker]|r Commands:")
-        print("  |cffffffff/prey|r          — toggle aan/uit")
-        print("  |cffffffff/pton|r          — zet prey tracker AAN")
-        print("  |cffffffff/ptoff|r         — zet prey tracker UIT")
-        print("  |cffffffff/prey test|r     — test modus (naald draait)")
-        print("  |cffffffff/prey debug|r    — debug info in chat")
-        print("  |cffffffff/prey settings|r — open instellingen")
-        print("  |cffffffff/prey reset|r    — reset frame positie")
+        print("  |cffffffff/prey|r          - toggle aan/uit")
+        print("  |cffffffff/pton|r          - zet prey tracker AAN")
+        print("  |cffffffff/ptoff|r         - zet prey tracker UIT")
+        print("  |cffffffff/prey test|r     - test modus (naald draait)")
+        print("  |cffffffff/prey debug|r    - debug info in chat")
+        print("  |cffffffff/prey settings|r - open instellingen")
+        print("  |cffffffff/prey reset|r    - reset frame positie")
     elseif PreyUI:IsShown() then
         PreyTrackerDisable()
     else

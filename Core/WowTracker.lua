@@ -1,13 +1,13 @@
 -- ============================================================================
--- DelveTracker — Core v17.0 (Slayer Alliance Edition)
+-- DelveTracker - Core v17.0 (Slayer Alliance Edition)
 -- Retail 12.0.7 / Midnight (Interface 120007)
 -- Rebuilt: 2026-06-07
 -- Changes v17.0:
---   [NEW] Breedte 760px (was 420px) — ruimer, professioneler
---   [NEW] Event ticker bovenaan — scrollende balk met live events + klok
+--   [NEW] Breedte 760px (was 420px) - ruimer, professioneler
+--   [NEW] Event ticker bovenaan - scrollende balk met live events + klok
 --   [FIX] GetMoney() schrijft naar characters[key].money + PLAYER_MONEY event
 --   [FIX] Slayer Alliance donker paars thema consistent
---   [FIX] Scaling via +/- knoppen — SCALE_STEP 0.05, traag genoeg
+--   [FIX] Scaling via +/- knoppen - SCALE_STEP 0.05, traag genoeg
 --   [FIX] Scrollbar Tab2 correct verankerd
 --   [FIX] Tab3 PluginArea correct verankerd
 --   [FIX] MenuUtil.CreateContextMenu (UIDropDownMenu weg in 12.x)
@@ -43,7 +43,7 @@ local TAB_BAR_H  = 28
 local FOOTER_H   = 58
 local SCALE_STEP = 0.05
 
--- ── MAIN FRAME ────────────────────────────────────────────────────────────
+-- -- MAIN FRAME ------------------------------------------------------------
 local UI = CreateFrame("Frame", "DelveTrackerFrame", UIParent, "BackdropTemplate")
 UI:SetSize(UI_W, UI_H)
 UI:SetPoint("CENTER")
@@ -80,7 +80,7 @@ for _,t in ipairs({Tab1,Tab2,Tab3,Tab4,Tab5,Tab6}) do
     t:Hide()
 end
 
--- ── EVENT TICKER ─────────────────────────────────────────────────────────
+-- -- EVENT TICKER ---------------------------------------------------------
 local TickerBG = UI:CreateTexture(nil,"BACKGROUND")
 TickerBG:SetPoint("TOPLEFT",UI,"TOPLEFT",1,-1)
 TickerBG:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-1,-1)
@@ -109,7 +109,7 @@ DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
     events=true, guild=true, prey=true, time=true,
     abundance=false, warbandgold=false,  -- C-02: extra items, standaard uit
 }
--- S3-02: Ticker Toast Config Panel — slide-in boven UI bij klik
+-- S3-02: Ticker Toast Config Panel - slide-in boven UI bij klik
 -- Bouwt een persisterend paneel (niet MenuUtil) zodat de staat zichtbaar blijft
 local TickerToast = nil  -- lazy init
 
@@ -262,9 +262,9 @@ local function BuildTickerStr()
             for _,e in ipairs(list) do
                 local t=FormatHMS(e.timeRemaining)
                 if e.isActive then
-                    table.insert(parts,"|cff44cc66⬤ "..e.name.."|r  "..SA_GREY.."ACTIEF · "..t.." rem|r")
+                    table.insert(parts,"|cff44cc66O "..e.name.."|r  "..SA_GREY.."ACTIEF . "..t.." rem|r")
                 else
-                    table.insert(parts,"|cffccaa00◎ "..e.name.."|r  "..SA_GREY.."over "..t.."|r")
+                    table.insert(parts,"|cffccaa00o "..e.name.."|r  "..SA_GREY.."over "..t.."|r")
                 end
             end
         end
@@ -276,7 +276,7 @@ local function BuildTickerStr()
         if ok and qid and qid ~= 0 then
             local info = C_QuestLog.GetQuestInfo and C_QuestLog.GetQuestInfo(qid)
             local qname = info and info.title or ("Quest #"..qid)
-            table.insert(parts,"|cffff4444🎯 Prey Hunt: "..qname.."|r")
+            table.insert(parts,"|cffff4444[>] Prey Hunt: "..qname.."|r")
         end
     end
 
@@ -284,11 +284,11 @@ local function BuildTickerStr()
     if ts.events ~= false then
         local abData = DT_GetAbundanceData and DT_GetAbundanceData()
         if abData and abData.active then
-            local chipTxt = SA_GOLD.."✦ Abundance ACTIEF|r  "..SA_GREY.."(Shard of Dundun beschikbaar)|r"
+            local chipTxt = SA_GOLD.."* Abundance ACTIEF|r  "..SA_GREY.."(Shard of Dundun beschikbaar)|r"
             if abData.timedEvents and #abData.timedEvents > 0 then
                 local ev = abData.timedEvents[1]
                 local rem = ev.timeRemaining and math.floor(ev.timeRemaining/60) or 0
-                chipTxt = SA_GOLD.."✦ Abundance: "..rem.."min|r  "..SA_GREY.."Chip vendor actief|r"
+                chipTxt = SA_GOLD.."* Abundance: "..rem.."min|r  "..SA_GREY.."Chip vendor actief|r"
             end
             table.insert(parts, chipTxt)
         end
@@ -302,13 +302,13 @@ local function BuildTickerStr()
             local _,_,_,_,_,_,_,_,connected = GetGuildRosterInfo(i)
             if connected then online = online + 1 end
         end
-        table.insert(parts,"|cff00ff88👥 Guild online: "..online.."|r")
+        table.insert(parts,"|cff00ff88[G] Guild online: "..online.."|r")
     end
 
     -- Server tijd
     if ts.time ~= false then
         local h,m = GetGameTime()
-        table.insert(parts,SA_GOLD.."🕐 Server: "..string.format("%02d:%02d",h,m).."|r")
+        table.insert(parts,SA_GOLD.."[T] Server: "..string.format("%02d:%02d",h,m).."|r")
     end
     -- C-02: Abundance status
     if ts.abundance then
@@ -340,9 +340,9 @@ local function BuildTickerStr()
     end
 
     if #parts == 0 then
-        return SA_GREY.."WowTracker v2.7.5 · Slayer Alliance · Midnight 12.0.5 · Klik ticker voor instellingen|r"
+        return SA_GREY.."WowTracker v2.7.5 . Slayer Alliance . Midnight 12.0.5 . Klik ticker voor instellingen|r"
     end
-    return table.concat(parts,"   |cff2a1040◆|r   ")
+    return table.concat(parts,"   |cff2a1040*|r   ")
 end
 
 C_Timer.NewTicker(0.02,function()
@@ -369,7 +369,7 @@ C_Timer.NewTicker(0.02,function()
     end
 end)
 
--- ── HEADER ────────────────────────────────────────────────────────────────
+-- -- HEADER ----------------------------------------------------------------
 local HdrBG = UI:CreateTexture(nil,"BACKGROUND")
 HdrBG:SetPoint("TOPLEFT",UI,"TOPLEFT",1,-TICKER_H)
 HdrBG:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-1,-TICKER_H)
@@ -395,7 +395,7 @@ UI.title:SetText(SA_PURPLE.."SLAYER ALLIANCE|r")
 UI.versionTxt = UI:CreateFontString(nil,"OVERLAY")
 UI.versionTxt:SetFont(C_2002,9,"")
 UI.versionTxt:SetPoint("TOPLEFT",UI.title,"BOTTOMLEFT",0,-3)
-UI.versionTxt:SetText(SA_GREY.."WowTracker v3.2.0 · Midnight 12.0.7|r")
+UI.versionTxt:SetText(SA_GREY.."WowTracker v3.2.0 . Midnight 12.0.7|r")
 
 UI.charInfo = UI:CreateFontString(nil,"OVERLAY")
 UI.charInfo:SetFont(C_2002,11,"OUTLINE")
@@ -442,7 +442,7 @@ local function UpdateWarbandStats()
 end
 addonTable.UpdateWarbandStats = UpdateWarbandStats
 
--- Header knoppen: X · Tandwiel · [Theme] [Lang] — rechtsboven op één lijn
+-- Header knoppen: X . Tandwiel . [Theme] [Lang] - rechtsboven op één lijn
 local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 11)
 local HDR_BTN_SZ = 22
 
@@ -530,7 +530,7 @@ lIco:SetText(SA_BLUE.."NL|r")
 UI.langBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.langBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 
--- Vault knop in header (links van langBtn) — opent WeeklyRewardsFrame direct
+-- Vault knop in header (links van langBtn) - opent WeeklyRewardsFrame direct
 UI.vaultBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
 UI.vaultBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
 UI.vaultBtn:SetPoint("RIGHT",UI.langBtn,"LEFT",-3,0)
@@ -557,12 +557,12 @@ UI.vaultBtn:SetScript("OnClick",function()
     if WeeklyRewardsFrame then
         ToggleFrame(WeeklyRewardsFrame)
     else
-        print(SA_PURPLE.."[WowTracker]|r Vault niet beschikbaar — bezoek de Vault NPC first.|r")
+        print(SA_PURPLE.."[WowTracker]|r Vault niet beschikbaar - bezoek de Vault NPC first.|r")
     end
 end)
 
 -- wow-theme-artist: centrale TH() helper voor Core frames
--- Gebruik nooit hardcoded kleuren — altijd via TH() of WTTheme.*
+-- Gebruik nooit hardcoded kleuren - altijd via TH() of WTTheme.*
 local function TH_bg(key)
     if WTTheme and WTTheme.bg then return WTTheme.bg[key or "main"] end
     local defaults = {
@@ -633,7 +633,7 @@ DelveTrackerFrame.themeBtn = UI.themeBtn
 
 UI.langBtn:SetScript("OnClick",function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
-    local langs = {"Nederlands","English","Deutsch","Français","Español"}
+    local langs = {"Nederlands","English","Deutsch","Francais","Espanol"}
     MenuUtil.CreateContextMenu(self,function(_,root)
         root:CreateTitle(SA_BLUE.."Taal / Language|r")
         for _,lang in ipairs(langs) do
@@ -646,22 +646,22 @@ UI.langBtn:SetScript("OnClick",function(self)
     end)
 end)
 
--- A-03: ApplyLanguage — persistent taal systeem
+-- A-03: ApplyLanguage - persistent taal systeem
 local function ApplyLanguage(lang)
     if not lang or lang == "" then lang = "Nederlands" end
     DelveTrackerDB.language = lang
     local lCode = lang == "English" and "EN" or lang == "Deutsch" and "DE"
-        or lang == "Français" and "FR" or lang == "Español" and "ES" or "NL"
+        or lang == "Francais" and "FR" or lang == "Espanol" and "ES" or "NL"
     if lIco then lIco:SetText(SA_BLUE..lCode.."|r") end
     local tabLabels
     if lang == "English" then
         tabLabels = {"GUILD","DELVES","BOUNTY","ROSTER","ARMORY","CURRENCY"}
     elseif lang == "Deutsch" then
-        tabLabels = {"GILDE","DELVES","KOPFGELD","KADER","RÜSTUNG","WÄHRUNG"}
-    elseif lang == "Français" then
-        tabLabels = {"GUILDE","PLONGÉES","PRIME","LISTE","ARMURE","MONNAIE"}
-    elseif lang == "Español" then
-        tabLabels = {"HERMANDAD","INMERS","RECOMP","LISTA","ARMERÍA","DIVISA"}
+        tabLabels = {"GILDE","DELVES","KOPFGELD","KADER","RUSTUNG","WAHRUNG"}
+    elseif lang == "Francais" then
+        tabLabels = {"GUILDE","PLONGEES","PRIME","LISTE","ARMURE","MONNAIE"}
+    elseif lang == "Espanol" then
+        tabLabels = {"HERMANDAD","INMERS","RECOMP","LISTA","ARMERIA","DIVISA"}
     else
         tabLabels = {"GUILD","DELVES","BOUNTY","ROSTER","ARMORY","CURRENCY"}
     end
@@ -676,12 +676,12 @@ local function ApplyLanguage(lang)
     if Tab1 and Tab1.motdLabel then
         local motdStr = lang == "English" and "Message of the Day"
             or lang == "Deutsch" and "Nachricht des Tages" or "Bericht van de dag"
-        Tab1.motdLabel:SetText(SA_PURPLE.."─── "..motdStr.." ───|r")
+        Tab1.motdLabel:SetText(SA_PURPLE.."--- "..motdStr.." ---|r")
     end
 end
 DelveTracker.ApplyLanguage = ApplyLanguage
 
--- ── TABS ──────────────────────────────────────────────────────────────────
+-- -- TABS ------------------------------------------------------------------
 local TAB_Y = -(TICKER_H+HEADER_H)
 local tabBtns={}; local activeTabID=2
 
@@ -735,9 +735,9 @@ local function ShowTab(id)
                 if motd ~= "" then
                     Tab1.motdText:SetText(SA_GREY..motd.."|r")
                 else
-                    -- Geen cached MOTD → request en toon placeholder
-                    Tab1.motdText:SetText(SA_GREY.."─ laden ─|r")
-                    -- GuildRoster heeft 10s throttle — C_GuildInfo.GuildRoster is de 12.x versie
+                    -- Geen cached MOTD -> request en toon placeholder
+                    Tab1.motdText:SetText(SA_GREY.."- laden -|r")
+                    -- GuildRoster heeft 10s throttle - C_GuildInfo.GuildRoster is de 12.x versie
                     if C_GuildInfo and C_GuildInfo.GuildRoster then
                         C_GuildInfo.GuildRoster()
                     else
@@ -770,7 +770,7 @@ local function ShowTab(id)
         Tab3:Show()
         Tab3.PluginArea:Show()
         -- QuickSet: geef volledige Tab3 breedte mee
-        -- QuickSet bouwt tiles in een scrollframe — het vult de breedte van de container
+        -- QuickSet bouwt tiles in een scrollframe - het vult de breedte van de container
         if not Tab3.quickWrap then
             Tab3.quickWrap = CreateFrame("Frame",nil,Tab3.PluginArea)
             Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",0,0)
@@ -789,7 +789,7 @@ local function ShowTab(id)
         WT_UpdateRoster()
 
     elseif id==5 then
-        -- ARMORY — open Charmory popup voor huidig karakter
+        -- ARMORY - open Charmory popup voor huidig karakter
         Tab5:Show()
         WT_ShowArmory()
 
@@ -831,14 +831,14 @@ TabLine:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-1,TAB_Y-TAB_BAR_H)
 TabLine:SetHeight(1)
 TabLine:SetColorTexture(0.25,0.07,0.40,0.8)
 
--- ── TAB 1: GUILD ──────────────────────────────────────────────────────────
+-- -- TAB 1: GUILD ----------------------------------------------------------
 -- Links: guild info + MOTD + Kelsey image
 -- Rechts: online leden lijst (260px breed)
 
 local GUILD_RIGHT_W = 260
 local GUILD_LEFT_W  = UI_W - 2 - GUILD_RIGHT_W
 
--- ── LINKER KOLOM ──────────────────────────────────────────────────────────
+-- -- LINKER KOLOM ----------------------------------------------------------
 -- Guild tab gecentreerd in de linker kolom
 Tab1.guildName=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.guildName:SetFont(C_2002,26,"OUTLINE")  -- was 20, nu groter
@@ -851,7 +851,7 @@ Tab1.motdLabel=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdLabel:SetFont(C_2002,9,"OUTLINE")
 Tab1.motdLabel:SetJustifyH("CENTER")
 Tab1.motdLabel:SetPoint("TOP",Tab1.guildName,"BOTTOM",0,-12)
-Tab1.motdLabel:SetText(SA_PURPLE.."─── Bericht van de dag ───|r")
+Tab1.motdLabel:SetText(SA_PURPLE.."--- Bericht van de dag ---|r")
 
 Tab1.motdText=Tab1:CreateFontString(nil,"OVERLAY")
 Tab1.motdText:SetFont(C_2002,11,"")
@@ -861,16 +861,16 @@ Tab1.motdText:SetJustifyH("CENTER")
 Tab1.motdText:SetWordWrap(true)
 Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
 Tab1.motdText:SetText(SA_GREY.."Laden...|r")
--- MOTD hoogte begrenzen — max tot halverwege de tab (Kelsey staat onderin)
+-- MOTD hoogte begrenzen - max tot halverwege de tab (Kelsey staat onderin)
 Tab1.motdText:SetMaxLines(4)
 
--- ── GUILD TAB IMAGES ─────────────────────────────────────────────────────
+-- -- GUILD TAB IMAGES -----------------------------------------------------
 -- Layout:
 --   Kelsey: groot centraal als feature image (ARTWORK, hoge alpha)
 --   DieOuwe: klein, rechtsonder linker kolom, gespiegeld, wijst naar binnen
 --   Logo: subtiel watermark linksonder
 
--- Kelsey kleiner — minder ruimte innemen zodat tekst beter past
+-- Kelsey kleiner - minder ruimte innemen zodat tekst beter past
 -- Kelsey in eigen schermpje rechtsonder online panel (30% kleiner = 98x98)
 Tab1.kelseyFrame=CreateFrame("Frame",nil,Tab1,"BackdropTemplate")
 Tab1.kelseyFrame:SetSize(100,104)
@@ -892,22 +892,22 @@ Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-2,0)  -- y=0 
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
 Tab1.dieouwe:SetAlpha(0.75)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
--- Origineel kijkt rechts → gespiegeld kijkt naar links (naar binnen)
+-- Origineel kijkt rechts -> gespiegeld kijkt naar links (naar binnen)
 -- Horizontaal spiegelen: UL=(1,0) UR=(0,0) LL=(1,1) LR=(0,1)
 -- Kwartslag CCW terug + horizontaal gespiegeld naar binnen
 -- SetTexCoord(ULx,ULy, URx,URy, LLx,LLy, LRx,LRy)
--- CCW 90° + flip naar binnen (wijst naar guildinfo):
--- Horizontaal gespiegeld → wijst naar guild info toe, rechtop
+-- CCW 90 + flip naar binnen (wijst naar guildinfo):
+-- Horizontaal gespiegeld -> wijst naar guild info toe, rechtop
 Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)
 
--- Logo watermark links midden — subtiel
+-- Logo watermark links midden - subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
 Tab1.logoWM:SetSize(90,90)
 Tab1.logoWM:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",8,8)
 Tab1.logoWM:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
 Tab1.logoWM:SetAlpha(0.12)
 
--- ── RECHTER KOLOM: GUILD ONLINE LEDEN ─────────────────────────────────────
+-- -- RECHTER KOLOM: GUILD ONLINE LEDEN -------------------------------------
 -- Verticale scheidingslijn
 Tab1.divLine=Tab1:CreateTexture(nil,"OVERLAY")
 Tab1.divLine:SetSize(1,600)
@@ -937,7 +937,7 @@ Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-40,1)
 Tab1.onlineScroll:SetScrollChild(Tab1.onlineScroll.content)
 Tab1.onlineScroll.content.rows={}
 
--- ── TAB 2: DELVES — 2 kolommen + zoek met suggesties ─────────────────────
+-- -- TAB 2: DELVES - 2 kolommen + zoek met suggesties ---------------------
 local searchBox=CreateFrame("EditBox","DT_SearchBox",Tab2,"SearchBoxTemplate")
 searchBox:SetSize(UI_W-60,24)
 searchBox:SetPoint("TOPLEFT",Tab2,"TOPLEFT",10,-6)
@@ -1017,7 +1017,7 @@ scroll.content.rows={}
 -- DT_Scroll2 alias zodat kolom 2 code nog werkt
 local scroll2_alias = scroll  -- zelfde scroller, kolom 2 gebruikt xPos offset
 
--- ── TAB 3: BOUNTY — volle breedte ────────────────────────────────────────
+-- -- TAB 3: BOUNTY - volle breedte ----------------------------------------
 Tab3.PluginArea=CreateFrame("Frame","DT_BountyArea",Tab3)
 Tab3.PluginArea:SetPoint("TOPLEFT",Tab3,"TOPLEFT",0,0)
 Tab3.PluginArea:SetPoint("BOTTOMRIGHT",Tab3,"BOTTOMRIGHT",0,0)
@@ -1027,7 +1027,7 @@ Tab3.bg:SetAllPoints()
 Tab3.bg:SetColorTexture(0.05,0.02,0.08,0.6)
 
 -- Bounty fallback: toon QuickSet frame direct als het bestaat
--- QuickSet maakt zijn eigen frame (DT_QuickSetFrame) — zet het als child van Tab3
+-- QuickSet maakt zijn eigen frame (DT_QuickSetFrame) - zet het als child van Tab3
 Tab3.PluginArea:SetScript("OnShow", function(self)
     C_Timer.After(0.1, function()
         local qf = _G["DT_QuickSetFrame"]
@@ -1041,7 +1041,7 @@ Tab3.PluginArea:SetScript("OnShow", function(self)
     end)
 end)
 
--- ── TAB 4: ROSTER ─────────────────────────────────────────────────────────
+-- -- TAB 4: ROSTER ---------------------------------------------------------
 Tab4.PluginArea=CreateFrame("Frame","DT_RosterArea",Tab4)
 Tab4.PluginArea:SetPoint("TOPLEFT",Tab4,"TOPLEFT",0,0)
 Tab4.PluginArea:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",0,0)
@@ -1059,12 +1059,12 @@ Tab4.scroll.content:SetSize(UI_W-40,1)
 Tab4.scroll:SetScrollChild(Tab4.scroll.content)
 Tab4.scroll.content.rows={}  -- initialiseer rows tabel
 
--- ── TAB 5: ARMORY/CHARMORY ────────────────────────────────────────────────
+-- -- TAB 5: ARMORY/CHARMORY ------------------------------------------------
 Tab5.PluginArea=CreateFrame("Frame","DT_ArmoryArea",Tab5)
 Tab5.PluginArea:SetPoint("TOPLEFT",Tab5,"TOPLEFT",0,0)
 Tab5.PluginArea:SetPoint("BOTTOMRIGHT",Tab5,"BOTTOMRIGHT",0,0)
 
--- ── TAB 6: CURRENCY ─────────────────────────────────────────────────────
+-- -- TAB 6: CURRENCY -----------------------------------------------------
 -- B-02: naam-filter + auto-suggest
 local curSearchBox = CreateFrame("EditBox","DT_CurSearchBox",Tab6,"SearchBoxTemplate")
 curSearchBox:SetSize(UI_W - 20, 24)
@@ -1154,7 +1154,7 @@ end)
 curSearchBox:SetScript("OnEscapePressed", function(self)
     self:SetText(""); self:ClearFocus()
     curSuggest:Hide(); RefreshCurrencyFilter("")
-end)──
+end)--
 Tab6.PluginArea=CreateFrame("Frame","DT_CurrencyArea",Tab6)
 Tab6.PluginArea:SetPoint("TOPLEFT",Tab6,"TOPLEFT",0,0)
 Tab6.PluginArea:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",0,0)
@@ -1196,7 +1196,7 @@ Tab6.scroll.content.crows={}
 
 
 -- ============================================================================
--- RACE ICON HELPER — exact overgenomen uit ProfessionBuddy Constants.lua v3.5.1
+-- RACE ICON HELPER - exact overgenomen uit ProfessionBuddy Constants.lua v3.5.1
 -- Bron: SetRaceIcon() + RaceIconShortName tabel (geverifieerd in 12.0.5)
 -- ============================================================================
 local DT_RaceIconShortName = {
@@ -1235,7 +1235,7 @@ local DT_AlliedRaceCrest = {
     ["Haranir"]  = "AlliedRace-Crest-Haranir",
 }
 
--- DT_SetRaceIcon v2.0 — Midnight 12.0.5 definitieve versie
+-- DT_SetRaceIcon v2.0 - Midnight 12.0.5 definitieve versie
 -- Research: wago.tools, warcraft.wiki, wowpedia, GitHub wow-ui-source, CurseForge
 -- Root causes onderzocht:
 --   1. Atlas naam case/variant verschil in 12.x
@@ -1292,7 +1292,7 @@ local DT_RaceAtlasVariants = {
     haranir = {"raceicon128-haranir-{g}", "raceicon-haranir-{g}", "AlliedRace-Crest-Haranir"},
 }
 
--- CLASS icon fallback — werkt 100% altijd als race icon faalt
+-- CLASS icon fallback - werkt 100% altijd als race icon faalt
 -- Gebruik class-specifieke icon als fallback voor het race-portrait slot
 local DT_ClassIconFallback = {
     WARRIOR   = "Interface\Icons\ClassIcon_Warrior",
@@ -1310,7 +1310,7 @@ local DT_ClassIconFallback = {
     EVOKER    = "Interface\Icons\ClassIcon_Evoker",
 }
 
--- Cached atlas results — voorkom herhaalde C_Texture calls voor zelfde race/gender combo
+-- Cached atlas results - voorkom herhaalde C_Texture calls voor zelfde race/gender combo
 local DT_RaceAtlasCache = {}
 
 local function DT_SetRaceIcon(texture, raceName, gender, className)
@@ -1333,7 +1333,7 @@ local function DT_SetRaceIcon(texture, raceName, gender, className)
             -- Sla over naar class icon fallback
         else
             texture:SetAtlas(cached)
-            DT_LastRaceAtlasDebug = dbg.." → CACHED:"..cached
+            DT_LastRaceAtlasDebug = dbg.." -> CACHED:"..cached
             return true
         end
     end
@@ -1355,7 +1355,7 @@ local function DT_SetRaceIcon(texture, raceName, gender, className)
             if info then
                 texture:SetAtlas(atlasName)
                 DT_RaceAtlasCache[cacheKey] = atlasName
-                DT_LastRaceAtlasDebug = dbg.." → ATLAS:"..atlasName
+                DT_LastRaceAtlasDebug = dbg.." -> ATLAS:"..atlasName
                 return true
             end
         end
@@ -1364,7 +1364,7 @@ local function DT_SetRaceIcon(texture, raceName, gender, className)
         local tryAtlas = "raceicon128-"..shortName.."-"..gStr
         local ok = pcall(function() texture:SetAtlas(tryAtlas) end)
         if ok then
-            DT_LastRaceAtlasDebug = dbg.." → NOVALIDATE:"..tryAtlas
+            DT_LastRaceAtlasDebug = dbg.." -> NOVALIDATE:"..tryAtlas
             return true
         end
     end
@@ -1375,12 +1375,12 @@ local function DT_SetRaceIcon(texture, raceName, gender, className)
         if C_Texture.GetAtlasInfo(crest) then
             texture:SetAtlas(crest)
             DT_RaceAtlasCache[cacheKey] = crest
-            DT_LastRaceAtlasDebug = dbg.." → CREST:"..crest
+            DT_LastRaceAtlasDebug = dbg.." -> CREST:"..crest
             return true
         end
     end
 
-    -- Stap 4: CLASS ICON fallback — 100% werkende garantie
+    -- Stap 4: CLASS ICON fallback - 100% werkende garantie
     -- Als race icon NIET werkt, toon class icon in het race-portrait slot
     -- Dit is beter dan leeg: de speler ziet altijd iets herkenbaars
     DT_RaceAtlasCache[cacheKey] = "FAIL"
@@ -1390,21 +1390,21 @@ local function DT_SetRaceIcon(texture, raceName, gender, className)
         if classIcon then
             texture:SetTexture(classIcon)
             texture:SetTexCoord(0.06, 0.94, 0.06, 0.94)
-            DT_LastRaceAtlasDebug = dbg.." → CLASS_ICON:"..classIcon
+            DT_LastRaceAtlasDebug = dbg.." -> CLASS_ICON:"..classIcon
             return true
         end
     end
 
-    -- Stap 5: Absolute noodval — Interface\Icons\Spell_Holy_AuraOfLight
+    -- Stap 5: Absolute noodval - Interface\Icons\Spell_Holy_AuraOfLight
     -- Altijd aanwezig, visueel neutraal
     texture:SetTexture("Interface\Icons\Spell_ChargePositive")
     texture:SetTexCoord(0.06, 0.94, 0.06, 0.94)
-    DT_LastRaceAtlasDebug = dbg.." → EMERGENCY_FALLBACK"
+    DT_LastRaceAtlasDebug = dbg.." -> EMERGENCY_FALLBACK"
     return false
 end
 
 -- ============================================================================
--- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
+-- WT_UpdateRoster - Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
 -- ============================================================================
 -- Roster ProfessionBuddy-stijl: kaartjes per karakter v2.0
 -- Race portrait + spec icoon + iLvl groot + professions onderaan
@@ -1483,7 +1483,7 @@ WT_UpdateRoster = function()
         card:SetBackdropBorderColor(cc.r*0.65, cc.g*0.65, cc.b*0.65, 0.9)
         card:Show()
 
-        -- ── Race portrait groot linksboven (52x52) ───────────────────
+        -- -- Race portrait groot linksboven (52x52) -------------------
         -- Spec icoon klein in hoek rechtsonder van race portrait
         -- Layout zelfde als ProfessionBuddy: groot race links, tekst rechts
         card.rIcon = card.rIcon or card:CreateTexture(nil,"ARTWORK")
@@ -1500,7 +1500,7 @@ WT_UpdateRoster = function()
         DT_SetRaceIcon(card.rIcon, data.race or "Human", data.gender or "male", data.class)
         card.rIcon:SetAlpha(1.0)
 
-        -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
+        -- -- Spec icoon klein in rechtsonder hoek van race portrait (18x18) --
         card.sIcon = card.sIcon or card:CreateTexture(nil,"OVERLAY")
         card.sIcon:SetSize(18,18)
         -- BOTTOMRIGHT van race portrait, -1px overlap voor hoek-effect
@@ -1528,27 +1528,27 @@ WT_UpdateRoster = function()
         end
         card.sIcon:SetTexCoord(0.08,0.92,0.08,0.92)
 
-        -- ── Spec icoon border (kleine donkere rand voor leesbaarheid) ──
+        -- -- Spec icoon border (kleine donkere rand voor leesbaarheid) --
         card.sIconBorder = card.sIconBorder or card:CreateTexture(nil,"ARTWORK")
         card.sIconBorder:SetSize(20,20)
         card.sIconBorder:SetPoint("CENTER",card.sIcon,"CENTER",0,0)
         card.sIconBorder:SetColorTexture(0,0,0,0.6)
         card.sIconBorder:SetDrawLayer("ARTWORK",-1)
 
-        -- ── Naam (klasse kleur) rechts van race portrait ──────────────
+        -- -- Naam (klasse kleur) rechts van race portrait --------------
         card.nm = card.nm or card:CreateFontString(nil,"OVERLAY")
         card.nm:SetFont(C_2002,12,"OUTLINE")
         card.nm:SetPoint("TOPLEFT",card.rIcon,"TOPRIGHT",6,-2)
         card.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255), shortName))
 
-        -- ── Lvl + iLvl rechts van portrait, onder naam ────────────────
+        -- -- Lvl + iLvl rechts van portrait, onder naam ----------------
         card.sp = card.sp or card:CreateFontString(nil,"OVERLAY")
         card.sp:SetFont(C_2002,9,"")
         card.sp:SetPoint("TOPLEFT",card.nm,"BOTTOMLEFT",0,-1)
-        card.sp:SetText(SA_GREY.."Lvl "..(data.level or "?").." · "..(data.spec or "??").."|r")
+        card.sp:SetText(SA_GREY.."Lvl "..(data.level or "?").." . "..(data.spec or "??").."|r")
 
-        -- ── iLvl groot rechtsboven kaartje ────────────────────────────
+        -- -- iLvl groot rechtsboven kaartje ----------------------------
         card.ilvlTxt = card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
         card.ilvlTxt:SetFont(C_2002,16,"OUTLINE")
         card.ilvlTxt:SetPoint("TOPRIGHT",-4,-4)
@@ -1556,7 +1556,7 @@ WT_UpdateRoster = function()
         local ilvlCol = ilvl>=270 and "|cffff8800" or ilvl>=250 and "|cff00ff00" or "|cffffffff"
         card.ilvlTxt:SetText(ilvlCol..ilvl.." ilv|r")
 
-        -- ── Delve progress ────────────────────────────────────────────
+        -- -- Delve progress --------------------------------------------
         card.prgr = card.prgr or card:CreateFontString(nil,"OVERLAY")
         card.prgr:SetFont(C_2002,9,"OUTLINE")
         card.prgr:SetPoint("TOPLEFT",card.sp,"BOTTOMLEFT",0,-3)
@@ -1566,22 +1566,22 @@ WT_UpdateRoster = function()
                 st=st..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r "
             end
         end
-        card.prgr:SetText(st~="" and st or SA_GREY.."—|r")
+        card.prgr:SetText(st~="" and st or SA_GREY.."-|r")
 
-        -- ── Gold onderaan rechts ──────────────────────────────────────
+        -- -- Gold onderaan rechts --------------------------------------
         card.gld = card.gld or card:CreateFontString(nil,"OVERLAY")
         card.gld:SetFont(C_2002,10,"OUTLINE")
         card.gld:SetPoint("BOTTOMRIGHT",-4,4)
         card.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
 
-        -- ── Faction dot linksonder ────────────────────────────────────
+        -- -- Faction dot linksonder ------------------------------------
         card.fac = card.fac or card:CreateTexture(nil,"OVERLAY")
         card.fac:SetSize(8,8)
         card.fac:SetPoint("BOTTOMLEFT",4,6)
         if data.faction=="Horde" then card.fac:SetColorTexture(0.8,0.1,0.1,1)
         else card.fac:SetColorTexture(0.1,0.4,0.9,1) end
 
-        -- ── Professions iconen onderaan ───────────────────────────────
+        -- -- Professions iconen onderaan -------------------------------
         if not card.profRow then card.profRow={} end
         for _,p in ipairs(card.profRow) do if p and p.Hide then p:Hide() end end
         card.profRow={}
@@ -1614,7 +1614,7 @@ WT_UpdateRoster = function()
             end
         end
 
-        -- ── Hover + click ─────────────────────────────────────────────
+        -- -- Hover + click ---------------------------------------------
         local sn,d=shortName,data
         card:SetScript("OnEnter",function(self)
             self:SetBackdropBorderColor(1.0,0.85,0.0,1)
@@ -1804,11 +1804,11 @@ WT_UpdateGuildOnline = function()
             local ct = (_cct and type(_cct)=="table" and _cct.r) and _cct or {r=0.8,g=0.8,b=0.8}
             GameTooltip:SetText(string.format("|cff%02x%02x%02x%s|r",
                 math.floor(ct.r*255),math.floor(ct.g*255),math.floor(ct.b*255), member.name))
-            GameTooltip:AddLine(SA_GREY..(member.class or "?").." · Lvl "..(member.level or "?").."|r")
+            GameTooltip:AddLine(SA_GREY..(member.class or "?").." . Lvl "..(member.level or "?").."|r")
             if member.zone and member.zone ~= "" then
                 GameTooltip:AddLine("|cff44ff88"..member.zone.."|r")
             end
-            GameTooltip:AddLine(SA_GREY.."Klik → /who|r",0.6,0.6,0.6)
+            GameTooltip:AddLine(SA_GREY.."Klik -> /who|r",0.6,0.6,0.6)
             GameTooltip:Show()
         end)
         r:SetScript("OnLeave", function(self)
@@ -1850,15 +1850,15 @@ WT_UpdateGuildOnline = function()
     Tab1.onlineScroll.content:SetHeight(#online * ROW_H + 4)
 end
 
--- ── ADMIN PANEL — volledig (hersteld uit v2.8.9) ─────────────────────────
+-- -- ADMIN PANEL - volledig (hersteld uit v2.8.9) -------------------------
 local opt = CreateFrame("Frame","DelveTrackerOptions")
 opt.name="WowTracker"
 local category=Settings.RegisterCanvasLayoutCategory(opt,opt.name)
 Settings.RegisterAddOnCategory(category)
 UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
 
--- ── HEADER (vaste posities — geen anchor chain) ──────────────────────────
--- Admin panel header — strak 2-kolom layout
+-- -- HEADER (vaste posities - geen anchor chain) --------------------------
+-- Admin panel header - strak 2-kolom layout
 -- Links: MijnIcoon + WowTracker titel + versie + sub
 -- Rechts: DieOuwe character image
 -- Onderaan header: vault.tga banner + scheidingslijn
@@ -1886,7 +1886,7 @@ opt.tit:SetText(SA_PURPLE.."WowTracker|r")
 opt.ver=opt:CreateFontString(nil,"OVERLAY")
 opt.ver:SetFont(C_2002,10,"")
 opt.ver:SetPoint("LEFT",opt.logo,"RIGHT",8,-20)
-opt.ver:SetText(SA_GREY.."v3.2.0 · Midnight 12.0.7|r")
+opt.ver:SetText(SA_GREY.."v3.2.0 . Midnight 12.0.7|r")
 
 -- Sub onder versie
 opt.sub=opt:CreateFontString(nil,"OVERLAY")
@@ -1894,21 +1894,21 @@ opt.sub:SetFont(C_2002,9,"")
 opt.sub:SetPoint("LEFT",opt.logo,"RIGHT",8,-34)
 opt.sub:SetText(SA_GREY.."Slayer Alliance|r")
 
--- Vault.tga banner rechts naast DieOuwe image — decoratief
+-- Vault.tga banner rechts naast DieOuwe image - decoratief
 opt.vaultHdr=opt:CreateTexture(nil,"ARTWORK")
 opt.vaultHdr:SetSize(120,36)
 opt.vaultHdr:SetPoint("BOTTOMRIGHT",opt.charImg,"BOTTOMLEFT",-6,0)
 opt.vaultHdr:SetTexture("Interface\\AddOns\\WowTracker\\Media\\vault.tga")
 opt.vaultHdr:SetAlpha(0.85)
 
--- Scheidingslijn Y≈60
+-- Scheidingslijn Y~60
 opt.hdrLine=opt:CreateTexture(nil,"OVERLAY")
 opt.hdrLine:SetHeight(1)
 opt.hdrLine:SetPoint("TOPLEFT",8,-62)
 opt.hdrLine:SetPoint("TOPRIGHT",-8,-62)
 opt.hdrLine:SetColorTexture(0.35,0.10,0.55,0.7)
 
--- ── UI SCHAAL Y=70 ────────────────────────────────────────────────────────
+-- -- UI SCHAAL Y=70 --------------------------------------------------------
 opt.scaleHdr=opt:CreateFontString(nil,"OVERLAY")
 opt.scaleHdr:SetFont(C_2002,10,"OUTLINE")
 opt.scaleHdr:SetPoint("TOPLEFT",8,-74)
@@ -1958,7 +1958,7 @@ opt.scaleLine:SetPoint("TOPLEFT",8,-145)
 opt.scaleLine:SetPoint("TOPRIGHT",-8,-145)
 opt.scaleLine:SetColorTexture(0.20,0.05,0.35,0.5)
 
--- ── PLUGINS Y=155 ─────────────────────────────────────────────────────────
+-- -- PLUGINS Y=155 ---------------------------------------------------------
 opt.plbl=opt:CreateFontString(nil,"OVERLAY")
 opt.plbl:SetFont(C_2002,10,"OUTLINE")
 opt.plbl:SetPoint("TOPLEFT",8,-155)
@@ -2041,11 +2041,11 @@ end
 opt:SetScript("OnShow",UpdatePluginList)
 
 -- Lijn Y=490 (170 start + 310 hoogte + 10 gap)
--- ─────────────────────────────────────────────────────────────────────────
--- EXTRA OPTIES — verankerd ONDER de scrolllijst, nooit erin
--- pScroll start Y=-170, hoogte=310px → eindigt bij Y=-480
+-- -------------------------------------------------------------------------
+-- EXTRA OPTIES - verankerd ONDER de scrolllijst, nooit erin
+-- pScroll start Y=-170, hoogte=310px -> eindigt bij Y=-480
 -- Extra opties: Y=-492 (12px marge)
--- ─────────────────────────────────────────────────────────────────────────
+-- -------------------------------------------------------------------------
 opt.plugLine=opt:CreateTexture(nil,"OVERLAY")
 opt.plugLine:SetHeight(1)
 opt.plugLine:SetPoint("TOPLEFT",opt.pScroll,"BOTTOMLEFT",0,-8)
@@ -2126,7 +2126,7 @@ opt.langHdr:SetFont(C_2002,10,"OUTLINE")
 opt.langHdr:SetPoint("TOPLEFT",lastThemeBtn,"BOTTOMLEFT",0,-10)
 opt.langHdr:SetText(SA_BLUE.."TAAL / LANGUAGE|r")
 
-local optLangs = {"Nederlands","English","Deutsch","Français","Español"}
+local optLangs = {"Nederlands","English","Deutsch","Francais","Espanol"}
 local lastLangBtn = opt.langHdr
 for _,lang in ipairs(optLangs) do
     local l=lang
@@ -2165,27 +2165,27 @@ local function MakeOptBtn(lbl,anchorFrame,fn)
     return b  -- teruggeven voor anchoring
 end
 
-local eb1=MakeOptBtn("⚙  Combat Announcer (/cset)",opt.extraHdr,function()
+local eb1=MakeOptBtn("[S]  Combat Announcer (/cset)",opt.extraHdr,function()
     if SlashCmdList["CSET"] then SlashCmdList["CSET"]("")
     elseif SlashCmdList["DTCSET"] then SlashCmdList["DTCSET"]("") end
 end)
-local eb2=MakeOptBtn("⊞  AFK Screen layout (/dtgrid)",eb1,function()
+local eb2=MakeOptBtn("[+]  AFK Screen layout (/dtgrid)",eb1,function()
     if SlashCmdList["DTGRID"] then SlashCmdList["DTGRID"]("") end
 end)
-local eb3=MakeOptBtn("▶  Preview AFK scherm (/dtafk)",eb2,function()
+local eb3=MakeOptBtn(">  Preview AFK scherm (/dtafk)",eb2,function()
     if SlashCmdList["DTAFK"] then SlashCmdList["DTAFK"]("") end
 end)
-MakeOptBtn("⚠  Wipe Character DB",eb3,function()
+MakeOptBtn("[!]  Wipe Character DB",eb3,function()
     if DelveTrackerDB then
         DelveTrackerDB.characters={}
         print(SA_PURPLE.."[WowTracker]|r DB gewist.|r")
     end
 end)
 
--- ─────────────────────────────────────────────────────────────────────────
+-- -------------------------------------------------------------------------
 -- ACTIE KNOPPEN: Reload UI | Wipe DB | Del Char
 -- NAAST Extra opties (rechter kolom van het admin panel)
--- ─────────────────────────────────────────────────────────────────────────
+-- -------------------------------------------------------------------------
 local function MakeActionBtn(lbl,col,x,anchorFrame,fn)
     local b=CreateFrame("Button",nil,opt,"BackdropTemplate")
     b:SetSize(120,26)
@@ -2208,10 +2208,10 @@ local function MakeActionBtn(lbl,col,x,anchorFrame,fn)
 end
 
 -- Reload UI
-local abReload=MakeActionBtn("|cffffffff⟳  Reload UI|r",{0.08,0.12,0.20},12,opt.extraHdr,
+local abReload=MakeActionBtn("|cffffffff[R]  Reload UI|r",{0.08,0.12,0.20},12,opt.extraHdr,
     function() ReloadUI() end)
 -- Wipe DB
-local abWipe=MakeActionBtn("|cffff6644⚠  Wipe DB|r",{0.20,0.05,0.05},0,abReload,
+local abWipe=MakeActionBtn("|cffff6644[!]  Wipe DB|r",{0.20,0.05,0.05},0,abReload,
     function()
         if DelveTrackerDB then
             DelveTrackerDB.characters={}
@@ -2219,7 +2219,7 @@ local abWipe=MakeActionBtn("|cffff6644⚠  Wipe DB|r",{0.20,0.05,0.05},0,abReloa
         end
     end)
 -- Del Char (huidig karakter)
-MakeActionBtn("|cffccaa00✕  Del Char|r",{0.15,0.10,0.02},0,abWipe,
+MakeActionBtn("|cffccaa00[x]  Del Char|r",{0.15,0.10,0.02},0,abWipe,
     function()
         local key=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
         if DelveTrackerDB and DelveTrackerDB.characters then
@@ -2230,10 +2230,10 @@ MakeActionBtn("|cffccaa00✕  Del Char|r",{0.15,0.10,0.02},0,abWipe,
 
 -- [stale afkBtn verwijderd]
 
--- ── MURLOC ────────────────────────────────────────────────────────────────
+-- -- MURLOC ----------------------------------------------------------------
 
 -- ============================================================================
--- WT_UpdateCurrency — Tab6: currency overzicht alle karakters
+-- WT_UpdateCurrency - Tab6: currency overzicht alle karakters
 -- ============================================================================
 local CURRENCY_IDS = {
     {id=3028, name="Restored Coffer Keys",  col="|cff00ccff"},
@@ -2277,7 +2277,7 @@ WT_UpdateCurrency = function()
     Tab6.scroll.content.crows = {}
     Tab6.scroll.content.crows = {}
 
-    -- Currency definities — alle expansies van nieuw naar oud
+    -- Currency definities - alle expansies van nieuw naar oud
     local curFilter = filter  -- B-02: gebruik de nieuwe filter
 
     local function getCurInfo(id)
@@ -2288,9 +2288,9 @@ WT_UpdateCurrency = function()
         return nil, tostring(id)
     end
 
-    -- Volledige lijst alle currencies — gesorteerd op relevantie
+    -- Volledige lijst alle currencies - gesorteerd op relevantie
     local CUR_DEFS_ALL = {
-        -- ── MIDNIGHT (12.x) ──────────────────────────────────────────
+        -- -- MIDNIGHT (12.x) ------------------------------------------
         {id=3028, label="Restored Coffer Keys",       col="|cff00ccff", expac="Midnight"},
         {id=3310, label="Coffer Key Shards",           col="|cffffee00", expac="Midnight"},
         {id=3376, label="Shard of Dundun",             col="|cff44cc66", expac="Midnight"},
@@ -2298,7 +2298,7 @@ WT_UpdateCurrency = function()
         {id=3399, label="Unalloyed Abundance",         col="|cff55ff55", expac="Midnight"},
         {id=3403, label="Midnight Reputation Token",   col="|cff00aaff", expac="Midnight"},
         {id=3390, label="Amani Favor",                 col="|cffff8800", expac="Midnight"},
-        -- ── THE WAR WITHIN (11.x) ────────────────────────────────────
+        -- -- THE WAR WITHIN (11.x) ------------------------------------
         {id=2803, label="Resonance Crystals",          col="|cff88ddff", expac="War Within"},
         {id=2778, label="Weathered Harbinger Crest",   col="|cff99aa77", expac="War Within"},
         {id=2779, label="Carved Harbinger Crest",      col="|cff88bb55", expac="War Within"},
@@ -2306,21 +2306,21 @@ WT_UpdateCurrency = function()
         {id=2781, label="Gilded Harbinger Crest",      col="|cffccaa00", expac="War Within"},
         {id=2815, label="Valorstones",                 col="|cff4488cc", expac="War Within"},
         {id=2778, label="Undercoin",                   col="|cff665588", expac="War Within"},
-        -- ── DRAGONFLIGHT (10.x) ──────────────────────────────────────
+        -- -- DRAGONFLIGHT (10.x) --------------------------------------
         {id=2245, label="Dragon Isles Supplies",       col="|cff55aa88", expac="Dragonflight"},
         {id=2123, label="Valor",                       col="|cff4488dd", expac="Dragonflight"},
         {id=2119, label="Conquest",                    col="|cffdd4444", expac="Dragonflight"},
         {id=2032, label="Primal Chaos",                col="|cffff6600", expac="Dragonflight"},
         {id=2003, label="Dragon Isles Renown",         col="|cff55cc88", expac="Dragonflight"},
-        -- ── SHADOWLANDS ──────────────────────────────────────────────
+        -- -- SHADOWLANDS ----------------------------------------------
         {id=1885, label="Anima",                       col="|cff8855ff", expac="Shadowlands"},
         {id=1906, label="Soul Cinders",                col="|cff4455dd", expac="Shadowlands"},
         {id=1767, label="Stygia",                      col="|cff2244aa", expac="Shadowlands"},
         {id=1828, label="Grateful Offering",           col="|cffddaa22", expac="Shadowlands"},
-        -- ── BATTLE FOR AZEROTH ───────────────────────────────────────
+        -- -- BATTLE FOR AZEROTH ---------------------------------------
         {id=1560, label="War Resources",               col="|cffcc4400", expac="BfA"},
         {id=1159, label="Azerite",                     col="|cffff8800", expac="BfA"},
-        -- ── PvP ──────────────────────────────────────────────────────
+        -- -- PvP ------------------------------------------------------
         {id=1792, label="Honor",                       col="|cffaaffaa", expac="PvP"},
         {id=1602, label="Conquest",                    col="|cffff4444", expac="PvP"},
     }
@@ -2382,7 +2382,7 @@ WT_UpdateCurrency = function()
         local nm=nameRow:CreateFontString(nil,"OVERLAY")
         nm:SetFont(C_2002,12,"OUTLINE")
         nm:SetPoint("LEFT",8,0)
-        nm:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s · iLvl %d|r",
+        nm:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s . iLvl %d|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
             shortName, data.spec or "??", data.ilvl or 0))
 
@@ -2422,7 +2422,7 @@ WT_UpdateCurrency = function()
             b:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
             local t=b:CreateFontString(nil,"OVERLAY")
             t:SetFont(C_2002,12,"OUTLINE"); t:SetPoint("CENTER")
-            t:SetText(dir=="left" and SA_GREY.."◀|r" or SA_GREY.."▶|r")
+            t:SetText(dir=="left" and SA_GREY.."<|r" or SA_GREY..">|r")
             b:SetScript("OnClick",function()
                 local cur=hScroll:GetHorizontalScroll()
                 local step=TILE_W+TILE_G
@@ -2508,7 +2508,7 @@ WT_UpdateCurrency = function()
 end
 
 
--- ── GUILD ROSTER UPDATE EVENT ─────────────────────────────────────────────
+-- -- GUILD ROSTER UPDATE EVENT ---------------------------------------------
 -- GUILD_ROSTER_UPDATE vuurt nadat GuildRoster() data opgehaald heeft
 local guildEventFrame = CreateFrame("Frame")
 guildEventFrame:RegisterEvent("GUILD_ROSTER_UPDATE")
@@ -2522,7 +2522,7 @@ guildEventFrame:SetScript("OnEvent", function()
     WT_UpdateGuildOnline()
 end)
 
--- ── FOOTER ────────────────────────────────────────────────────────────────
+-- -- FOOTER ----------------------------------------------------------------
 local FtrBG=UI:CreateTexture(nil,"BACKGROUND")
 FtrBG:SetPoint("BOTTOMLEFT",UI,"BOTTOMLEFT",1,1)
 FtrBG:SetPoint("BOTTOMRIGHT",UI,"BOTTOMRIGHT",-1,1)
@@ -2539,7 +2539,7 @@ local dcLbl=UI:CreateFontString(nil,"OVERLAY")
 dcLbl:SetFont(C_2002,9,"OUTLINE")
 dcLbl:SetPoint("BOTTOMLEFT",UI,"BOTTOMLEFT",14,FOOTER_H-18)
 dcLbl:SetTextColor(0.60,0.45,0.80,1)
-dcLbl:SetText(SA_GOLD.."CTRL+C — Discord:|r")
+dcLbl:SetText(SA_GOLD.."CTRL+C - Discord:|r")
 
 local dBox=CreateFrame("EditBox",nil,UI,"BackdropTemplate")
 dBox:SetSize(280,20)
@@ -2594,8 +2594,8 @@ MakeScaleBtn("-",-8,function()
     scaleValTxt:SetText(string.format("%.2f",n))
 end)
 
--- Snelknoppen links in footer — breed genoeg dat ze binnen 760px vallen
--- Layout: [Cloth][Skin][Prey] links · [Debug] rechts naast schaal knoppen
+-- Snelknoppen links in footer - breed genoeg dat ze binnen 760px vallen
+-- Layout: [Cloth][Skin][Prey] links . [Debug] rechts naast schaal knoppen
 local BTN_W = 72
 local BTN_H = 22
 local BTN_Y = 8  -- van onderkant
@@ -2619,15 +2619,15 @@ end
 
 -- Links: Cloth | Skin | Prey (4px gap ertussen)
 local GAP = 4
-MakePluginBtn("🧵 Cloth","|cff44aaff", 4, function()
+MakePluginBtn("[cloth] Cloth","|cff44aaff", 4, function()
     if SlashCmdList["CBUDGET"] then SlashCmdList["CBUDGET"]("")
     elseif SlashCmdList["CBUD"] then SlashCmdList["CBUD"]("") end
 end)
-MakePluginBtn("🐾 Skin","|cff44cc66", 4+BTN_W+GAP, function()
+MakePluginBtn("[prey] Skin","|cff44cc66", 4+BTN_W+GAP, function()
     if SlashCmdList["MAJESTICTRACKER"] then SlashCmdList["MAJESTICTRACKER"]("")
     elseif SlashCmdList["SNR"] then SlashCmdList["SNR"]("") end
 end)
-MakePluginBtn("🎯 Prey+","|cffff6644", 4+(BTN_W+GAP)*2, function()
+MakePluginBtn("[>] Prey+","|cffff6644", 4+(BTN_W+GAP)*2, function()
     if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
 end)
 
@@ -2655,7 +2655,7 @@ local function MakeDebugBtn()
 end
 MakeDebugBtn()
 
--- ── DATA ──────────────────────────────────────────────────────────────────
+-- -- DATA ------------------------------------------------------------------
 local function CheckWeeklyReset()
     local cw=GetServerTime()/(60*60*24*7)
     if not DelveTrackerDB.lastResetWeek or math.floor(cw)>math.floor(DelveTrackerDB.lastResetWeek) then
@@ -2758,7 +2758,7 @@ UpdateCharacterList = function()
     if DT_SuggestDrop then DT_SuggestDrop:Hide() end
     if not (DT_Scroll and DT_Scroll.content) then return end
     local filter=(DT_SearchBox and DT_SearchBox:GetText() or ""):lower()
-    if filter=="🔍 zoek karakter..." then filter="" end
+    if filter=="[debug] zoek karakter..." then filter="" end
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
         if filter=="" or k:lower():find(filter,1,true) then
@@ -2825,7 +2825,7 @@ UpdateCharacterList = function()
         r.sp = r.sp or r:CreateFontString(nil,"OVERLAY")
         r.sp:SetFont(C_2002,9,"")
         r.sp:SetPoint("LEFT",r.cIcon,"RIGHT",10,-4)
-        r.sp:SetText(SA_GREY..(data.spec or "??").." · iLvl "..(data.ilvl or 0).."|r")
+        r.sp:SetText(SA_GREY..(data.spec or "??").." . iLvl "..(data.ilvl or 0).."|r")
 
         -- Delve progress
         r.prgr = r.prgr or r:CreateFontString(nil,"OVERLAY")
@@ -2837,7 +2837,7 @@ UpdateCharacterList = function()
                 st=st..(v.p>=v.t and "|cff44cc66" or "|cffff5555")..v.p.."/"..v.t.."|r  "
             end
         end
-        r.prgr:SetText(st~="" and st or SA_GREY.."—|r")
+        r.prgr:SetText(st~="" and st or SA_GREY.."-|r")
 
         -- Gold
         r.gld = r.gld or r:CreateFontString(nil,"OVERLAY")
@@ -2851,14 +2851,14 @@ UpdateCharacterList = function()
         r.ilv:SetPoint("RIGHT",r.gld,"LEFT",-12,0)
         r.ilv:SetText("|cff00ff00"..(data.ilvl or 0).."|r")
 
-        -- Tooltip — zelfde voor beide kolommen
+        -- Tooltip - zelfde voor beide kolommen
         local sn,d = shortName,data
         r:SetScript("OnEnter",function(self)
             self:SetBackdropColor(0.14,0.07,0.22,1)
             self:SetBackdropBorderColor(0.50,0.15,0.80,1)
             GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
             GameTooltip:SetText(SA_GOLD..sn)
-            GameTooltip:AddLine(SA_GREY..(d.class or "?").." · "..(d.spec or "??").."|r")
+            GameTooltip:AddLine(SA_GREY..(d.class or "?").." . "..(d.spec or "??").."|r")
             if d.delves then
                 local ds=""
                 for _,v in ipairs(d.delves) do
@@ -2889,10 +2889,10 @@ UpdateCharacterList = function()
 end
 
 -- ============================================================================
--- MURLOC MINIMAP BUTTON — volledig origineel menu (4 secties)
--- Klik links: toggle UI · Rechts: volledig context menu · R-drag: verplaats
+-- MURLOC MINIMAP BUTTON - volledig origineel menu (4 secties)
+-- Klik links: toggle UI . Rechts: volledig context menu . R-drag: verplaats
 -- ============================================================================
--- ── Murloc Button — exact origineel zoals het was ───────────────────────
+-- -- Murloc Button - exact origineel zoals het was -----------------------
 local MBtn = CreateFrame("Button","DT_MurlocBtn",UIParent)
 MBtn:SetSize(55,55)
 MBtn:SetPoint("CENTER")
@@ -2934,46 +2934,46 @@ local function DT_OpenMurlocMenu(owner)
         root:CreateTitle(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v2.9.9|r")
 
         root:CreateTitle(SA_GOLD.."Characters|r")
-        root:CreateButton("|cffffffff⚔  Delves|r",       function() UI:Show(); ShowTab(2) end)
-        root:CreateButton("|cffffffff📖  Registry|r",     function()
+        root:CreateButton("|cffffffff[X]  Delves|r",       function() UI:Show(); ShowTab(2) end)
+        root:CreateButton("|cffffffff[help]  Registry|r",     function()
             local r=_G["DT_RegistryFrame"]
             if r then if r:IsShown() then r:Hide() else r:Show() end end
         end)
-        root:CreateButton("|cffffffff🏛  Armory|r",       function() UI:Show(); ShowTab(5) end)
-        root:CreateButton("|cffffffff👥  Guild|r",        function() UI:Show(); ShowTab(1) end)
+        root:CreateButton("|cffffffff[reg]  Armory|r",       function() UI:Show(); ShowTab(5) end)
+        root:CreateButton("|cffffffff[G]  Guild|r",        function() UI:Show(); ShowTab(1) end)
 
         root:CreateTitle(SA_BLUE.."Trackers|r")
-        root:CreateButton("|cffffffff🎯  Prey Tracker|r", function()
+        root:CreateButton("|cffffffff[>]  Prey Tracker|r", function()
             if SlashCmdList["DTPREY"] then SlashCmdList["DTPREY"]("") end
         end)
-        root:CreateButton("|cffffffff📦  Bounty|r",       function() UI:Show(); ShowTab(3) end)
-        root:CreateButton("|cffffffff📋  Roster|r",       function() UI:Show(); ShowTab(4) end)
-        root:CreateButton("|cffffffff💰  Currency|r",     function() UI:Show(); ShowTab(6) end)
-        root:CreateButton("|cffffffff🧵  Cloth Counter|r",function()
+        root:CreateButton("|cffffffff[mail]  Bounty|r",       function() UI:Show(); ShowTab(3) end)
+        root:CreateButton("|cffffffff[log]  Roster|r",       function() UI:Show(); ShowTab(4) end)
+        root:CreateButton("|cffffffff[gold]  Currency|r",     function() UI:Show(); ShowTab(6) end)
+        root:CreateButton("|cffffffff[cloth]  Cloth Counter|r",function()
             if SlashCmdList["CBUDGET"] then SlashCmdList["CBUDGET"]("")
             elseif SlashCmdList["CBUD"] then SlashCmdList["CBUD"]("") end
         end)
-        root:CreateButton("|cffffffff🐾  Skin & Rare|r",  function()
+        root:CreateButton("|cffffffff[prey]  Skin & Rare|r",  function()
             if SlashCmdList["SNR"] then SlashCmdList["SNR"]("") end
         end)
-        root:CreateButton("|cffffffff🔒  Lockout|r",      function()
+        root:CreateButton("|cffffffff[lock]  Lockout|r",      function()
             if SlashCmdList["DTLOCKOUT"] then SlashCmdList["DTLOCKOUT"]() end
         end)
 
         root:CreateTitle(SA_PURPLE.."Settings|r")
-        root:CreateButton("|cffffffff⚙  Admin Panel|r",  function()
+        root:CreateButton("|cffffffff[S]  Admin Panel|r",  function()
             local opt=_G["DelveTrackerOptions"]
             if opt then if opt:IsShown() then opt:Hide() else opt:Show() end end
         end)
-        root:CreateButton("|cffffffff🔧  Debug|r",        function()
+        root:CreateButton("|cffffffff[fix]  Debug|r",        function()
             local f=_G["DT_DebugFrame"]
             if f then if f:IsShown() then f:Hide() else f:Show() end
             elseif SlashCmdList["DTDEBUG"] then SlashCmdList["DTDEBUG"]("") end
         end)
-        root:CreateButton("|cffffffff💬  ExchangeBot|r",  function()
+        root:CreateButton("|cffffffff[chat]  ExchangeBot|r",  function()
             if SlashCmdList["CBOT"] then SlashCmdList["CBOT"]("") end
         end)
-        root:CreateButton("|cffffffff📬  Mail Attach|r",  function()
+        root:CreateButton("|cffffffff[mail]  Mail Attach|r",  function()
             if SlashCmdList["DTMAIL"] then SlashCmdList["DTMAIL"]("") end
         end)
 
@@ -3012,7 +3012,7 @@ end)
 MBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
     GameTooltip:SetText(SA_PURPLE.."WowTracker|r")
-    GameTooltip:AddLine(SA_GREY.."Links: open/sluit · Rechts: menu · Sleep: verplaats|r")
+    GameTooltip:AddLine(SA_GREY.."Links: open/sluit . Rechts: menu . Sleep: verplaats|r")
     GameTooltip:Show()
 end)
 MBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -3051,13 +3051,13 @@ SlashCmdList["WTAB5"]=function() UI:Show(); ShowTab(5) end
 SlashCmdList["WTAB6"]=function() UI:Show(); ShowTab(6) end
 SlashCmdList["WTRELOAD"]=function() ReloadUI() end
 
--- /wt-racedbg — debug race icon atlas voor Undead/Warlock probleem
+-- /wt-racedbg - debug race icon atlas voor Undead/Warlock probleem
 SLASH_WTRACEDBG1="/wt-racedbg"
 SlashCmdList["WTRACEDBG"]=function()
     -- Wis cache voor schone test
     if DT_RaceAtlasCache then
         DT_RaceAtlasCache = {}
-        print(SA_PURPLE.."[WT RaceIcon Debug]|r Cache geleegd — herlaad roster...")
+        print(SA_PURPLE.."[WT RaceIcon Debug]|r Cache geleegd - herlaad roster...")
     end
     -- Toon laatste debug info
     print(SA_GREY.."Laatste atlas poging:|r "..tostring(DT_LastRaceAtlasDebug or "geen data"))
@@ -3113,7 +3113,7 @@ UI:SetScript("OnEvent",function(self,event)
                     if data.gender == "male"   then data.gender = 2 end
                     if data.gender == "female" then data.gender = 3 end
                     -- Migreer oude race display namen naar CamelCase
-                    -- "Blood Elf" → "BloodElf", "Night Elf" → "NightElf" etc
+                    -- "Blood Elf" -> "BloodElf", "Night Elf" -> "NightElf" etc
                     if data.race and data.race:find(" ") then
                         data.race = data.race:gsub(" ","")
                     end
@@ -3170,7 +3170,7 @@ UI:SetScript("OnEvent",function(self,event)
     if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
     or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
         ScanDelves()
-        -- Zorg dat UI verborgen blijft bij world enter — alleen murloc opent het
+        -- Zorg dat UI verborgen blijft bij world enter - alleen murloc opent het
         if event=="PLAYER_ENTERING_WORLD" and not DelveTrackerDB.uiWasOpen then
             UI:Hide()
         end

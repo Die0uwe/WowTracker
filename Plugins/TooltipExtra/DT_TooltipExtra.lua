@@ -5,7 +5,7 @@
 
 if DelveTracker then
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -184,7 +184,7 @@ end
                     -- Check if following entry is a sub-item (starts with "-")
                     local hasSub = settings[i+1] and settings[i+1].label and settings[i+1].label:match("^%-")
                     if hasSub then
-                        -- Parent entry → create submenu button
+                        -- Parent entry -> create submenu button
                         local sub = "|cff0000ff"
                         if cfg.label:find("Settings") then sub = "|cffffa500" end
                         if cfg.label:find("UC")       then sub = "|cffff6666" end

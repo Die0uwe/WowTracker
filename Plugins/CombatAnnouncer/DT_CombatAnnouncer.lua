@@ -4,7 +4,7 @@
 
 if DelveTracker then
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -178,7 +178,7 @@ end
         soundBtn.t:SetText("Combat Sound: "..(DelveTrackerDB.enableCombatSound and "ON" or "OFF"))
 
         local function CreateSld(label, dbKey, y, minVal, maxVal)
-            -- OptionsSliderTemplate deprecated in 10.0 → manual slider, preserves s.Text API
+            -- OptionsSliderTemplate deprecated in 10.0 -> manual slider, preserves s.Text API
             local s = CreateFrame("Slider", nil, frame)
             s:SetPoint("TOP", 0, y); s:SetSize(200,16); s:SetOrientation("HORIZONTAL")
             s:SetMinMaxValues(minVal, maxVal); s:SetValueStep(0.1); s:SetObeyStepOnDrag(true)

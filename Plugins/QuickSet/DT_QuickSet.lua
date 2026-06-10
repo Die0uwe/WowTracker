@@ -1,6 +1,6 @@
 -- =====================================================
--- DelveTracker – QuickSet | Tab3
--- Midnight 12.0.05 | v7.1 – Live POI Fix
+-- DelveTracker - QuickSet | Tab3
+-- Midnight 12.0.05 | v7.1 - Live POI Fix
 --
 -- Container: 400 x 335 px (PluginArea)
 -- Tab 1: Nemesis + Required Items
@@ -19,7 +19,7 @@
 
 if not DelveTracker then return end
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -33,7 +33,7 @@ end
 
 
 
--- ── Color scheme ─────────────────────────────────────────────────────────────
+-- -- Color scheme -------------------------------------------------------------
 local CO = {
     orange  = "|cffff6600",
     magenta = "|cffff44cc",
@@ -50,10 +50,10 @@ local CO = {
 local VALEERA_FACTION_ID = 2744
 local VALEERA_DISPLAY_ID = 26365  -- creature/NPC display ID for Valeera Sanguinar
 
--- ── Layout constants ──────────────────────────────────────────────────────────
+-- -- Layout constants ----------------------------------------------------------
 -- UIPanelScrollFrameTemplate places scrollbar 4px to the right of the frame,
--- scrollbar width = 16px → total overhang = 20px.
--- To keep scrollbar inside container: right offset must be ≥ 20.
+-- scrollbar width = 16px -> total overhang = 20px.
+-- To keep scrollbar inside container: right offset must be >= 20.
 local CONT_W   = 400
 local SF_RIGHT = 20      -- right offset for scrollframe so scrollbar stays inside
 -- scroll child width = CONT_W - 1 (left border) - SF_RIGHT - 2 (padding)
@@ -90,7 +90,7 @@ local DELVES = {
     { name="Torment's Rise",      uiMapID=2507, regular=8445, bountiful=nil,  story=nil,   chest=nil,  nemesis=61799 },
 }
 
--- ── Helpers ───────────────────────────────────────────────────────────────────
+-- -- Helpers -------------------------------------------------------------------
 local parentCache = {}
 local function ParentMap(id)
     if not id or not C_Map or not C_Map.GetMapInfo then return nil end
@@ -298,7 +298,7 @@ local function BD(t, b)
     }
 end
 
--- ── Tile factory ──────────────────────────────────────────────────────────────
+-- -- Tile factory --------------------------------------------------------------
 local function NewTile(parent, idx)
     local t = CreateFrame("Button", nil, parent, "BackdropTemplate")
     -- 2-naast-2: oneven links, even rechts
@@ -313,7 +313,7 @@ local function NewTile(parent, idx)
     t:SetPoint("TOPLEFT", xPad + col * (tileW + TILE_G), -(row * (tileH + TILE_G)))
     t:SetBackdrop(BD(1))
 
-    -- Art background – alpha 0.50: images are clear, no haze
+    -- Art background - alpha 0.50: images are clear, no haze
     t.artBg = t:CreateTexture(nil, "BACKGROUND", nil, -2)
     t.artBg:SetPoint("TOPLEFT",     2,  -1)
     t.artBg:SetPoint("BOTTOMRIGHT", -2,  1)
@@ -325,13 +325,13 @@ local function NewTile(parent, idx)
     t.stripe:SetSize(4, TILE_H - 2)
     t.stripe:SetPoint("LEFT", 1, 0)
 
-    -- Icon – clean, no color overlay
+    -- Icon - clean, no color overlay
     t.icon = t:CreateTexture(nil, "ARTWORK")
     t.icon:SetSize(38, 38)
     t.icon:SetPoint("LEFT", 9, 0)
     t.icon:SetTexCoord(0.06, 0.94, 0.06, 0.94)
 
-    -- Icon rim – kept fully transparent (no tint)
+    -- Icon rim - kept fully transparent (no tint)
     t.iconRim = t:CreateTexture(nil, "OVERLAY")
     t.iconRim:SetSize(40, 40)
     t.iconRim:SetPoint("CENTER", t.icon, "CENTER", 0, 0)
@@ -385,7 +385,7 @@ local function NewTile(parent, idx)
     return t
 end
 
--- ── Apply tile style ──────────────────────────────────────────────────────────
+-- -- Apply tile style ----------------------------------------------------------
 local function StyleTile(t, d, isBountiful, isNemesis)
     local live = GetLiveDelveInfo(d)
     -- Icon from achievement, fallback to generic
@@ -409,7 +409,7 @@ local function StyleTile(t, d, isBountiful, isNemesis)
     t.iconRim:SetColorTexture(1, 1, 1, 0)  -- always transparent
 
     if isBountiful then
-        -- T06: Bountiful → SA gold-purple tint (was te oranje)
+        -- T06: Bountiful -> SA gold-purple tint (was te oranje)
         t:SetBackdropColor(0.08, 0.04, 0.12, 0.95)
         t:SetBackdropBorderColor(0.65, 0.45, 0.0, 0.85)
         t.stripe:SetColorTexture(0.80, 0.67, 0.0, 1)
@@ -447,7 +447,7 @@ local function StyleTile(t, d, isBountiful, isNemesis)
     end
 end
 
--- ── Rich tooltip: shows every story criterion (quest) individually ─────────────
+-- -- Rich tooltip: shows every story criterion (quest) individually -------------
 local function SetTooltip(t, d, isBountiful, isNemesis)
     t:RegisterForClicks("LeftButtonUp")
     t:SetScript("OnClick", function() OpenLiveDelve(d) end)
@@ -483,7 +483,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             GameTooltip:AddLine(CO.red .. "Live delve POI not found; using ID fallback.|r")
         end
 
-        -- ── Story achievement with per-quest criteria ──
+        -- -- Story achievement with per-quest criteria --
         if d.story then
             local achName, done, total, compl = AchInfo(d.story)
             if achName then
@@ -510,7 +510,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             end
         end
 
-        -- ── Chest / coffer achievement ──
+        -- -- Chest / coffer achievement --
         if d.chest then
             local achName, done, total, compl = AchInfo(d.chest)
             if total then
@@ -531,7 +531,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             end
         end
 
-        -- ── Nemesis achievement ──
+        -- -- Nemesis achievement --
         if isNemesis and d.nemesis then
             local _, _, _, compl = AchInfo(d.nemesis)
             GameTooltip:AddLine(" ")
@@ -543,7 +543,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             end
         end
 
-        -- ── Bountiful tip ──
+        -- -- Bountiful tip --
         if isBountiful then
             GameTooltip:AddLine(" ")
             GameTooltip:AddLine(CO.orange .. "Bountiful benefits:|r")
@@ -576,11 +576,11 @@ local function FillStory(t, d)
     end
 end
 
--- ── Main build ────────────────────────────────────────────────────────────────
+-- -- Main build ----------------------------------------------------------------
 local function BuildGrid(container)
     if container._dtBuilt then return end
     container._dtBuilt = true
-    -- Gebruik container breedte — wacht tot frame gelayout is
+    -- Gebruik container breedte - wacht tot frame gelayout is
     C_Timer.After(0.05, function()
         local cw = container:GetWidth()
         if cw and cw > 200 then
@@ -596,11 +596,11 @@ local function BuildGrid(container)
         SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
     end
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 1. VALEERA HEADER
     --    Uses PlayerModel with SetDisplayInfo for true
     --    3D NPC portrait (Valeera Sanguinar).
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local hdr = CreateFrame("Frame", nil, container, "BackdropTemplate")
     -- hdr breed als container, gecentreerd
     hdr:SetSize(CONT_W - 2, HDR_H)
@@ -617,7 +617,7 @@ local function BuildGrid(container)
     topLine:SetPoint("TOPRIGHT", -1, -1)
     topLine:SetColorTexture(0.0, 0.95, 0.85, 1)
 
-    -- ── 3D Model portrait ──────────────────────────
+    -- -- 3D Model portrait --------------------------
     -- PlayerModel with SetDisplayInfo renders the NPC in a portrait-style
     -- close-up. SetPortraitZoom(1) zooms to face/bust.
     hdr.model = CreateFrame("PlayerModel", nil, hdr)
@@ -725,9 +725,9 @@ local function BuildGrid(container)
     end)
     hdr:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 2. THREE TABS (bottom of container)
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local tabW = math.floor((CONT_W - 2) / 3)
 
     local function MakeTabBtn(label, offsetX)
@@ -758,14 +758,14 @@ local function BuildGrid(container)
     tabBoun.glowBar:SetColorTexture(0.80, 0.67, 0.0, 1)  -- T06: gold ipv oranje
     tabNorm.glowBar:SetColorTexture(0.30, 0.70, 1.0, 1)
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 3. THREE SCROLL AREAS
     --    SF_RIGHT = 20: scroll frame right edge is 20px
     --    from container right, so the 16px scrollbar
     --    (offset 4px) lands at container right - 0px.
     --    Tabs N and B: scrollbar hidden entirely.
     --    Tab Nr: scrollbar visible and inside frame.
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local function MakeScrollArea()
         local sf = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
         sf:SetPoint("TOPLEFT",     hdr,       "BOTTOMLEFT",  0,             -2)
@@ -788,9 +788,9 @@ local function BuildGrid(container)
     sfN:EnableMouseWheel(false)
     sfB:EnableMouseWheel(false)
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 4. TAB ACTIVATION
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local activeTab = 1
 
     local function ActivateTab(n)
@@ -843,9 +843,9 @@ local function BuildGrid(container)
     AddTabHover(tabBoun, 2)
     AddTabHover(tabNorm, 3)
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 5. TILE POOLS
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local poolN, poolB, poolNr = {}, {}, {}
 
     local function GetTile(pool, parent, idx)
@@ -866,21 +866,21 @@ local function BuildGrid(container)
         return pool[idx]
     end
 
-    -- ════════════════════════════════════════════════
-    -- 6. ITEM BOXES (Nemesis tab – Required Items)
+    -- ================================================
+    -- 6. ITEM BOXES (Nemesis tab - Required Items)
     --
-    --   Layout per box  (≈ ITEM_W x ITEM_H px):
-    --   ┌───────────────────────────────┐
-    --   ║▌  [ICON 40x40]  Item Name    ║
-    --   ║▌       ┌──┐                  ║
-    --   ║▌       │x2│ ← badge on icon  ║
-    --   ║▌       └──┘                  ║
-    --   └───────────────────────────────┘
+    --   Layout per box  (~ ITEM_W x ITEM_H px):
+    --   +-------------------------------┐
+    --   |▌  [ICON 40x40]  Item Name    |
+    --   |▌       +--┐                  |
+    --   |▌       │x2│ <- badge on icon  |
+    --   |▌       +--┘                  |
+    --   +-------------------------------┘
     --
     --   Count badge: outlined white text with dark bg,
     --   positioned bottom-right corner of the icon.
     --   "in bags" label removed entirely.
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local itemBoxes = {}
 
     local function MakeItemBox(parent, item, idx)
@@ -970,9 +970,9 @@ local function BuildGrid(container)
         return box
     end
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 7. VALEERA REFRESH
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local function RefreshValeera()
         local rank, rep = ValeeraData()
         if rank and rep then
@@ -1003,9 +1003,9 @@ local function BuildGrid(container)
         end
     end
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 8. DELVES REFRESH
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local function RefreshDelves()
         local bountiful, normal, nemesis = {}, {}, {}
         for _, d in ipairs(DELVES) do
@@ -1031,7 +1031,7 @@ local function BuildGrid(container)
         for _, p in ipairs(poolNr)   do p:Hide() end
         for _, b in ipairs(itemBoxes) do b:Hide() end
 
-        -- ── TAB 1: NEMESIS ─────────────────────────────
+        -- -- TAB 1: NEMESIS -----------------------------
         local iN = 0
         for _, d in ipairs(nemesis) do
             iN = iN + 1
@@ -1055,7 +1055,7 @@ local function BuildGrid(container)
             if not itemBoxes[i] then MakeItemBox(scN, item, i) end
             local box = itemBoxes[i]
             box:SetParent(scN)
-            -- S3-03: gecentreerd — berekend vanuit SCROLL_W
+            -- S3-03: gecentreerd - berekend vanuit SCROLL_W
             local totalItemW = 3 * ITEM_W + 2 * ITEM_GAP
             local itemPad = math.max(0, math.floor((SCROLL_W - totalItemW) / 2))
             box:SetPoint("TOPLEFT", itemPad + box.xOffset, -ITEMS_Y)
@@ -1089,7 +1089,7 @@ local function BuildGrid(container)
             end
         end
 
-        -- ── S3-04: BOSS TACTICS KNOP ────────────────────────────────
+        -- -- S3-04: BOSS TACTICS KNOP --------------------------------
         local BOSS_Y = ITEMS_Y + ITEM_H + 8
 
         if not scN.bossTacticsBtn then
@@ -1128,7 +1128,7 @@ local function BuildGrid(container)
                 s:SetBackdropBorderColor(0.65,0.10,0.85,0.9)
             end)
 
-            -- Boss Tactics Toast popup — persistent upvalue (niet lokaal in closure)
+            -- Boss Tactics Toast popup - persistent upvalue (niet lokaal in closure)
             -- scN.bossToast zodat het overleeft tussen RefreshDelves calls
             local function BuildBossToast()
                 if scN.bossToast then return scN.bossToast end
@@ -1150,7 +1150,7 @@ local function BuildGrid(container)
                 local bh = bt:CreateFontString(nil,"OVERLAY")
                 bh:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
                 bh:SetPoint("TOPLEFT",10,-10)
-                bh:SetText(CO.magenta.."NULLAEUS — Torment's Rise (Nemesis Delve)|r")
+                bh:SetText(CO.magenta.."NULLAEUS - Torment's Rise (Nemesis Delve)|r")
 
                 -- Sluit
                 local xb = CreateFrame("Button",nil,bt,"UIPanelCloseButton")
@@ -1260,7 +1260,7 @@ local function BuildGrid(container)
         scN.bossTacticsBtn:SetPoint("TOPLEFT",0,-BOSS_Y)
         scN.bossTacticsBtn:Show()
 
-        -- ── ABUNDANCE BLOK onder Boss Tactics ────────────────────────────
+        -- -- ABUNDANCE BLOK onder Boss Tactics ----------------------------
         local AB_Y = BOSS_Y + 28 + 8
         if not scN.abundanceFrame then
             -- S3-07: compact abundance blok (52px)
@@ -1277,7 +1277,7 @@ local function BuildGrid(container)
             abf.title = abf:CreateFontString(nil,"OVERLAY")
             abf.title:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
             abf.title:SetPoint("TOPLEFT",10,-7)
-            abf.title:SetText("|cff44cc66✦ Abundance|r")
+            abf.title:SetText("|cff44cc66* Abundance|r")
             abf.timer = abf:CreateFontString(nil,"OVERLAY")
             abf.timer:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
             abf.timer:SetPoint("TOPRIGHT",-8,-7)
@@ -1312,7 +1312,7 @@ local function BuildGrid(container)
             local caveName = (abData.mapID and ABCAVE_NAMES[abData.mapID]) or abData.zone or "?"
             local zoneShort = (abData.mapID and ABCAVE_ZONES[abData.mapID]) or ""
             -- Rij 1: cave naam + zone (links), timer (rechts)
-            scN.abundanceFrame.title:SetText("|cff44cc66✦ |r|cffffffff"..caveName.."|r  |cff887799"..zoneShort.."|r")
+            scN.abundanceFrame.title:SetText("|cff44cc66* |r|cffffffff"..caveName.."|r  |cff887799"..zoneShort.."|r")
             local timeStr = ""
             if abData.secondsLeft and abData.secondsLeft > 0 then
                 local h=math.floor(abData.secondsLeft/3600)
@@ -1324,19 +1324,19 @@ local function BuildGrid(container)
             local shards = abData.shards or 0
             local dundunCol = shards > 0 and "|cff44cc66" or "|cffff5555"
             scN.abundanceFrame.shards:SetText("|cff887799Dundun: |r"..dundunCol..shards.." shards|r")
-            scN.abundanceFrame.info:SetText("|cff887799Harvest actief · roteert elke 8u|r")
+            scN.abundanceFrame.info:SetText("|cff887799Harvest actief . roteert elke 8u|r")
         else
             scN.abundanceFrame:SetBackdropBorderColor(0.15,0.30,0.15,0.6)
-            scN.abundanceFrame.title:SetText("|cff556655✦ Abundance|r  |cff334433geen actieve harvest|r")
+            scN.abundanceFrame.title:SetText("|cff556655* Abundance|r  |cff334433geen actieve harvest|r")
             scN.abundanceFrame.timer:SetText("")
             scN.abundanceFrame.shards:SetText("")
-            scN.abundanceFrame.info:SetText("|cff445544Eversong · Zul'Aman · Harandar · Voidstorm|r")
+            scN.abundanceFrame.info:SetText("|cff445544Eversong . Zul'Aman . Harandar . Voidstorm|r")
         end
         scN.abundanceFrame:Show()
 
         scN:SetHeight(math.max(AB_Y + 62, 10))  -- S3-07: compacter blok
 
-        -- ── TAB 2: BOUNTIFUL ───────────────────────────
+        -- -- TAB 2: BOUNTIFUL ---------------------------
         local iB = 0
         if bc == 0 then
             iB = 1
@@ -1367,7 +1367,7 @@ local function BuildGrid(container)
         end
         scB:SetHeight(math.max(iB * (TILE_H + TILE_G) - TILE_G, 10))
 
-        -- ── TAB 3: NORMAL (scrollbar visible) ──────────
+        -- -- TAB 3: NORMAL (scrollbar visible) ----------
         local iNr = 0
         for _, d in ipairs(normal) do
             iNr = iNr + 1
@@ -1401,9 +1401,9 @@ local function BuildGrid(container)
         RefreshDelves()
     end
 
-    -- ════════════════════════════════════════════════
+    -- ================================================
     -- 9. TIMER (every 5 seconds while visible)
-    -- ════════════════════════════════════════════════
+    -- ================================================
     local function StartTimer()
         if container._dtTicker then return end
         container._dtTicker = C_Timer.NewTicker(5, RefreshAll)

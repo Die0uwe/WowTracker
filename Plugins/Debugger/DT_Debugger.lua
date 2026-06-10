@@ -1,25 +1,25 @@
 -- =====================================================================
---  DT_Debugger.lua  v1.0  —  DelveTracker Debug Console
+--  DT_Debugger.lua  v1.0  -  DelveTracker Debug Console
 --  Loaded last via DelveTracker.xml
 --
---  /dtdebug              → toggle debug panel
---  /dtdebug log          → show full error log
---  /dtdebug db           → print DB health to chat
---  /dtdebug plugins      → list all registered plugins
---  /dtdebug mem          → addon memory usage
---  /dtdebug scan         → re-run weekly scan + refresh
---  /dtdebug clear        → wipe error log
---  /dtdebug errors       → print last 10 errors to chat
+--  /dtdebug              -> toggle debug panel
+--  /dtdebug log          -> show full error log
+--  /dtdebug db           -> print DB health to chat
+--  /dtdebug plugins      -> list all registered plugins
+--  /dtdebug mem          -> addon memory usage
+--  /dtdebug scan         -> re-run weekly scan + refresh
+--  /dtdebug clear        -> wipe error log
+--  /dtdebug errors       -> print last 10 errors to chat
 -- =====================================================================
 
 if not DelveTracker then
 
 
-    print("|cffff4444[DT_Debugger]:|r DelveTracker core not loaded — debugger disabled.")
+    print("|cffff4444[DT_Debugger]:|r DelveTracker core not loaded - debugger disabled.")
     return
 end
 
--- WTTheme: centraal kleurensysteem (Fase 3 — T04b)
+-- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
 local function TH()
     return WTTheme or {
         bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
@@ -32,9 +32,9 @@ local function TH()
 end
 
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Internal log store
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local DBG            = {}
 DBG.log              = {}       -- {time, sev, src, msg}
 DBG.maxEntries       = 200
@@ -57,9 +57,9 @@ local SEV_LABEL = {
     SYS  = "SYS",
 }
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- DBG.Log(sev, src, msg)
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 function DBG.Log(sev, src, msg)
     sev = sev or "INFO"
     if sev == "ERR"  then DBG.errorCount = DBG.errorCount + 1 end
@@ -78,9 +78,9 @@ function DBG.Log(sev, src, msg)
     end
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Wrap plugin calls so errors are captured without crashing
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local _origPluginDispatch = nil
 local function _SafeDispatch(pluginName, func, ...)
     local ok, err = pcall(func, ...)
@@ -110,9 +110,9 @@ do
     end
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- DB health helpers
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local function GetDBStats()
     local stats = {}
     if not DelveTrackerDB then
@@ -146,9 +146,9 @@ local function GetMemoryKB()
     return 0
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Debug UI
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local PANEL_W, PANEL_H = 640, 500
 
 local DBG_frame = CreateFrame("Frame", "DT_DebugFrame", UIParent, "BackdropTemplate")
@@ -180,7 +180,7 @@ hdr:SetColorTexture(0.05, 0.02, 0.09, 1)  -- SA dark header
 local title = DBG_frame:CreateFontString(nil, "OVERLAY")
 title:SetPoint("TOPLEFT", 10, -8)
 title:SetFont("Fonts\\2002.ttf", 11, "OUTLINE")
-title:SetText("|cff44ff44DT Debug Console|r  |cff888888v1.0  —  WoW 12.0.5.67314|r")
+title:SetText("|cff44ff44DT Debug Console|r  |cff888888v1.0  -  WoW 12.0.5.67314|r")
 
 -- Close button
 local closeBtn = CreateFrame("Button", nil, DBG_frame, "UIPanelCloseButton")
@@ -229,9 +229,9 @@ local sep = DBG_frame:CreateTexture(nil, "BACKGROUND")
 sep:SetPoint("TOPLEFT", 0, -58); sep:SetPoint("TOPRIGHT", 0, -58); sep:SetHeight(1)
 sep:SetColorTexture(0.35, 0.08, 0.55, 0.6)  -- SA purple sep
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- TAB 1: LOG
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local logFrame = CreateFrame("Frame", nil, DBG_frame)
 logFrame:SetPoint("TOPLEFT", 0, -62); logFrame:SetPoint("BOTTOMRIGHT", 0, 36)
 TAB_FRAMES[1] = logFrame
@@ -275,9 +275,9 @@ function DBG._RefreshLog()
     DBG._UpdateStatusBar()
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- TAB 2: PLUGINS
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local plugFrame = CreateFrame("Frame", nil, DBG_frame)
 plugFrame:SetPoint("TOPLEFT", 0, -62); plugFrame:SetPoint("BOTTOMRIGHT", 0, 36)
 TAB_FRAMES[2] = plugFrame
@@ -317,9 +317,9 @@ function DBG._RefreshPlugins()
     plugContent:SetHeight(#names * 16 + 8)
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- TAB 3: DB HEALTH
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local dbFrame = CreateFrame("Frame", nil, DBG_frame)
 dbFrame:SetPoint("TOPLEFT", 0, -62); dbFrame:SetPoint("BOTTOMRIGHT", 0, 36)
 TAB_FRAMES[3] = dbFrame
@@ -339,9 +339,9 @@ function DBG._RefreshDB()
     end
     local lines = {
         string.format("|cff44ff88Characters in DB:|r  %d", s.charCount),
-        string.format("|cff44ff88  → with delves:|r   %d", s.charWithDelves),
-        string.format("|cff44ff88  → with gear:|r     %d", s.charWithGear),
-        string.format("|cff44ff88  → with lockouts:|r %d", s.charWithLockout),
+        string.format("|cff44ff88  -> with delves:|r   %d", s.charWithDelves),
+        string.format("|cff44ff88  -> with gear:|r     %d", s.charWithGear),
+        string.format("|cff44ff88  -> with lockouts:|r %d", s.charWithLockout),
         "",
         string.format("|cff44aaff Plugins registered:|r %d", s.pluginCount),
         string.format("|cff44aaff SavedVar keys (root):|r %d",
@@ -361,9 +361,9 @@ function DBG._RefreshDB()
     dbText:SetText(table.concat(lines, "\n"))
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- TAB 4: MEMORY
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local memFrame = CreateFrame("Frame", nil, DBG_frame)
 memFrame:SetPoint("TOPLEFT", 0, -62); memFrame:SetPoint("BOTTOMRIGHT", 0, 36)
 TAB_FRAMES[4] = memFrame
@@ -399,9 +399,9 @@ function DBG._RefreshMem()
     memText:SetText(table.concat(lines, "\n"))
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Bottom toolbar
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 local function MakeToolBtn(label, xOff, onClick)
     local b = CreateFrame("Button", nil, DBG_frame, "BackdropTemplate")
     b:SetSize(90, 22); b:SetPoint("BOTTOMLEFT", xOff, 8)
@@ -442,9 +442,9 @@ errBadge:SetPoint("BOTTOMRIGHT", -8, 12)
 errBadge:SetJustifyH("RIGHT")
 DBG.errBadge = errBadge
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Master refresh
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 function DBG._UpdateStatusBar()
     local upSec = math.floor(GetTime() - DBG.sessionStart)
     statusBar:SetText(string.format(
@@ -479,9 +479,9 @@ refreshTimer:SetScript("OnUpdate", function(_, dt)
     end
 end)
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Show / toggle
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 function DBG.Toggle()
     if DBG_frame:IsShown() then
         DBG_frame:Hide()
@@ -492,9 +492,9 @@ function DBG.Toggle()
     end
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Slash command: /dtdebug [subcommand]
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 SLASH_DTDEBUG1 = "/dtdebug"
 SlashCmdList["DTDEBUG"] = function(msg)
     msg = strtrim(msg or ""):lower()
@@ -535,9 +535,9 @@ SlashCmdList["DTDEBUG"] = function(msg)
         if s.error then print("|cffff4444[DT Debug] DB ERROR:|r " .. s.error); return end
         print("|cff44ff44[DT Debug]|r  DB Health:")
         print("  Characters: " .. s.charCount)
-        print("  → with delves: "  .. s.charWithDelves)
-        print("  → with gear: "    .. s.charWithGear)
-        print("  → with lockouts: " .. s.charWithLockout)
+        print("  -> with delves: "  .. s.charWithDelves)
+        print("  -> with gear: "    .. s.charWithGear)
+        print("  -> with lockouts: " .. s.charWithLockout)
         print("  Plugins registered: " .. s.pluginCount)
 
     elseif msg == "plugins" then
@@ -564,7 +564,7 @@ SlashCmdList["DTDEBUG"] = function(msg)
             DBG.Log("INFO", "Debugger", "Manual scan complete")
             if DBG_frame:IsShown() then DBG._RefreshAll() end
         end)
-        print("|cff44ff44[DT Debug]|r  Scan triggered — check panel or /dtdebug log")
+        print("|cff44ff44[DT Debug]|r  Scan triggered - check panel or /dtdebug log")
 
     elseif msg == "clear" then
         DBG.log = {}; DBG.errorCount = 0; DBG.warnCount = 0
@@ -573,25 +573,25 @@ SlashCmdList["DTDEBUG"] = function(msg)
 
     elseif msg == "help" then
         print("|cff44ff44[DT Debug]|r  Commands:")
-        print("  /dtdebug           — toggle debug panel")
-        print("  /dtdebug log       — print last 15 log entries")
-        print("  /dtdebug errors    — print captured errors")
-        print("  /dtdebug db        — DB health summary")
-        print("  /dtdebug plugins   — plugin registry")
-        print("  /dtdebug mem       — memory usage")
-        print("  /dtdebug scan      — re-run character scan")
-        print("  /dtdebug clear     — wipe log")
+        print("  /dtdebug           - toggle debug panel")
+        print("  /dtdebug log       - print last 15 log entries")
+        print("  /dtdebug errors    - print captured errors")
+        print("  /dtdebug db        - DB health summary")
+        print("  /dtdebug plugins   - plugin registry")
+        print("  /dtdebug mem       - memory usage")
+        print("  /dtdebug scan      - re-run character scan")
+        print("  /dtdebug clear     - wipe log")
     else
         print("|cff44ff44[DT Debug]|r  Unknown command. Type /dtdebug help for usage.")
     end
 end
 
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 -- Startup log entries
--- ─────────────────────────────────────────────────────────────────────
+-- ---------------------------------------------------------------------
 C_Timer.After(1.0, function()
-    DBG.Log("OK",  "Debugger",  "DT_Debugger v1.0 loaded — /dtdebug for panel")
-    DBG.Log("SYS", "Build",     "WoW 12.0.5 build 67314  ·  TOC 120005")
+    DBG.Log("OK",  "Debugger",  "DT_Debugger v1.0 loaded - /dtdebug for panel")
+    DBG.Log("SYS", "Build",     "WoW 12.0.5 build 67314  .  TOC 120005")
     DBG.Log("SYS", "Version",   "DelveTracker " .. (DelveTracker.Version or "?"))
 
     -- Log all already-registered plugins
@@ -615,7 +615,7 @@ end)
 
 
 -- ============================================================================
--- DELVETRACKER PLUGIN REGISTRATIE — Debugger
+-- DELVETRACKER PLUGIN REGISTRATIE - Debugger
 -- ============================================================================
 local _dtInt_DBG = CreateFrame("Frame")
 _dtInt_DBG:RegisterEvent("PLAYER_LOGIN")
@@ -623,5 +623,5 @@ _dtInt_DBG:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("Debugger", function() end)
-    -- Plugin registratie klaar — geen auto-show
+    -- Plugin registratie klaar - geen auto-show
 end)
