@@ -3020,16 +3020,16 @@ MBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- ============================================================================
 -- SLASH COMMANDS
 -- ============================================================================
--- WowTracker slash commands — prefix /wt- voor alles om conflicten te vermijden
--- /wt en /wowtracker = hoofdcommando (open/sluit)
--- VERWIJDERD: /dt (conflict Details addon), /delves (conflict Blizzard/addons)
-SLASH_WTMAIN1="/wt"; SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/sa"
-SLASH_WTAB11="/wt1"; SLASH_WTAB12="/wt guild"
-SLASH_WTAB21="/wt2"; SLASH_WTAB22="/wt delves"
-SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty"
-SLASH_WTAB41="/wt4"; SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
-SLASH_WTAB51="/wt5"; SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
-SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
+-- WowTracker slash commands
+-- Primair: /wt /wowtracker /sa
+-- Oud /dt en /delves worden runtime geregistreerd als ze vrij zijn
+SLASH_WTMAIN1="/wt"; SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/sa"; SLASH_WTMAIN4="/wt-open"
+SLASH_WTAB11="/wt1"; SLASH_WTAB12="/wt guild";    SLASH_WTAB13="/wt-guild"
+SLASH_WTAB21="/wt2"; SLASH_WTAB22="/wt delves";   SLASH_WTAB23="/wt-delves"
+SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty";   SLASH_WTAB33="/wt-bounty"
+SLASH_WTAB41="/wt4"; SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster";   SLASH_WTAB44="/wt-roster"
+SLASH_WTAB51="/wt5"; SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory";   SLASH_WTAB54="/wt-armory"
+SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"; SLASH_WTAB64="/wt-currency"
 SLASH_WTRELOAD1="/wt-reload"; SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
 
 SlashCmdList["WTMAIN"]=function(msg)
@@ -3182,6 +3182,21 @@ UI:SetScript("OnEvent",function(self,event)
             C_Timer.After(0.8, function()
                 local savedLang = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
                 ApplyLanguage(savedLang)
+            end)
+            -- Runtime registreer /dt en /delves als aliassen (als ze vrij zijn)
+            C_Timer.After(1.0, function()
+                if not SlashCmdList["DT"] then
+                    SLASH_WTDT1="/dt"; SlashCmdList["WTDT"]=SlashCmdList["WTMAIN"]
+                end
+                if not SlashCmdList["DELVES"] then
+                    SLASH_WTDELVES1="/delves"; SlashCmdList["WTDELVES"]=SlashCmdList["WTMAIN"]
+                end
+                if not SlashCmdList["USERINFO"] then
+                    SLASH_WTUSERINFO1="/userinfo"; SlashCmdList["WTUSERINFO"]=SlashCmdList["DTUSER"]
+                end
+                if not SlashCmdList["CHARDASH"] then
+                    SLASH_WTCHARDASH1="/chardash"; SlashCmdList["WTCHARDASH"]=SlashCmdList["DTUSER"]
+                end
             end)
         end
     end

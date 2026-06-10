@@ -161,7 +161,7 @@ end
     f:SetScript("OnShow", RefreshRows)
 
     -- 4. SLASH COMMANDS
-    SLASH_DMENU1 = "/wt-menu"  -- was /dmenu
+    SLASH_DMENU1 = "/wt-menu"; SLASH_DMENU2 = "/dmenu"  -- beide werken
     SlashCmdList["DMENU"] = function() if f:IsShown() then f:Hide() else f:Show() end end
 
     -- 5. RIGHT-CLICK MENU

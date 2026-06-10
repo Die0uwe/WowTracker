@@ -273,6 +273,6 @@ end
         end
     end)
 
-    SLASH_DTCREW1 = "/wt-crew"  -- was /crew, nu uniek prefix
+    SLASH_DTCREW1 = "/wt-crew"; SLASH_DTCREW2 = "/crew"  -- beide werken
     SlashCmdList["DTCREW"] = function() if Registry:IsShown() then Registry:Hide() else Registry:Show() end end
 end

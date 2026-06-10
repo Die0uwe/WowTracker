@@ -3406,7 +3406,7 @@ frame:RegisterEvent("PLAYER_MONEY")
 frame:RegisterEvent("ADDON_LOADED")
 
 frame:SetScript("OnEvent", function(self, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == "DelveTracker" then
+    if event == "ADDON_LOADED" and (arg1 == "WowTracker" or arg1 == "DelveTracker") then
         SetLocale("en"); ApplyPanelTitles()
         ApplyScale(DB().uiScale or 1.0)
 
@@ -3439,11 +3439,14 @@ end)
 -- ================================================================
 --  SLASH COMMANDS  (global keys required by WoW API)
 -- ================================================================
--- /userinfo → /wtuser (vermijdt conflict met Details addon)
--- /chardash → /wt-char (uniek prefix)
+-- Primaire commands (uniek prefix)
 SLASH_DTUSER1 = "/wtuser"
 SLASH_DTUSER2 = "/wt-char"
 SLASH_DTUSER3 = "/wtchardash"
+-- Originele commands als backup (worden runtime ook geregistreerd via WowTracker.lua)
+SLASH_DTUSER4 = "/userinfo"
+SLASH_DTUSER5 = "/chardash"
+SLASH_DTUSER6 = "/cdb"
 
 SlashCmdList["DTUSER"] = function(msg)
     msg = msg and msg:lower():trim() or ""
