@@ -2037,6 +2037,10 @@ local optThemes = {
     {name="Paars",        r=0.06,g=0.02,b=0.12, border={0.45,0.10,0.70}},
     {name="Blauw",        r=0.02,g=0.04,b=0.12, border={0.10,0.25,0.60}},
     {name="Zwart",        r=0.02,g=0.02,b=0.04, border={0.20,0.20,0.20}},
+    -- Nieuwe thema's (icon & asset sheets)
+    {name="Industrial",   r=0.12,g=0.07,b=0.03, border={0.75,0.45,0.15}},
+    {name="Elven",        r=0.03,g=0.10,b=0.05, border={0.45,0.75,0.45}},
+    {name="Void",         r=0.02,g=0.01,b=0.06, border={0.20,0.10,0.45}},
 }
 local lastThemeBtn = opt.themeHdr
 for _,th in ipairs(optThemes) do
@@ -2058,10 +2062,14 @@ for _,th in ipairs(optThemes) do
         if WTTheme and WTTheme.SetActiveTheme then
             -- Map admin thema naam naar WTTheme naam
             local themeMap = {
-                ["SA Dark"]  = "Slayer Alliance",
-                ["Paars"]    = "Slayer Alliance",
-                ["Blauw"]    = "Midnight Dark",
-                ["Zwart"]    = "Midnight Dark",
+                ["SA Dark"]    = "Slayer Alliance",
+                ["Paars"]      = "Slayer Alliance",
+                ["Blauw"]      = "Midnight Dark",
+                ["Zwart"]      = "Midnight Dark",
+                ["Industrial"] = "Industrial",
+                ["Elven"]      = "Elven",
+                ["Void"]       = "Void",
+                ["Horde Red"]  = "Horde Red",
             }
             local wtn = themeMap[t.name]
             if wtn then WTTheme.SetActiveTheme(wtn) end
