@@ -103,14 +103,15 @@ Alle speelbare rassen ondersteund via de `raceicon128-*` atlas:
 | **SkinNRare** | `/snr` `/mt` | Skin & rare tracker |
 | **SystemTools** | `/wt-mem` `/wt-reload` | Systeem tools |
 | **TooltipExtra** | — | Extra tooltip informatie |
-| **UserInfo** | — | Karakter info |
+| **UserInfo** | `/wtuser` `/wt-char` `/wtchardash` |
 
 ---
 
 ## Slash Commands
 
 ```
-/wt  /dt  /delves          Open/sluit de tracker
+/wt  /wowtracker  /sa      Open/sluit de tracker
+⚠️  /dt en /delves verwijderd (conflict met andere addons)
 /wt1 .. /wt6               Spring direct naar tab
 /prey  /pton  /ptoff        Prey Tracker kompas HUD
 /crew                       Registry XL karakter index

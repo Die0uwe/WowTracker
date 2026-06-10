@@ -1,6 +1,6 @@
 -- ============================================================================
 -- DT_Theme.lua — WowTracker Centraal Theme Systeem
--- Retail 12.0.5 / Build 67314 (Midnight)
+-- Retail 12.0.7 / Midnight (Interface 120007)
 -- v1.0.0 — 2026-06-09
 --
 -- MOET als EERSTE worden geladen in WowTracker.xml (vóór alle plugins)

@@ -3439,9 +3439,11 @@ end)
 -- ================================================================
 --  SLASH COMMANDS  (global keys required by WoW API)
 -- ================================================================
-SLASH_DTUSER1 = "/userinfo"
-SLASH_DTUSER2 = "/chardash"
-SLASH_DTUSER3 = "/cdb"
+-- /userinfo → /wtuser (vermijdt conflict met Details addon)
+-- /chardash → /wt-char (uniek prefix)
+SLASH_DTUSER1 = "/wtuser"
+SLASH_DTUSER2 = "/wt-char"
+SLASH_DTUSER3 = "/wtchardash"
 
 SlashCmdList["DTUSER"] = function(msg)
     msg = msg and msg:lower():trim() or ""

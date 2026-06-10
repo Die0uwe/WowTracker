@@ -1,6 +1,6 @@
 -- ============================================================================
 -- DelveTracker — Core v17.0 (Slayer Alliance Edition)
--- Retail 12.0.5 / Build 67314 (Midnight)
+-- Retail 12.0.7 / Midnight (Interface 120007)
 -- Rebuilt: 2026-06-07
 -- Changes v17.0:
 --   [NEW] Breedte 760px (was 420px) — ruimer, professioneler
@@ -22,7 +22,7 @@ DelveTrackerDB.characters   = DelveTrackerDB.characters or {}
 DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
 
 -- Core API
-DelveTracker = { Plugins = {}, Version = "2.7.0-12.0.5.67314" }
+DelveTracker = { Plugins = {}, Version = "3.2.0" }  -- WowTracker v3.2.0
 function DelveTracker:RegisterPlugin(name, func)
     self.Plugins[name] = func
 end
@@ -3020,10 +3020,13 @@ MBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 -- ============================================================================
 -- SLASH COMMANDS
 -- ============================================================================
-SLASH_WTMAIN1="/wt"; SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/dt"; SLASH_WTMAIN4="/delves"
-SLASH_WTAB11="/wt1"; SLASH_WTAB12="/wt guild";    SLASH_WTAB13="/dt1"; SLASH_WTAB14="/tb1"
-SLASH_WTAB21="/wt2"; SLASH_WTAB22="/wt delves";   SLASH_WTAB23="/dt2"; SLASH_WTAB24="/tb2"
-SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty";   SLASH_WTAB33="/dt3"; SLASH_WTAB34="/tb3"
+-- WowTracker slash commands — prefix /wt- voor alles om conflicten te vermijden
+-- /wt en /wowtracker = hoofdcommando (open/sluit)
+-- VERWIJDERD: /dt (conflict Details addon), /delves (conflict Blizzard/addons)
+SLASH_WTMAIN1="/wt"; SLASH_WTMAIN2="/wowtracker"; SLASH_WTMAIN3="/sa"
+SLASH_WTAB11="/wt1"; SLASH_WTAB12="/wt guild"
+SLASH_WTAB21="/wt2"; SLASH_WTAB22="/wt delves"
+SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty"
 SLASH_WTAB41="/wt4"; SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
 SLASH_WTAB51="/wt5"; SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
 SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
