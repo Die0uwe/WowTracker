@@ -458,9 +458,11 @@ UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-3,0)
 UI.settingsBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.settingsBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
 ApplyBorder(UI.settingsBtn,"card")
-local sIco=UI.settingsBtn:CreateFontString(nil,"OVERLAY")
-sIco:SetFont(C_2002,14,"OUTLINE"); sIco:SetPoint("CENTER")
-sIco:SetText(SA_PURPLE.."⚙|r")
+-- E-02: icon texture (blank1 van actief thema)
+UI.settingsBtn.tex = UI.settingsBtn:CreateTexture(nil,"ARTWORK")
+UI.settingsBtn.tex:SetAllPoints()
+UI.settingsBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons\\Magical\\blank1.png")
+UI.settingsBtn.tex:SetTexCoord(0.05,0.95,0.05,0.95)
 UI.settingsBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.settingsBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 
@@ -473,9 +475,11 @@ UI.themeBtn:SetPoint("RIGHT",UI.settingsBtn,"LEFT",-3,0)
 UI.themeBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.themeBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
 ApplyBorder(UI.themeBtn,"card")
-local tIco=UI.themeBtn:CreateFontString(nil,"OVERLAY")
-tIco:SetFont(C_2002,11,"OUTLINE"); tIco:SetPoint("CENTER")
-tIco:SetText("|cff44aaff🎨|r")
+-- E-02: theme icon
+UI.themeBtn.tex = UI.themeBtn:CreateTexture(nil,"ARTWORK")
+UI.themeBtn.tex:SetAllPoints()
+UI.themeBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons\\Magical\\theme.png")
+UI.themeBtn.tex:SetTexCoord(0.05,0.95,0.05,0.95)
 UI.themeBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.themeBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 UI.themeBtn:SetScript("OnClick",function(self)
@@ -515,9 +519,14 @@ UI.langBtn:SetPoint("RIGHT",UI.themeBtn,"LEFT",-3,0)
 UI.langBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.langBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
 ApplyBorder(UI.langBtn,"card")
+-- E-02: language icon
+UI.langBtn.tex = UI.langBtn:CreateTexture(nil,"ARTWORK")
+UI.langBtn.tex:SetAllPoints()
+UI.langBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons\\Magical\\language.png")
+UI.langBtn.tex:SetTexCoord(0.05,0.95,0.05,0.95)
 local lIco=UI.langBtn:CreateFontString(nil,"OVERLAY")
-lIco:SetFont(C_2002,9,"OUTLINE"); lIco:SetPoint("CENTER")
-lIco:SetText("|cff44ffaa🌐|r")
+lIco:SetFont(C_2002,8,"OUTLINE"); lIco:SetPoint("BOTTOM",0,2)
+lIco:SetText(SA_BLUE.."NL|r")
 UI.langBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.langBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 
@@ -580,10 +589,32 @@ end
 -- B-03: WTTheme live callback voor main UI frame
 if WTTheme and WTTheme.Register then
     WTTheme.Register(function()
-        -- Live reload: main frame + header + roster cards
+        -- Live reload: main frame + header + roster cards + button icons
         if UI then ApplyBG(UI,"main"); ApplyBorder(UI,"main") end
         if UI and UI.hdrBg then
             local b=TH_bg("header"); UI.hdrBg:SetColorTexture(b.r,b.g,b.b,b.a)
+        end
+        -- E-02: wissel header button icons mee met thema
+        local BASE = "Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons"
+        local activeTheme = (DelveTrackerDB and DelveTrackerDB.theme and DelveTrackerDB.theme.name) or "SA Dark"
+        local folderMap = {
+            ["SA Dark"] = "Magical", ["SA Dark (standaard)"] = "Magical",
+            ["ProfBuddy Paars"] = "Magical", ["Paars"] = "Magical",
+            ["MailVault Blauw"] = "Crystal", ["Blauw"] = "Crystal",
+            ["Nacht Zwart"] = "Void", ["Zwart"] = "Void",
+            ["Industrial"] = "Industrial", ["Elven"] = "Elven",
+            ["Void"] = "Void", ["Horde Red"] = "Scrollwork",
+            ["Scrollwork"] = "Scrollwork", ["Crystal"] = "Crystal",
+        }
+        local folder = folderMap[activeTheme] or "Magical"
+        if UI.themeBtn and UI.themeBtn.tex then
+            UI.themeBtn.tex:SetTexture(BASE.."\\"..folder.."\\theme.png")
+        end
+        if UI.langBtn and UI.langBtn.tex then
+            UI.langBtn.tex:SetTexture(BASE.."\\"..folder.."\\language.png")
+        end
+        if UI.settingsBtn and UI.settingsBtn.tex then
+            UI.settingsBtn.tex:SetTexture(BASE.."\\"..folder.."\\blank1.png")
         end
         -- Roster cards
         if Tab4 and Tab4.scroll and Tab4.scroll.content then
@@ -2074,6 +2105,14 @@ for _,th in ipairs(optThemes) do
             local wtn = themeMap[t.name]
             if wtn then WTTheme.SetActiveTheme(wtn) end
         end
+        -- E-02: wissel ook murloc button icon
+        local BASE2="Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons"
+        local fMap2={["SA Dark"]="Magical",["Paars"]="Magical",["Blauw"]="Crystal",
+                     ["Zwart"]="Void",["Industrial"]="Industrial",["Elven"]="Elven",["Void"]="Void"}
+        local fld2=fMap2[t.name] or "Magical"
+        if UI.themeBtn and UI.themeBtn.tex then UI.themeBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\theme.png") end
+        if UI.langBtn and UI.langBtn.tex then UI.langBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\language.png") end
+        if UI.settingsBtn and UI.settingsBtn.tex then UI.settingsBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\blank1.png") end
         print(SA_PURPLE.."[WowTracker] Thema: "..t.name.."|r")
     end)
     tb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
