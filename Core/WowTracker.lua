@@ -43,6 +43,28 @@ local TAB_BAR_H  = 28
 local FOOTER_H   = 58
 local SCALE_STEP = 0.05
 
+-- ── Theme helpers (vroeg gedefinieerd — worden overal gebruikt) ────────────
+local function TH_bg(key)
+    if WTTheme and WTTheme.bg then return WTTheme.bg[key or "main"] end
+    local d={main={r=0.04,g=0.02,b=0.06,a=0.97},header={r=0.08,g=0.04,b=0.12,a=1},
+             card={r=0.06,g=0.03,b=0.09,a=0.95},cardHover={r=0.12,g=0.05,b=0.18,a=0.95}}
+    return d[key or "main"] or d.main
+end
+local function TH_border(key)
+    if WTTheme and WTTheme.border then return WTTheme.border[key or "main"] end
+    local d={main={r=0.45,g=0.05,b=0.75,a=0.90},card={r=0.30,g=0.05,b=0.50,a=0.70},
+             active={r=0.75,g=0.15,b=1.00,a=1.0}}
+    return d[key or "main"] or d.main
+end
+local function ApplyBG(f, key)
+    if not f or not f.SetBackdropColor then return end
+    local b=TH_bg(key); f:SetBackdropColor(b.r,b.g,b.b,b.a)
+end
+local function ApplyBorder(f, key)
+    if not f or not f.SetBackdropBorderColor then return end
+    local b=TH_border(key); f:SetBackdropBorderColor(b.r,b.g,b.b,b.a)
+end
+
 -- -- MAIN FRAME ------------------------------------------------------------
 local UI = CreateFrame("Frame", "DelveTrackerFrame", UIParent, "BackdropTemplate")
 UI:SetSize(UI_W, UI_H)
@@ -561,30 +583,7 @@ UI.vaultBtn:SetScript("OnClick",function()
     end
 end)
 
--- wow-theme-artist: centrale TH() helper voor Core frames
--- Gebruik nooit hardcoded kleuren - altijd via TH() of WTTheme.*
-local function TH_bg(key)
-    if WTTheme and WTTheme.bg then return WTTheme.bg[key or "main"] end
-    local defaults = {
-        main={r=0.04,g=0.02,b=0.06,a=0.97}, header={r=0.08,g=0.04,b=0.12,a=1},
-        card={r=0.06,g=0.03,b=0.09,a=0.95}, cardHover={r=0.12,g=0.05,b=0.18,a=0.95}
-    }
-    return defaults[key or "main"] or defaults.main
-end
-local function TH_border(key)
-    if WTTheme and WTTheme.border then return WTTheme.border[key or "main"] end
-    local defaults = {
-        main={r=0.45,g=0.05,b=0.75,a=0.90}, card={r=0.30,g=0.05,b=0.50,a=0.70},
-        active={r=0.75,g=0.15,b=1.00,a=1.0}
-    }
-    return defaults[key or "main"] or defaults.main
-end
-local function ApplyBG(f, key)
-    local b=TH_bg(key); f:SetBackdropColor(b.r,b.g,b.b,b.a)
-end
-local function ApplyBorder(f, key)
-    local b=TH_border(key); f:SetBackdropBorderColor(b.r,b.g,b.b,b.a)
-end
+-- TH helpers al gedefinieerd bovenaan het bestand
 
 -- B-03: WTTheme live callback voor main UI frame
 if WTTheme and WTTheme.Register then
@@ -1855,9 +1854,20 @@ local opt = CreateFrame("Frame","DelveTrackerOptions",UIParent,"BackdropTemplate
 opt:SetSize(500,600)
 opt:Hide()
 opt.name="WowTracker"
-local category=Settings.RegisterCanvasLayoutCategory(opt,opt.name)
-Settings.RegisterAddOnCategory(category)
-UI.settingsBtn:SetScript("OnClick",function() Settings.OpenToCategory(category:GetID()) end)
+-- Settings registratie via pcall (taint-safe)
+local category
+local ok, err = pcall(function()
+    category = Settings.RegisterCanvasLayoutCategory(opt, opt.name)
+    Settings.RegisterAddOnCategory(category)
+end)
+if not ok then print("|cffff4444[WowTracker] Settings registratie mislukt: "..tostring(err).."|r") end
+UI.settingsBtn:SetScript("OnClick", function()
+    if category then
+        pcall(Settings.OpenToCategory, category:GetID())
+    else
+        if opt:IsShown() then opt:Hide() else opt:Show() end
+    end
+end)
 
 -- -- HEADER (vaste posities - geen anchor chain) --------------------------
 -- Admin panel header - strak 2-kolom layout
