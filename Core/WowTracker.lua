@@ -715,7 +715,9 @@ local WT_UpdateGuildOnline
 local ScanDelves
 
 local function ShowTab(id)
-    UI:Show(); activeTabID=id
+    UI:Show()
+    UI:SetAlpha(1)  -- zorg dat UI zichtbaar is
+    activeTabID=id
     if DelveTrackerDB then DelveTrackerDB.uiWasOpen = true end
     Tab1:Hide(); Tab2:Hide(); Tab3:Hide(); Tab4:Hide(); Tab5:Hide(); Tab6:Hide()
     -- Verberg armory frame als Tab5 verlaten wordt
@@ -1851,7 +1853,7 @@ end
 
 -- -- ADMIN PANEL - volledig (hersteld uit v2.8.9) -------------------------
 local opt = CreateFrame("Frame","DelveTrackerOptions",UIParent,"BackdropTemplate")
-opt:SetSize(500,600)
+opt:SetSize(520,700)  -- vergroot voor alle content
 opt:Hide()
 opt.name="WowTracker"
 -- Settings registratie via pcall (taint-safe)
@@ -2907,7 +2909,7 @@ end
 -- -- Murloc Button - exact origineel zoals het was -----------------------
 local MBtn = CreateFrame("Button","DT_MurlocBtn",UIParent)
 MBtn:SetSize(55,55)
-MBtn:SetPoint("CENTER",UIParent,"CENTER",400,-300)  -- rechts van scherm
+MBtn:SetPoint("TOPRIGHT",UIParent,"TOPRIGHT",-120,-240)  -- rechtsboven, naast minimap
 MBtn:SetMovable(true)
 MBtn:EnableMouse(true)
 MBtn:RegisterForDrag("RightButton")
