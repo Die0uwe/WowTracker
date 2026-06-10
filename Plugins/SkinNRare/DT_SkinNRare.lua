@@ -506,7 +506,7 @@ end
 
 local function StyleButton(btn, r, g, b)
     -- UIPanelButtonTemplate heeft geen directe :SetFont() - gebruik GetFontString()
-    local fs = btn:GetFontString and btn:GetFontString()
+    local fs = btn:GetFontString()
     if fs then
         fs:SetFont("Fonts\\2002.ttf", 13, "OUTLINE")
         fs:SetTextColor(0.85, 0.85, 0.85, 1)

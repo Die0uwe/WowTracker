@@ -1798,7 +1798,7 @@ WT_UpdateGuildOnline = function()
         -- C-01: klikbaar frame
         r:EnableMouse(true)
         r:SetScript("OnEnter", function(self)
-            self:SetBackdropColor and self:SetBackdropColor(0.12,0.06,0.18,0.6)
+            if self and self.SetBackdropColor then self:SetBackdropColor(0.12,0.06,0.18,0.6) end
             GameTooltip:SetOwner(self,"ANCHOR_LEFT")
             local _cct = C_ClassColor and C_ClassColor.GetClassColor(member.class or "")
             local ct = (_cct and type(_cct)=="table" and _cct.r) and _cct or {r=0.8,g=0.8,b=0.8}
@@ -1851,7 +1851,9 @@ WT_UpdateGuildOnline = function()
 end
 
 -- -- ADMIN PANEL - volledig (hersteld uit v2.8.9) -------------------------
-local opt = CreateFrame("Frame","DelveTrackerOptions")
+local opt = CreateFrame("Frame","DelveTrackerOptions",UIParent,"BackdropTemplate")
+opt:SetSize(500,600)
+opt:Hide()
 opt.name="WowTracker"
 local category=Settings.RegisterCanvasLayoutCategory(opt,opt.name)
 Settings.RegisterAddOnCategory(category)
@@ -2895,7 +2897,7 @@ end
 -- -- Murloc Button - exact origineel zoals het was -----------------------
 local MBtn = CreateFrame("Button","DT_MurlocBtn",UIParent)
 MBtn:SetSize(55,55)
-MBtn:SetPoint("CENTER")
+MBtn:SetPoint("CENTER",UIParent,"CENTER",400,-300)  -- rechts van scherm
 MBtn:SetMovable(true)
 MBtn:EnableMouse(true)
 MBtn:RegisterForDrag("RightButton")
