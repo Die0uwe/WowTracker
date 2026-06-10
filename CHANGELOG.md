@@ -1,5 +1,28 @@
 # CHANGELOG — WowTracker (Slayer Alliance Edition)
 
+## [v3.2.0] — 2026-06-10
+### Added
+- Sprint A-01: Gnome Dieouwe voeten op de grond (y=0 anker)
+- Sprint A-02: Roster kaarten 10% kleiner + horizontaal gecentreerd
+- Sprint A-03: Taal systeem persistent — ApplyLanguage() + PLAYER_LOGIN restore
+- Sprint A-04: Armory 3D model achter stats/items (FrameLevel fix)
+- Sprint A-05: TOC Interface 120007 — klaar voor patch 12.0.7 (16 juni 2026)
+- Sprint B-01: Roster kaart tooltip uitgebreid — spec, delves, goud, professions
+- Sprint B-02: Currency tab naam-filter + auto-suggest dropdown
+- Sprint B-03: WTTheme live callback voor main UI frame
+- Sprint C-01: Guild online panel — klik=/who, tooltip met zone, klaskleur
+- Sprint C-02: Ticker uitgebreid — Abundance + Warband goud toggle items
+- Sprint D: TH_bg/TH_border helpers in Core, 16 hardcoded kleuren → WTTheme tokens
+- wow-theme-artist skill aangemaakt (Pixel Voidwhisper)
+- wow-i18n-specialist skill aangemaakt
+
+### Fixed
+- SkinNRare StyleButton crash: btn:SetFont() → btn:GetFontString():SetFont()
+- Murloc button onzichtbaar: SA backdrop fallback altijd zichtbaar
+- UI auto-show bij PLAYER_ENTERING_WORLD geblokkeerd
+- deploy.sh in repo voor correcte ZIP builds
+
+---
 ## [v3.1.0-hotfix3] — 2026-06-09
 ### Fixed
 - Debugger wit scherm: GameFontHighlightSmall geeft witte tekst in 12.0.5 — alle fontstrings vervangen door directe Fonts\2002.ttf + SetTextColor in Debugger, Charmory, CombatAnnouncer, CustomAFK, Events, Exchangebot, HelpGuide, QuickSet, Registry, SkinNRare, SystemTools, UserInfo (37 instances totaal)

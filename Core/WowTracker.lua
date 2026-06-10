@@ -2860,16 +2860,25 @@ MBtn.tex:SetAllPoints()
 -- Probeer MijnIcoon.tga, fallback naar addon icon
 local iconPath = "Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga"
 local fallback = "Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icon_64"
+-- Probeer MijnIcoon.tga, dan addon icon, dan SA styled fallback
 MBtn.tex:SetTexture(iconPath)
--- Maak button altijd zichtbaar: backdrop als fallback
+-- ALTIJD zichtbaar: SA styled backdrop (ook als texture laadt)
 MBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=2})
-MBtn:SetBackdropColor(0.08,0.02,0.14,0.92)
-MBtn:SetBackdropBorderColor(0.55,0.10,0.85,1)
--- Label als ultieme fallback
+ApplyBG(MBtn,"card")
+ApplyBorder(MBtn,"main")
+-- "WT" label als fallback tekst
 MBtn.lbl = MBtn:CreateFontString(nil,"OVERLAY")
-MBtn.lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
+MBtn.lbl:SetFont("Fonts\\2002.ttf",9,"OUTLINE")
 MBtn.lbl:SetPoint("CENTER",0,0)
 MBtn.lbl:SetText(SA_PURPLE.."WT|r")
+-- Tooltip
+MBtn:SetScript("OnEnter",function(s)
+    GameTooltip:SetOwner(s,"ANCHOR_BOTTOMRIGHT")
+    GameTooltip:SetText(SA_PURPLE.."WowTracker|r")
+    GameTooltip:AddLine(SA_GREY.."Klik om te openen/sluiten|r")
+    GameTooltip:Show()
+end)
+MBtn:SetScript("OnLeave",function() GameTooltip:Hide() end)
 
 -- Context menu via MenuUtil (UIDropDownMenu verwijderd in 12.x)
 local function DT_OpenMurlocMenu(owner)
