@@ -122,8 +122,8 @@ local function BuildTickerToast()
     toast:SetFrameStrata("DIALOG")
     toast:SetClampedToScreen(true)
     toast:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    toast:SetBackdropColor(0.05,0.02,0.09,0.98)
-    toast:SetBackdropBorderColor(0.45,0.08,0.70,1)
+    ApplyBG(toast,"main")
+    ApplyBorder(toast,"main")
     toast:Hide()
 
     -- Header
@@ -457,12 +457,12 @@ UI.settingsBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
 UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-3,0)
 UI.settingsBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.settingsBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
-UI.settingsBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
+ApplyBorder(UI.settingsBtn,"card")
 local sIco=UI.settingsBtn:CreateFontString(nil,"OVERLAY")
 sIco:SetFont(C_2002,14,"OUTLINE"); sIco:SetPoint("CENTER")
 sIco:SetText(SA_PURPLE.."⚙|r")
 UI.settingsBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
-UI.settingsBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+UI.settingsBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 
 
 
@@ -472,12 +472,12 @@ UI.themeBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
 UI.themeBtn:SetPoint("RIGHT",UI.settingsBtn,"LEFT",-3,0)
 UI.themeBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.themeBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
-UI.themeBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
+ApplyBorder(UI.themeBtn,"card")
 local tIco=UI.themeBtn:CreateFontString(nil,"OVERLAY")
 tIco:SetFont(C_2002,11,"OUTLINE"); tIco:SetPoint("CENTER")
 tIco:SetText("|cff44aaff🎨|r")
 UI.themeBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
-UI.themeBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+UI.themeBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 UI.themeBtn:SetScript("OnClick",function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
     local themes = {
@@ -514,12 +514,12 @@ UI.langBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
 UI.langBtn:SetPoint("RIGHT",UI.themeBtn,"LEFT",-3,0)
 UI.langBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.langBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
-UI.langBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
+ApplyBorder(UI.langBtn,"card")
 local lIco=UI.langBtn:CreateFontString(nil,"OVERLAY")
 lIco:SetFont(C_2002,9,"OUTLINE"); lIco:SetPoint("CENTER")
 lIco:SetText("|cff44ffaa🌐|r")
 UI.langBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
-UI.langBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
+UI.langBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 
 -- Vault knop in header (links van langBtn) — opent WeeklyRewardsFrame direct
 UI.vaultBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
@@ -552,17 +552,46 @@ UI.vaultBtn:SetScript("OnClick",function()
     end
 end)
 
+-- wow-theme-artist: centrale TH() helper voor Core frames
+-- Gebruik nooit hardcoded kleuren — altijd via TH() of WTTheme.*
+local function TH_bg(key)
+    if WTTheme and WTTheme.bg then return WTTheme.bg[key or "main"] end
+    local defaults = {
+        main={r=0.04,g=0.02,b=0.06,a=0.97}, header={r=0.08,g=0.04,b=0.12,a=1},
+        card={r=0.06,g=0.03,b=0.09,a=0.95}, cardHover={r=0.12,g=0.05,b=0.18,a=0.95}
+    }
+    return defaults[key or "main"] or defaults.main
+end
+local function TH_border(key)
+    if WTTheme and WTTheme.border then return WTTheme.border[key or "main"] end
+    local defaults = {
+        main={r=0.45,g=0.05,b=0.75,a=0.90}, card={r=0.30,g=0.05,b=0.50,a=0.70},
+        active={r=0.75,g=0.15,b=1.00,a=1.0}
+    }
+    return defaults[key or "main"] or defaults.main
+end
+local function ApplyBG(f, key)
+    local b=TH_bg(key); f:SetBackdropColor(b.r,b.g,b.b,b.a)
+end
+local function ApplyBorder(f, key)
+    local b=TH_border(key); f:SetBackdropBorderColor(b.r,b.g,b.b,b.a)
+end
+
 -- B-03: WTTheme live callback voor main UI frame
 if WTTheme and WTTheme.Register then
     WTTheme.Register(function()
-        local t = TH()
-        if UI and UI.SetBackdropColor then
-            UI:SetBackdropColor(t.bg.main.r, t.bg.main.g, t.bg.main.b, t.bg.main.a)
-            UI:SetBackdropBorderColor(t.border.main.r, t.border.main.g, t.border.main.b, 1)
+        -- Live reload: main frame + header + roster cards
+        if UI then ApplyBG(UI,"main"); ApplyBorder(UI,"main") end
+        if UI and UI.hdrBg then
+            local b=TH_bg("header"); UI.hdrBg:SetColorTexture(b.r,b.g,b.b,b.a)
         end
-        -- Tab balk achtergrond
-        if UI.tabBar then
-            UI.tabBar:SetBackdropColor(t.bg.header.r, t.bg.header.g, t.bg.header.b, 1)
+        -- Roster cards
+        if Tab4 and Tab4.scroll and Tab4.scroll.content then
+            for _,card in ipairs(Tab4.scroll.content.rows or {}) do
+                if card and card.SetBackdropColor then
+                    ApplyBG(card,"card"); ApplyBorder(card,"card")
+                end
+            end
         end
     end)
 end
@@ -641,7 +670,7 @@ local function StyleTabBtn(btn,active)
         btn:SetBackdropBorderColor(0.60,0.15,0.90,1)
         btn.glow:SetAlpha(1)
     else
-        btn:SetBackdropColor(0.06,0.03,0.10,1)
+        ApplyBG(btn,"card")
         btn:SetBackdropBorderColor(0.20,0.05,0.30,0.7)
         btn.glow:SetAlpha(0)
     end
@@ -816,7 +845,7 @@ Tab1.kelseyFrame=CreateFrame("Frame",nil,Tab1,"BackdropTemplate")
 Tab1.kelseyFrame:SetSize(100,104)
 Tab1.kelseyFrame:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-4,4)
 Tab1.kelseyFrame:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-Tab1.kelseyFrame:SetBackdropColor(0.04,0.02,0.08,0.90)
+ApplyBG(Tab1.kelseyFrame,"card")
 Tab1.kelseyFrame:SetBackdropBorderColor(0.35,0.05,0.55,0.80)
 
 Tab1.img=Tab1.kelseyFrame:CreateTexture(nil,"ARTWORK")
@@ -889,8 +918,8 @@ DT_SuggestDrop:SetFrameLevel(Tab2:GetFrameLevel()+20)
 DT_SuggestDrop:SetWidth(280)
 DT_SuggestDrop:SetPoint("TOPLEFT",searchBox,"BOTTOMLEFT",0,-1)
 DT_SuggestDrop:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-DT_SuggestDrop:SetBackdropColor(0.06,0.03,0.10,0.98)
-DT_SuggestDrop:SetBackdropBorderColor(0.45,0.12,0.70,1)
+ApplyBG(DT_SuggestDrop,"card")
+ApplyBorder(DT_SuggestDrop,"main")
 DT_SuggestDrop:Hide()
 DT_SuggestDrop.btns={}
 
@@ -1017,7 +1046,7 @@ curSuggest:SetFrameLevel(Tab6:GetFrameLevel()+20)
 curSuggest:SetWidth(320)
 curSuggest:SetPoint("TOPLEFT", curSearchBox, "BOTTOMLEFT", 0, -1)
 curSuggest:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-curSuggest:SetBackdropColor(0.06,0.03,0.10,0.98)
+ApplyBG(curSuggest,"card")
 curSuggest:SetBackdropBorderColor(0.80,0.67,0.00,1)  -- goud border voor currency
 curSuggest:Hide()
 curSuggest.btns = {}
@@ -2058,7 +2087,7 @@ for _,lang in ipairs(optLangs) do
     lb:SetSize(120,22)
     lb:SetPoint("TOPLEFT",lastLangBtn,"BOTTOMLEFT",0,-4)
     lb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    lb:SetBackdropColor(0.06,0.03,0.10,0.9)
+    ApplyBG(lb,"card")
     lb:SetBackdropBorderColor(0.25,0.07,0.40,0.8)
     local ll=lb:CreateFontString(nil,"OVERLAY")
     ll:SetFont(C_2002,10,""); ll:SetPoint("LEFT",6,0)
@@ -2529,7 +2558,7 @@ local function MakePluginBtn(lbl, col, xOff, fn)
     b:SetSize(BTN_W,BTN_H)
     b:SetPoint("BOTTOMLEFT",UI,"BOTTOMLEFT",xOff,BTN_Y)
     b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    b:SetBackdropColor(0.06,0.03,0.10,0.95)
+    ApplyBG(b,"card")
     b:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
     local t=b:CreateFontString(nil,"OVERLAY")
     t:SetFont(C_2002,10,"OUTLINE")
@@ -2563,7 +2592,7 @@ local function MakeDebugBtn()
     -- Rechts naast de +/- schaal knoppen (schaal eindigt op -8, debug er net links van)
     b:SetPoint("BOTTOMRIGHT",UI,"BOTTOMRIGHT",-52-BTN_W,BTN_Y)
     b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    b:SetBackdropColor(0.06,0.03,0.10,0.95)
+    ApplyBG(b,"card")
     b:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
     local t=b:CreateFontString(nil,"OVERLAY")
     t:SetFont(C_2002,10,"OUTLINE")
