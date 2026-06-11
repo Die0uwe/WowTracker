@@ -1319,7 +1319,11 @@ local function BuildGrid(container)
             scN.abundanceFrame.title:SetText("|cff556655* Abundance|r  |cff334433geen actieve harvest|r")
             scN.abundanceFrame.timer:SetText("")
             scN.abundanceFrame.shards:SetText("")
-            scN.abundanceFrame.info:SetText("|cff445544Eversong . Zul'Aman . Harandar . Voidstorm|r")
+            scN.abundanceFrame.info:SetText("|cff445544Eversong - Zul'Aman - Harandar - Voidstorm|r")
+            -- Voeg placeholder tekst toe als er geen actieve nemesis is
+            if iN == 0 then
+                scN.abundanceFrame.timer:SetText("|cff666666Geen actieve Nemesis hunt|r")
+            end
         end
         scN.abundanceFrame:Show()
 
@@ -1377,8 +1381,9 @@ local function BuildGrid(container)
             t.badge:SetColorTexture(0, 0, 0, 0)
             t.icon:SetTexture(nil); t.iconRim:SetColorTexture(1, 1, 1, 0)
             t.glowBar:SetAlpha(0); t.glowLeft:SetAlpha(0)
-            t.nameTxt:SetText(CO.gray .. "All Delves are Bountiful!")
-            t.storyTxt:SetText(""); t.typeTxt:SetText(""); t.badgeTxt:SetText("")
+            t.nameTxt:SetText(CO.blue .. "Geen normale Delves actief")
+            t.storyTxt:SetText(CO.gray .. "Alle delves zijn Bountiful, of je bent buiten zone.")
+            t.typeTxt:SetText(""); t.badgeTxt:SetText("")
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
         end

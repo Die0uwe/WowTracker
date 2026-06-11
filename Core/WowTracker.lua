@@ -932,17 +932,8 @@ Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.dieouwe:SetSize(80,138)
 Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
--- Gespiegeld horizontaal: kijkt naar rechts (naar binnen)
-Tab1.dieouwe:SetTexCoord(1,0,0,1)
+Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)  -- horizontaal gespiegeld naar binnen
 Tab1.dieouwe:SetAlpha(0.85)
--- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
--- Origineel kijkt rechts -> gespiegeld kijkt naar links (naar binnen)
--- Horizontaal spiegelen: UL=(1,0) UR=(0,0) LL=(1,1) LR=(0,1)
--- Kwartslag CCW terug + horizontaal gespiegeld naar binnen
--- SetTexCoord(ULx,ULy, URx,URy, LLx,LLy, LRx,LRy)
--- CCW 90 + flip naar binnen (wijst naar guildinfo):
--- Horizontaal gespiegeld -> wijst naar guild info toe, rechtop
-Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)
 
 -- Logo watermark links midden - subtiel
 Tab1.logoWM=Tab1:CreateTexture(nil,"BACKGROUND")
