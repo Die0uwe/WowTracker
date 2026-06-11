@@ -547,10 +547,22 @@ UI.themeBtn:SetScript("OnClick",function(self)
                 UI:SetBackdropColor(th.r,th.g,th.b,0.97)
                 UI:SetBackdropBorderColor(th.border[1],th.border[2],th.border[3],1)
                 if WTTheme and WTTheme.SetActiveTheme then
-                    local thMap={["SA Dark (standaard)"]="Slayer Alliance",
-                                 ["ProfBuddy Paars"]="Slayer Alliance",
-                                 ["MailVault Blauw"]="Midnight Dark",
-                                 ["Nacht Zwart"]="Midnight Dark"}
+                    local thMap={
+                        ["SA Dark (standaard)"]="Slayer Alliance",
+                        ["SA Dark"]="Slayer Alliance",
+                        ["ProfBuddy Paars"]="Slayer Alliance",
+                        ["Paars"]="Slayer Alliance",
+                        ["MailVault Blauw"]="Crystal",
+                        ["Blauw"]="Crystal",
+                        ["Nacht Zwart"]="Void",
+                        ["Zwart"]="Void",
+                        ["Industrial"]="Industrial",
+                        ["Elven"]="Elven",
+                        ["Void"]="Void",
+                        ["Horde Red"]="Scrollwork",
+                        ["Scrollwork"]="Scrollwork",
+                        ["Crystal"]="Crystal",
+                    }
                     local wtn=thMap[th.name]
                     if wtn then WTTheme.SetActiveTheme(wtn) end
                 end
@@ -2154,6 +2166,8 @@ local optThemes = {
     {name="Industrial",   r=0.12,g=0.07,b=0.03, border={0.75,0.45,0.15}},
     {name="Elven",        r=0.03,g=0.10,b=0.05, border={0.45,0.75,0.45}},
     {name="Void",         r=0.02,g=0.01,b=0.06, border={0.20,0.10,0.45}},
+    {name="Scrollwork",   r=0.10,g=0.02,b=0.02, border={0.70,0.45,0.10}},
+    {name="Crystal",      r=0.03,g=0.05,b=0.12, border={0.35,0.65,0.95}},
 }
 local lastThemeBtn = opt.themeHdr
 for _,th in ipairs(optThemes) do
@@ -2175,22 +2189,32 @@ for _,th in ipairs(optThemes) do
         if WTTheme and WTTheme.SetActiveTheme then
             -- Map admin thema naam naar WTTheme naam
             local themeMap = {
-                ["SA Dark"]    = "Slayer Alliance",
-                ["Paars"]      = "Slayer Alliance",
-                ["Blauw"]      = "Midnight Dark",
-                ["Zwart"]      = "Midnight Dark",
-                ["Industrial"] = "Industrial",
-                ["Elven"]      = "Elven",
-                ["Void"]       = "Void",
-                ["Horde Red"]  = "Horde Red",
+                ["SA Dark"]             = "Slayer Alliance",
+                ["SA Dark (standaard)"] = "Slayer Alliance",
+                ["ProfBuddy Paars"]     = "Slayer Alliance",
+                ["Paars"]               = "Slayer Alliance",
+                ["MailVault Blauw"]     = "Crystal",
+                ["Blauw"]               = "Crystal",
+                ["Nacht Zwart"]         = "Void",
+                ["Zwart"]               = "Void",
+                ["Industrial"]          = "Industrial",
+                ["Elven"]               = "Elven",
+                ["Void"]                = "Void",
+                ["Horde Red"]           = "Scrollwork",
+                ["Scrollwork"]          = "Scrollwork",
+                ["Crystal"]             = "Crystal",
             }
             local wtn = themeMap[t.name]
             if wtn then WTTheme.SetActiveTheme(wtn) end
         end
         -- E-02: wissel ook murloc button icon
         local BASE2="Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons"
-        local fMap2={["SA Dark"]="Magical",["Paars"]="Magical",["Blauw"]="Crystal",
-                     ["Zwart"]="Void",["Industrial"]="Industrial",["Elven"]="Elven",["Void"]="Void"}
+        local fMap2={
+            ["SA Dark"]="Magical",["Paars"]="Magical",["Blauw"]="Crystal",
+            ["Zwart"]="Void",["Industrial"]="Industrial",["Elven"]="Elven",
+            ["Void"]="Void",["Scrollwork"]="Scrollwork",["Crystal"]="Crystal",
+            ["Horde Red"]="Scrollwork",
+        }
         local fld2=fMap2[t.name] or "Magical"
         if UI.themeBtn and UI.themeBtn.tex then UI.themeBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\theme.tga") end
         if UI.langBtn and UI.langBtn.tex then UI.langBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\language.tga") end

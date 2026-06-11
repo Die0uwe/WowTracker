@@ -264,6 +264,60 @@ THEMES["Void"] = {
     font   = "Fonts\\2002.ttf",
 }
 
+-- ── Scrollwork (Red/Brass) - icon sheet rij 4 ─────────────────────────────
+THEMES["Scrollwork"] = {
+    bg = {
+        main      = {r=0.10, g=0.02, b=0.02, a=0.97},
+        header    = {r=0.15, g=0.03, b=0.03, a=1.00},
+        card      = {r=0.12, g=0.03, b=0.03, a=0.95},
+        cardHover = {r=0.18, g=0.05, b=0.05, a=0.95},
+        row       = {r=0.10, g=0.02, b=0.02, a=0.90},
+    },
+    border = {
+        main   = {r=0.70, g=0.45, b=0.10, a=0.90},  -- messing/brass
+        card   = {r=0.50, g=0.30, b=0.08, a=0.75},
+        active = {r=0.95, g=0.65, b=0.15, a=1.00},  -- gold highlight
+        subtle = {r=0.30, g=0.15, b=0.04, a=0.50},
+    },
+    c = {
+        gold   = "|cffcc8822",
+        purple = "|cffff4433",
+        blue   = "|cffdd7744",
+        grey   = "|cff997766",
+        green  = "|cffaa6633",
+        red    = "|cffff3322",
+    },
+    stripe = {r=0.85, g=0.30, b=0.10, a=1.0},
+    font   = "Fonts\\2002.ttf",
+}
+
+-- ── Crystal (Blue/White) - icon sheet rij 5 ──────────────────────────────
+THEMES["Crystal"] = {
+    bg = {
+        main      = {r=0.03, g=0.05, b=0.12, a=0.97},
+        header    = {r=0.04, g=0.07, b=0.16, a=1.00},
+        card      = {r=0.04, g=0.06, b=0.14, a=0.95},
+        cardHover = {r=0.07, g=0.10, b=0.20, a=0.95},
+        row       = {r=0.03, g=0.05, b=0.12, a=0.90},
+    },
+    border = {
+        main   = {r=0.35, g=0.65, b=0.95, a=0.90},  -- ijsblauw
+        card   = {r=0.20, g=0.45, b=0.75, a=0.75},
+        active = {r=0.65, g=0.88, b=1.00, a=1.00},  -- kristal wit-blauw
+        subtle = {r=0.10, g=0.25, b=0.50, a=0.50},
+    },
+    c = {
+        gold   = "|cff88ccff",
+        purple = "|cff5599ee",
+        blue   = "|cffaaddff",
+        grey   = "|cff6688aa",
+        green  = "|cff55aacc",
+        red    = "|cff3366cc",
+    },
+    stripe = {r=0.45, g=0.75, b=1.00, a=1.0},
+    font   = "Fonts\\2002.ttf",
+}
+
 -- ============================================================================
 -- WTTheme PUBLIC API
 -- ============================================================================
