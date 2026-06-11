@@ -42,18 +42,6 @@ local ITEM_LOOKUP = {}
 -- Original code registered f.id as tier=1 first, then the
 -- "first entry wins" guard blocked the correct tier=2 (Silver)
 -- overwrite -> Silver items were counted in total but never in t2.
--- Pre-request item data voor alle cloth items bij addon load
-C_Timer.After(0.5, function()
-    for _,f in ipairs(CLOTH_DATA) do
-        if C_Item and C_Item.RequestLoadItemDataByID then
-            pcall(C_Item.RequestLoadItemDataByID, f.id)
-            for itemID in pairs(f.tiers or {}) do
-                pcall(C_Item.RequestLoadItemDataByID, itemID)
-            end
-        end
-    end
-end)
-
 for _,f in ipairs(CLOTH_DATA) do
     -- 1. Explicit tiers always take priority (no guard - overwrite allowed)
     if f.tiers then
@@ -84,12 +72,12 @@ local TAILOR_COOLDOWNS = {
       color={0.65,0.40,1.0},  duration=86400 },
 }
 
--- -- Drop source data (Midnight 12.0.5) -----------------------------------
+-- ── Drop source data (Midnight 12.0.5) ───────────────────────────────────
 -- Midnight zones: Eversong Woods . Zul'Aman . Harandar . Voidstorm
 -- ALL three cloth types drop from humanoid mobs across ALL zones.
 -- Sunfire Silk and Arcanoweave require 20 KP in Nimble Needlework first.
 -- Sorted highest drop rate first. Source: Method.gg farming guide.
--- -------------------------------------------------------------------------
+-- ─────────────────────────────────────────────────────────────────────────
 local CLOTH_SOURCES = {
     ["Bright Linen"] = {
         -- Best solo: any Delve (Grudge Pit = fastest reset in Harandar)
@@ -137,48 +125,10 @@ local T_BAR_X    = 260    -- pushed right to make room for 33px icon + wider lab
 local T_BOX_PAD  = 10
 local T_BOX_GAP  = 12
 
--- -- Helpers --------------------------------------------------------------
--- Icon cache: voorkomt herhaalde GetItemInfoInstant calls
-local _iconCache = {}
-
+-- ── Helpers ──────────────────────────────────────────────────────────────
 local function GetSafeIcon(id)
-    if _iconCache[id] then return _iconCache[id] end
-    -- Probeer C_Item.GetItemIconByID (direct, geen async - 12.0.x)
-    if C_Item and C_Item.GetItemIconByID then
-        local icon = C_Item.GetItemIconByID(id)
-        if icon and icon ~= 0 then
-            _iconCache[id] = icon; return icon
-        end
-    end
-    -- Fallback: GetItemInfoInstant
-    local _,_,_,_,icon = GetItemInfoInstant(id)
-    if icon then _iconCache[id]=icon; return icon end
-    -- Request async load en geef placeholder terug
-    if C_Item and C_Item.RequestLoadItemDataByID then
-        pcall(C_Item.RequestLoadItemDataByID, id)
-    end
-    return 134400  -- placeholder: INV_Misc_QuestionMark
+    local _,_,_,_,icon = GetItemInfoInstant(id); return icon or 134400
 end
-
--- Refresh icons zodra item data geladen is
-local _iconRefreshFrame = CreateFrame("Frame")
-_iconRefreshFrame:RegisterEvent("ITEM_DATA_LOAD_RESULT")
-_iconRefreshFrame:SetScript("OnEvent", function(_, _, itemID, success)
-    if not success then return end
-    if _iconCache[itemID] then return end  -- al gecached
-    -- Probeer opnieuw
-    local _,_,_,_,icon = GetItemInfoInstant(itemID)
-    if icon then
-        _iconCache[itemID] = icon
-        -- Update alle zichtbare rijen
-        if ClothWarbandFrame and ClothWarbandFrame:IsShown() then
-            -- Trigger een visuele refresh na 0.1s
-            C_Timer.After(0.1, function()
-                if RefreshRows then pcall(RefreshRows) end
-            end)
-        end
-    end
-end)
 local function FormatTime(s)
     if not s or s<=0 then return "|cff00ee88Ready|r" end
     local h=math.floor(s/3600); local m=math.floor((s%3600)/60); local ss=math.floor(s%60)
@@ -197,7 +147,7 @@ local function GetCharKey()
 end
 local function GetShortName(k) return k and k:match("^([^%-]+)") or k or "?" end
 
--- -- Session ---------------------------------------------------------------
+-- ── Session ───────────────────────────────────────────────────────────────
 local session = { startTime=0, currentZone="", counts={} }
 local function ResetSession()
     session.startTime   = GetTime()
@@ -205,7 +155,7 @@ local function ResetSession()
     for _,f in ipairs(CLOTH_DATA) do session.counts[f.name]={total=0,t2=0,t3=0} end
 end
 
--- -- Database --------------------------------------------------------------
+-- ── Database ──────────────────────────────────────────────────────────────
 local function InitDB()
     ClothWarbandDB        = ClothWarbandDB or {}
     ClothWarbandDB.runs   = ClothWarbandDB.runs   or {}
@@ -230,7 +180,7 @@ local function InitDB()
     ClothWarbandDB.chars[key].cooldowns    = ClothWarbandDB.chars[key].cooldowns    or {}
 end
 
--- -- Save run --------------------------------------------------------------
+-- ── Save run ──────────────────────────────────────────────────────────────
 local function SaveRun()
     if not ClothWarbandDB then return end
     local tot=0
@@ -249,7 +199,7 @@ local function SaveRun()
         tot,session.currentZone,FormatTime(dur)))
 end
 
--- -- UI helpers ------------------------------------------------------------
+-- ── UI helpers ────────────────────────────────────────────────────────────
 local function ApplyWindowStyle(f,r,g,b)
     f:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
         edgeFile="Interface\\ChatFrame\\ChatFrameBackground",edgeSize=2})
@@ -304,7 +254,7 @@ local function MakeCloseBtn(parent,onClose)
     return btn
 end
 
--- -- Progress bar ----------------------------------------------------------
+-- ── Progress bar ──────────────────────────────────────────────────────────
 local function CreateProgressBar(parent,w,h)
     local con=CreateFrame("Frame",nil,parent,"BackdropTemplate")
     con:SetSize(w,h)
@@ -346,7 +296,7 @@ local function CreateProgressBar(parent,w,h)
     return con
 end
 
--- -- Main widget -----------------------------------------------------------
+-- ── Main widget ───────────────────────────────────────────────────────────
 local F=CreateFrame("Frame","ClothWidgetFrame",UIParent,"BackdropTemplate")
 F:SetSize(458,195); F:SetPoint("CENTER",0,-150); F:Hide()
 F:SetMovable(true); F:EnableMouse(true); F:RegisterForDrag("LeftButton")
@@ -377,7 +327,7 @@ F.compactBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
     edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
 F.compactBtn:SetBackdropColor(0.12,0.05,0.22,1)
 F.compactBtn:SetBackdropBorderColor(0.45,0.22,0.75,0.8)
-F.compactBtn:SetText("o")
+F.compactBtn:SetText("◎")
 local cfs=F.compactBtn:GetFontString()
 if cfs then cfs:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); cfs:SetTextColor(0.70,0.55,1,1) end
 F.compactBtn:SetScript("OnEnter",function(s)
@@ -484,7 +434,7 @@ local botLine=F:CreateTexture(nil,"ARTWORK")
 botLine:SetPoint("BOTTOMLEFT",2,22); botLine:SetPoint("BOTTOMRIGHT",-2,22)
 botLine:SetHeight(1); botLine:SetColorTexture(0.38,0.18,0.65,0.45)
 
--- -- Scale helper ---------------------------------------------------------
+-- ── Scale helper ─────────────────────────────────────────────────────────
 local Archive
 
 local function ApplyScale(delta)
@@ -580,7 +530,7 @@ end
 F.saveBtn:SetScript("OnClick",function() SaveRun(); ResetSession(); F:UpdateUI() end)
 F.resetBtn:SetScript("OnClick",function() StaticPopup_Show("CLOTHWIDGET_CONFIRM_RESET") end)
 
--- -- Archive window --------------------------------------------------------
+-- ── Archive window ────────────────────────────────────────────────────────
 -- Forward-declare scanning functions so the Scan button closure
 -- (defined inside the Archive header) can reference them.
 -- The actual implementations follow later in the file.
@@ -597,7 +547,7 @@ MakeHeaderStripe(Archive,40)
 MakeTitle(Archive,"|cffaa55ffCLOTH|r |cffddbbffARCHIVE|r  |cff554477| Warband Statistics|r",14,-13,13)
 MakeCloseBtn(Archive,function() Archive:Hide() end)
 
--- -- Scale buttons on Archive (mirror of main widget) ---------------------
+-- ── Scale buttons on Archive (mirror of main widget) ─────────────────────
 local function MakeAScaleBtn(text, xOff)
     local b=CreateFrame("Button",nil,Archive,"BackdropTemplate")
     b:SetSize(20,18); b:SetPoint("TOPRIGHT",Archive,"TOPRIGHT",xOff,-8)
@@ -775,7 +725,7 @@ local function SetActiveTab(tab)
     end
 end
 
--- -- History tab -----------------------------------------------------------
+-- ── History tab ───────────────────────────────────────────────────────────
 local function BuildHistoryTab()
     currentTab="runs"; ClearContent()
     Archive.tailorOuter:Hide(); Archive.scroll:Show()
@@ -805,8 +755,6 @@ local function BuildHistoryTab()
             even and 0.15 or 0.09,0.88)
         row:SetBackdropBorderColor(0.28,0.12,0.45,0.38)
         local zt=row:CreateFontString(nil,"OVERLAY")
-zt:SetFont("Fonts\\2002.ttf",10,"")
-zt:SetTextColor(0.85,0.85,0.85,1)
         zt:SetPoint("TOPLEFT",8,-5); zt:SetText("|cffcc99ff"..(run.zone or "?").."|r")
         zt:SetWidth(190); zt:SetJustifyH("LEFT")
         local st=row:CreateFontString(nil,"OVERLAY")
@@ -862,7 +810,7 @@ zt:SetTextColor(0.85,0.85,0.85,1)
     Archive.content:SetHeight(math.abs(y)+10)
 end
 
--- -- Totals tab ------------------------------------------------------------
+-- ── Totals tab ────────────────────────────────────────────────────────────
 local function BuildTotalsTab()
     currentTab="stats"; ClearContent()
     Archive.tailorOuter:Hide(); Archive.scroll:Show()
@@ -1048,7 +996,7 @@ local function BuildTotalsTab()
     Archive.content:SetHeight(math.abs(y)+20)
 end
 
--- -- Tailors tab -----------------------------------------------------------
+-- ── Tailors tab ───────────────────────────────────────────────────────────
 local activeCooldownBars={}
 
 local function BuildTailorTab()
@@ -1189,7 +1137,7 @@ F.archiveBtn:SetScript("OnClick",function()
     else SetActiveTab(Archive.tabRuns); BuildHistoryTab(); Archive:Show() end
 end)
 
--- -- Profession scanning ---------------------------------------------------
+-- ── Profession scanning ───────────────────────────────────────────────────
 ScanTailoringProfession = function()
     local has=false; local p1,p2=GetProfessions()
     for _,pi in ipairs({p1,p2}) do
@@ -1209,7 +1157,7 @@ ScanCooldowns = function()
     if not (C_TradeSkillUI and C_TradeSkillUI.GetAllRecipeIDs) then return end
     local recipes=C_TradeSkillUI.GetAllRecipeIDs(); if not recipes then return end
     local key=GetCharKey()
-    if not ClothCharDB then return end  -- BUG-004B: nil guard voor indexeren
+    if not ClothCharDB then return end  -- BUG-004B: nil guard vóór indexeren
     ClothCharDB.knownRecipes=ClothCharDB.knownRecipes or {}
     local wbc=ClothWarbandDB and ClothWarbandDB.chars[key]
     if wbc then wbc.knownRecipes=wbc.knownRecipes or {}; wbc.cooldowns=wbc.cooldowns or {} end
@@ -1233,7 +1181,7 @@ ScanCooldowns = function()
     end
 end
 
--- -- StaticPopup pre-registration (load time, not per-click) -------------
+-- ── StaticPopup pre-registration (load time, not per-click) ─────────────
 StaticPopupDialogs["CLOTHWIDGET_CONFIRM_RESET"] = {
     text    = "Reset current session without saving?",
     button1 = "Reset", button2 = "Cancel",
@@ -1252,7 +1200,7 @@ StaticPopupDialogs["CLOTHWIDGET_CLEAR_ALL"] = {
     timeout=0, whileDead=true, hideOnEscape=true,
 }
 
--- -- Events ----------------------------------------------------------------
+-- ── Events ────────────────────────────────────────────────────────────────
 local evtFrame=CreateFrame("Frame","ClothEvtFrame")
 evtFrame:RegisterEvent("ADDON_LOADED"); evtFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 evtFrame:RegisterEvent("CHAT_MSG_LOOT"); evtFrame:RegisterEvent("TRADE_SKILL_SHOW")
@@ -1307,7 +1255,7 @@ C_Timer.NewTicker(1,function()
     if F:IsShown() then F:UpdateUI() end; UpdateActiveCooldownBars()
 end)
 
--- -- Slash commands --------------------------------------------------------
+-- ── Slash commands ────────────────────────────────────────────────────────
 SLASH_CBUD1="/cbud"; SLASH_CBUD2="/cloth"
 SlashCmdList["CBUD"]=function(msg)
     local cmd=(msg or ""):lower():match("^%s*(.-)%s*$")

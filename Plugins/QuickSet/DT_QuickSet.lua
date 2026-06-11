@@ -32,8 +32,7 @@ local function TH()
 end
 
 
-
--- -- Color scheme -------------------------------------------------------------
+-- ── Color scheme ─────────────────────────────────────────────────────────────
 local CO = {
     orange  = "|cffff6600",
     magenta = "|cffff44cc",
@@ -50,10 +49,10 @@ local CO = {
 local VALEERA_FACTION_ID = 2744
 local VALEERA_DISPLAY_ID = 26365  -- creature/NPC display ID for Valeera Sanguinar
 
--- -- Layout constants ----------------------------------------------------------
+-- ── Layout constants ──────────────────────────────────────────────────────────
 -- UIPanelScrollFrameTemplate places scrollbar 4px to the right of the frame,
 -- scrollbar width = 16px -> total overhang = 20px.
--- To keep scrollbar inside container: right offset must be >= 20.
+-- To keep scrollbar inside container: right offset must be ≥ 20.
 local CONT_W   = 400
 local SF_RIGHT = 20      -- right offset for scrollframe so scrollbar stays inside
 -- scroll child width = CONT_W - 1 (left border) - SF_RIGHT - 2 (padding)
@@ -90,7 +89,7 @@ local DELVES = {
     { name="Torment's Rise",      uiMapID=2507, regular=8445, bountiful=nil,  story=nil,   chest=nil,  nemesis=61799 },
 }
 
--- -- Helpers -------------------------------------------------------------------
+-- ── Helpers ───────────────────────────────────────────────────────────────────
 local parentCache = {}
 local function ParentMap(id)
     if not id or not C_Map or not C_Map.GetMapInfo then return nil end
@@ -298,7 +297,7 @@ local function BD(t, b)
     }
 end
 
--- -- Tile factory --------------------------------------------------------------
+-- ── Tile factory ──────────────────────────────────────────────────────────────
 local function NewTile(parent, idx)
     local t = CreateFrame("Button", nil, parent, "BackdropTemplate")
     -- 2-naast-2: oneven links, even rechts
@@ -362,16 +361,12 @@ local function NewTile(parent, idx)
 
     -- Delve name
     t.nameTxt = t:CreateFontString(nil, "OVERLAY")
-    t.nameTxt:SetFont("Fonts\\2002.ttf", 12, "")
-    t.nameTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     t.nameTxt:SetPoint("TOPLEFT",  t.icon,  "TOPRIGHT", 8, -5)
     t.nameTxt:SetPoint("RIGHT",    t.badge, "LEFT",     -4,  0)
     t.nameTxt:SetJustifyH("LEFT")
 
     -- Story progress (e.g. "Story: 2/4")
     t.storyTxt = t:CreateFontString(nil, "OVERLAY")
-    t.storyTxt:SetFont("Fonts\\2002.ttf", 10, "")
-    t.storyTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     t.storyTxt:SetPoint("BOTTOMLEFT", t.icon,  "BOTTOMRIGHT", 8, 12)
     t.storyTxt:SetPoint("RIGHT",      t.badge, "LEFT",        -4,  0)
     t.storyTxt:SetJustifyH("LEFT")
@@ -385,7 +380,7 @@ local function NewTile(parent, idx)
     return t
 end
 
--- -- Apply tile style ----------------------------------------------------------
+-- ── Apply tile style ──────────────────────────────────────────────────────────
 local function StyleTile(t, d, isBountiful, isNemesis)
     local live = GetLiveDelveInfo(d)
     -- Icon from achievement, fallback to generic
@@ -447,7 +442,7 @@ local function StyleTile(t, d, isBountiful, isNemesis)
     end
 end
 
--- -- Rich tooltip: shows every story criterion (quest) individually -------------
+-- ── Rich tooltip: shows every story criterion (quest) individually ─────────────
 local function SetTooltip(t, d, isBountiful, isNemesis)
     t:RegisterForClicks("LeftButtonUp")
     t:SetScript("OnClick", function() OpenLiveDelve(d) end)
@@ -483,7 +478,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             GameTooltip:AddLine(CO.red .. "Live delve POI not found; using ID fallback.|r")
         end
 
-        -- -- Story achievement with per-quest criteria --
+        -- ── Story achievement with per-quest criteria ──
         if d.story then
             local achName, done, total, compl = AchInfo(d.story)
             if achName then
@@ -510,7 +505,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             end
         end
 
-        -- -- Chest / coffer achievement --
+        -- ── Chest / coffer achievement ──
         if d.chest then
             local achName, done, total, compl = AchInfo(d.chest)
             if total then
@@ -531,7 +526,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             end
         end
 
-        -- -- Nemesis achievement --
+        -- ── Nemesis achievement ──
         if isNemesis and d.nemesis then
             local _, _, _, compl = AchInfo(d.nemesis)
             GameTooltip:AddLine(" ")
@@ -543,7 +538,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             end
         end
 
-        -- -- Bountiful tip --
+        -- ── Bountiful tip ──
         if isBountiful then
             GameTooltip:AddLine(" ")
             GameTooltip:AddLine(CO.orange .. "Bountiful benefits:|r")
@@ -576,7 +571,7 @@ local function FillStory(t, d)
     end
 end
 
--- -- Main build ----------------------------------------------------------------
+-- ── Main build ────────────────────────────────────────────────────────────────
 local function BuildGrid(container)
     if container._dtBuilt then return end
     container._dtBuilt = true
@@ -596,11 +591,11 @@ local function BuildGrid(container)
         SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
     end
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 1. VALEERA HEADER
     --    Uses PlayerModel with SetDisplayInfo for true
     --    3D NPC portrait (Valeera Sanguinar).
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local hdr = CreateFrame("Frame", nil, container, "BackdropTemplate")
     -- hdr breed als container, gecentreerd
     hdr:SetSize(CONT_W - 2, HDR_H)
@@ -617,7 +612,7 @@ local function BuildGrid(container)
     topLine:SetPoint("TOPRIGHT", -1, -1)
     topLine:SetColorTexture(0.0, 0.95, 0.85, 1)
 
-    -- -- 3D Model portrait --------------------------
+    -- ── 3D Model portrait ──────────────────────────
     -- PlayerModel with SetDisplayInfo renders the NPC in a portrait-style
     -- close-up. SetPortraitZoom(1) zooms to face/bust.
     hdr.model = CreateFrame("PlayerModel", nil, hdr)
@@ -664,15 +659,11 @@ local function BuildGrid(container)
     -- Name
     local textAnchor = hdr.model
     hdr.nameTxt = hdr:CreateFontString(nil, "OVERLAY")
-    hdr.nameTxt:SetFont("Fonts\\2002.ttf", 12, "")
-    hdr.nameTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     hdr.nameTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -4)
     hdr.nameTxt:SetText(CO.teal .. "Valeera Sanguinar|r")
 
     -- Level / rep
     hdr.levelTxt = hdr:CreateFontString(nil, "OVERLAY")
-    hdr.levelTxt:SetFont("Fonts\\2002.ttf", 10, "")
-    hdr.levelTxt:SetTextColor(0.85, 0.85, 0.85, 1)
     hdr.levelTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -18)
     hdr.levelTxt:SetText(CO.gray .. "Loading...")
 
@@ -691,8 +682,6 @@ local function BuildGrid(container)
     hdr.bar:SetMinMaxValues(0, 1); hdr.bar:SetValue(0)
 
     hdr.xpTxt = hdr.bar:CreateFontString(nil, "OVERLAY")
-hdr.xpTxt:SetFont("Fonts\\2002.ttf",10,"")
-hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     hdr.xpTxt:SetPoint("CENTER", hdr.bar, "CENTER", 0, 0)
     hdr.xpTxt:SetText("")
 
@@ -727,9 +716,9 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     end)
     hdr:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 2. THREE TABS (bottom of container)
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local tabW = math.floor((CONT_W - 2) / 3)
 
     local function MakeTabBtn(label, offsetX)
@@ -738,8 +727,6 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         tb:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 1 + offsetX, 2)
         tb:SetBackdrop(BD(1))
         local lbl = tb:CreateFontString(nil, "OVERLAY")
-        lbl:SetFont("Fonts\\2002.ttf", 12, "")
-        lbl:SetTextColor(0.85, 0.85, 0.85, 1)
         lbl:SetPoint("CENTER", tb, "CENTER", 0, 0)
         lbl:SetText(label)
         tb.lbl = lbl
@@ -760,14 +747,14 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     tabBoun.glowBar:SetColorTexture(0.80, 0.67, 0.0, 1)  -- T06: gold ipv oranje
     tabNorm.glowBar:SetColorTexture(0.30, 0.70, 1.0, 1)
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 3. THREE SCROLL AREAS
     --    SF_RIGHT = 20: scroll frame right edge is 20px
     --    from container right, so the 16px scrollbar
     --    (offset 4px) lands at container right - 0px.
     --    Tabs N and B: scrollbar hidden entirely.
     --    Tab Nr: scrollbar visible and inside frame.
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local function MakeScrollArea()
         local sf = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
         sf:SetPoint("TOPLEFT",     hdr,       "BOTTOMLEFT",  0,             -2)
@@ -790,18 +777,14 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     sfN:EnableMouseWheel(false)
     sfB:EnableMouseWheel(false)
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 4. TAB ACTIVATION
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local activeTab = 1
 
     local function ActivateTab(n)
         activeTab = n
         sfN:SetShown(n == 1); sfB:SetShown(n == 2); sfNr:SetShown(n == 3)
-        -- Reset scroll positie bij tab wissel
-        if n == 1 then sfN:SetVerticalScroll(0)
-        elseif n == 2 then sfB:SetVerticalScroll(0)
-        elseif n == 3 then sfNr:SetVerticalScroll(0) end
 
         -- Reset all tabs to inactive
         tabNem:SetBackdropColor(0.04, 0.01, 0.07, 1)
@@ -849,9 +832,9 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     AddTabHover(tabBoun, 2)
     AddTabHover(tabNorm, 3)
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 5. TILE POOLS
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local poolN, poolB, poolNr = {}, {}, {}
 
     local function GetTile(pool, parent, idx)
@@ -872,21 +855,21 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         return pool[idx]
     end
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 6. ITEM BOXES (Nemesis tab - Required Items)
     --
-    --   Layout per box  (~ ITEM_W x ITEM_H px):
-    --   +-------------------------------┐
-    --   |▌  [ICON 40x40]  Item Name    |
-    --   |▌       +--┐                  |
-    --   |▌       │x2│ <- badge on icon  |
-    --   |▌       +--┘                  |
-    --   +-------------------------------┘
+    --   Layout per box  (≈ ITEM_W x ITEM_H px):
+    --   ┌───────────────────────────────┐
+    --   ║▌  [ICON 40x40]  Item Name    ║
+    --   ║▌       ┌──┐                  ║
+    --   ║▌       │x2│ <- badge on icon  ║
+    --   ║▌       └──┘                  ║
+    --   └───────────────────────────────┘
     --
     --   Count badge: outlined white text with dark bg,
     --   positioned bottom-right corner of the icon.
     --   "in bags" label removed entirely.
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local itemBoxes = {}
 
     local function MakeItemBox(parent, item, idx)
@@ -976,9 +959,9 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         return box
     end
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 7. VALEERA REFRESH
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local function RefreshValeera()
         local rank, rep = ValeeraData()
         if rank and rep then
@@ -1009,9 +992,9 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         end
     end
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 8. DELVES REFRESH
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local function RefreshDelves()
         local bountiful, normal, nemesis = {}, {}, {}
         for _, d in ipairs(DELVES) do
@@ -1037,7 +1020,7 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         for _, p in ipairs(poolNr)   do p:Hide() end
         for _, b in ipairs(itemBoxes) do b:Hide() end
 
-        -- -- TAB 1: NEMESIS -----------------------------
+        -- ── TAB 1: NEMESIS ─────────────────────────────
         local iN = 0
         for _, d in ipairs(nemesis) do
             iN = iN + 1
@@ -1095,7 +1078,7 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
             end
         end
 
-        -- -- S3-04: BOSS TACTICS KNOP --------------------------------
+        -- ── S3-04: BOSS TACTICS KNOP ────────────────────────────────
         local BOSS_Y = ITEMS_Y + ITEM_H + 8
 
         if not scN.bossTacticsBtn then
@@ -1266,7 +1249,7 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         scN.bossTacticsBtn:SetPoint("TOPLEFT",0,-BOSS_Y)
         scN.bossTacticsBtn:Show()
 
-        -- -- ABUNDANCE BLOK onder Boss Tactics ----------------------------
+        -- ── ABUNDANCE BLOK onder Boss Tactics ────────────────────────────
         local AB_Y = BOSS_Y + 28 + 8
         if not scN.abundanceFrame then
             -- S3-07: compact abundance blok (52px)
@@ -1340,25 +1323,23 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         end
         scN.abundanceFrame:Show()
 
-        -- Zorg dat scN altijd minimale hoogte heeft voor scroll
-local scN_total = AB_Y + 62
-scN:SetHeight(math.max(scN_total, sfN:GetHeight() or 200))
+        scN:SetHeight(math.max(AB_Y + 62, 10))  -- S3-07: compacter blok
 
-        -- -- TAB 2: BOUNTIFUL ---------------------------
+        -- ── TAB 2: BOUNTIFUL ───────────────────────────
         local iB = 0
         if bc == 0 then
             iB = 1
             local t = GetTile(poolB, scB, 1)
             t.artBg:SetColorTexture(0, 0, 0, 0)
-            t:SetBackdropColor(0.02, 0.04, 0.10, 0.94)
-            t:SetBackdropBorderColor(0.15, 0.40, 0.80, 0.5)
-            t.stripe:SetColorTexture(0.20, 0.55, 1.0, 0.3)
+            t:SetBackdropColor(0.03, 0.05, 0.12, 0.94)
+            t:SetBackdropBorderColor(0.20, 0.50, 0.90, 0.5)
+            t.stripe:SetColorTexture(0.20, 0.55, 1.0, 0.5)
             t.badge:SetColorTexture(0, 0, 0, 0)
-            t.icon:SetTexture("Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider")
+            t.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
             t.iconRim:SetColorTexture(1, 1, 1, 0)
             t.glowBar:SetAlpha(0); t.glowLeft:SetAlpha(0)
-            t.nameTxt:SetText("|cff44aaff" .. "Geen actieve Bountiful Delves|r")
-            t.storyTxt:SetText("|cff667799" .. "Bezoek een Delve zone om live data te laden.|r")
+            t.nameTxt:SetText(CO.gray .. "No Bountiful Delves active")
+            t.storyTxt:SetText(CO.gray .. "Check back later")
             t.typeTxt:SetText(""); t.badgeTxt:SetText("")
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
@@ -1373,9 +1354,9 @@ scN:SetHeight(math.max(scN_total, sfN:GetHeight() or 200))
                 t:Show()
             end
         end
-        scB:SetHeight(math.max(iB * (TILE_H + TILE_G) - TILE_G, sfB:GetHeight() or 200))
+        scB:SetHeight(math.max(iB * (TILE_H + TILE_G) - TILE_G, 10))
 
-        -- -- TAB 3: NORMAL (scrollbar visible) ----------
+        -- ── TAB 3: NORMAL (scrollbar visible) ──────────
         local iNr = 0
         for _, d in ipairs(normal) do
             iNr = iNr + 1
@@ -1401,7 +1382,7 @@ scN:SetHeight(math.max(scN_total, sfN:GetHeight() or 200))
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
         end
-        scNr:SetHeight(math.max(iNr * (TILE_H + TILE_G) - TILE_G, sfNr:GetHeight() or 200))
+        scNr:SetHeight(math.max(iNr * (TILE_H + TILE_G) - TILE_G, 10))
     end
 
     local function RefreshAll()
@@ -1409,9 +1390,9 @@ scN:SetHeight(math.max(scN_total, sfN:GetHeight() or 200))
         RefreshDelves()
     end
 
-    -- ================================================
+    -- ════════════════════════════════════════════════
     -- 9. TIMER (every 5 seconds while visible)
-    -- ================================================
+    -- ════════════════════════════════════════════════
     local function StartTimer()
         if container._dtTicker then return end
         container._dtTicker = C_Timer.NewTicker(5, RefreshAll)

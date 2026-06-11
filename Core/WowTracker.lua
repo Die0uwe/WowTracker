@@ -929,10 +929,11 @@ Tab1.img:SetAlpha(0.92)
 
 -- DieOuwe: klein, rechterhoek van linker kolom, gespiegeld (wijst naar binnen)
 Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.dieouwe:SetSize(72,124)  -- A-01: iets kleiner zodat voeten op grond passen
-Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-2,0)  -- y=0 = voeten op vloer
+Tab1.dieouwe:SetSize(80,138)
+Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
-Tab1.dieouwe:SetAlpha(0.75)
+Tab1.dieouwe:SetTexCoord(1,0,0,1)  -- gespiegeld naar binnen
+Tab1.dieouwe:SetAlpha(0.80)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
 -- Origineel kijkt rechts -> gespiegeld kijkt naar links (naar binnen)
 -- Horizontaal spiegelen: UL=(1,0) UR=(0,0) LL=(1,1) LR=(0,1)
