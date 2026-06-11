@@ -813,15 +813,13 @@ local function ShowTab(id)
         Tab3.PluginArea:Show()
         -- QuickSet: geef volledige Tab3 breedte mee
         -- QuickSet bouwt tiles in een scrollframe - het vult de breedte van de container
-        if not Tab3.quickWrap then
-            Tab3.quickWrap = CreateFrame("Frame",nil,Tab3.PluginArea)
-            Tab3.quickWrap:SetPoint("TOPLEFT",Tab3.PluginArea,"TOPLEFT",0,0)
-            Tab3.quickWrap:SetPoint("BOTTOMRIGHT",Tab3.PluginArea,"BOTTOMRIGHT",0,0)
-        end
-        if Tab3.quickWrap._dtBuilt == nil then
+        -- QuickSet bouwt zichzelf eenmalig in PluginArea
+        if not Tab3._quickBuilt then
             local qpF = DelveTracker.Plugins["QuickSet"]
             if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
-                pcall(qpF,"Tab3",Tab3.quickWrap)
+                local ok, err = pcall(qpF, "Tab3", Tab3.PluginArea)
+                if ok then Tab3._quickBuilt = true
+                else print("|cffff4444[WowTracker] QuickSet fout: "..tostring(err).."|r") end
             end
         end
 
@@ -1056,25 +1054,13 @@ local scroll2_alias = scroll  -- zelfde scroller, kolom 2 gebruikt xPos offset
 Tab3.PluginArea=CreateFrame("Frame","DT_BountyArea",Tab3)
 Tab3.PluginArea:SetPoint("TOPLEFT",Tab3,"TOPLEFT",0,0)
 Tab3.PluginArea:SetPoint("BOTTOMRIGHT",Tab3,"BOTTOMRIGHT",0,0)
+Tab3.PluginArea:Show()
 -- QuickSet legt zijn content in Tab3.PluginArea centraal
 Tab3.bg=Tab3:CreateTexture(nil,"BACKGROUND")
 Tab3.bg:SetAllPoints()
 Tab3.bg:SetColorTexture(0.05,0.02,0.08,0.6)
 
--- Bounty fallback: toon QuickSet frame direct als het bestaat
--- QuickSet maakt zijn eigen frame (DT_QuickSetFrame) - zet het als child van Tab3
-Tab3.PluginArea:SetScript("OnShow", function(self)
-    C_Timer.After(0.1, function()
-        local qf = _G["DT_QuickSetFrame"]
-        if qf then
-            qf:SetParent(self)
-            qf:ClearAllPoints()
-            qf:SetPoint("TOPLEFT",self,"TOPLEFT",0,0)
-            qf:SetPoint("BOTTOMRIGHT",self,"BOTTOMRIGHT",0,0)
-            qf:Show()
-        end
-    end)
-end)
+
 
 -- -- TAB 4: ROSTER ---------------------------------------------------------
 Tab4.PluginArea=CreateFrame("Frame","DT_RosterArea",Tab4)
