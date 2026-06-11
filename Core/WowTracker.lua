@@ -469,9 +469,35 @@ local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 11)
 local HDR_BTN_SZ = 22
 
 -- X Sluiten
-UI.close = CreateFrame("Button",nil,UI,"UIPanelCloseButton")
+-- Stap4: close knop met blank2 thema icon ipv standaard X
+UI.close = CreateFrame("Button",nil,UI,"BackdropTemplate")
 UI.close:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
 UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",2,HDR_BTN_Y)
+UI.close:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+UI.close:SetBackdropColor(0.14,0.02,0.04,0.9)
+UI.close:SetBackdropBorderColor(0.65,0.10,0.10,0.8)
+UI.close.tex = UI.close:CreateTexture(nil,"ARTWORK")
+UI.close.tex:SetAllPoints()
+UI.close.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Icons\\WowTracker_Icons\\Magical\\blank2.tga")
+UI.close.tex:SetTexCoord(0.05,0.95,0.05,0.95)
+-- Fallback X tekst als icon niet laadt
+UI.close.lbl = UI.close:CreateFontString(nil,"OVERLAY")
+UI.close.lbl:SetFont(C_2002,11,"OUTLINE")
+UI.close.lbl:SetPoint("CENTER",0,0)
+UI.close.lbl:SetText("|cffff4444X|r")
+UI.close:SetScript("OnClick",function()
+    UI:Hide()
+    if DelveTrackerDB then DelveTrackerDB.uiWasOpen=false end
+end)
+UI.close:SetScript("OnEnter",function(s)
+    s:SetBackdropBorderColor(1.0,0.20,0.20,1)
+    GameTooltip:SetOwner(s,"ANCHOR_BOTTOMLEFT")
+    GameTooltip:SetText("|cffff4444Sluiten|r"); GameTooltip:Show()
+end)
+UI.close:SetScript("OnLeave",function(s)
+    s:SetBackdropBorderColor(0.65,0.10,0.10,0.8)
+    GameTooltip:Hide()
+end)
 
 -- Tandwiel (Settings)
 UI.settingsBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
@@ -555,7 +581,7 @@ UI.langBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 -- Vault knop in header (links van langBtn) - opent WeeklyRewardsFrame direct
 UI.vaultBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
 UI.vaultBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
-UI.vaultBtn:SetPoint("RIGHT",UI.langBtn,"LEFT",-3,0)
+UI.vaultBtn:SetPoint("TOPLEFT",UI,"TOPLEFT",4,HDR_BTN_Y)  -- Stap4: vault links in header
 UI.vaultBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.vaultBtn:SetBackdropColor(0.12,0.06,0.04,0.9)
 UI.vaultBtn:SetBackdropBorderColor(0.55,0.35,0.10,0.8)
@@ -614,6 +640,9 @@ if WTTheme and WTTheme.Register then
         end
         if UI.settingsBtn and UI.settingsBtn.tex then
             UI.settingsBtn.tex:SetTexture(BASE.."\\"..folder.."\\blank1.tga")
+        end
+        if UI.close and UI.close.tex then
+            UI.close.tex:SetTexture(BASE.."\\"..folder.."\\blank2.tga")
         end
         -- Roster cards
         if Tab4 and Tab4.scroll and Tab4.scroll.content then
@@ -2166,6 +2195,7 @@ for _,th in ipairs(optThemes) do
         if UI.themeBtn and UI.themeBtn.tex then UI.themeBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\theme.tga") end
         if UI.langBtn and UI.langBtn.tex then UI.langBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\language.tga") end
         if UI.settingsBtn and UI.settingsBtn.tex then UI.settingsBtn.tex:SetTexture(BASE2.."\\"..fld2.."\\blank1.tga") end
+        if UI.close and UI.close.tex then UI.close.tex:SetTexture(BASE2.."\\"..fld2.."\\blank2.tga") end
         print(SA_PURPLE.."[WowTracker] Thema: "..t.name.."|r")
     end)
     tb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
