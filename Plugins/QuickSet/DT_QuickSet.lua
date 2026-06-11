@@ -813,9 +813,15 @@ local function BuildGrid(container)
         end
     end
 
-    tabNem:SetScript("OnClick",  function() ActivateTab(1) end)
-    tabBoun:SetScript("OnClick", function() ActivateTab(2) end)
-    tabNorm:SetScript("OnClick", function() ActivateTab(3) end)
+    tabNem:SetScript("OnClick",  function()
+            ActivateTab(1); sfN:SetVerticalScroll(0); RefreshDelves()
+        end)
+        tabBoun:SetScript("OnClick", function()
+            ActivateTab(2); sfB:SetVerticalScroll(0); RefreshDelves()
+        end)
+        tabNorm:SetScript("OnClick", function()
+            ActivateTab(3); sfNr:SetVerticalScroll(0); RefreshDelves()
+        end)
 
     -- Inactive tab hover: glow border + glow bar, no background tint
     local function AddTabHover(tb, idx)

@@ -123,7 +123,7 @@ TickerClock:SetTextColor(0.80,0.65,1.0,1)
 
 local TickerClip = CreateFrame("Button",nil,UI)
 TickerClip:SetPoint("TOPLEFT",UI,"TOPLEFT",4,-1)
-TickerClip:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-78,-1)
+TickerClip:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-130,-1)
 TickerClip:SetHeight(TICKER_H)
 TickerClip:SetClipsChildren(true)
 -- Ticker instellingen in DB
@@ -932,7 +932,7 @@ Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.dieouwe:SetSize(80,138)
 Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
-Tab1.dieouwe:SetTexCoord(1,0, 0,0, 1,1, 0,1)  -- horizontaal gespiegeld naar binnen
+Tab1.dieouwe:SetTexCoord(1,0,0,1)  -- links-rechts gespiegeld
 Tab1.dieouwe:SetAlpha(0.85)
 
 -- Logo watermark links midden - subtiel
@@ -1625,7 +1625,7 @@ WT_UpdateRoster = function()
                 if pi>4 then break end
                 local px = 4+(pi-1)*20
                 local pico=card:CreateTexture(nil,"OVERLAY")
-                pico:SetSize(18,18)
+                pico:SetSize(16,16)
                 pico:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,20)
                 if prof.icon then pico:SetTexture(prof.icon) end
                 pico:SetTexCoord(0.08,0.92,0.08,0.92)
