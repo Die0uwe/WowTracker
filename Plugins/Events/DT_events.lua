@@ -3,19 +3,6 @@
 -- ============================================================================
 local addonName, addonTable = ...
 
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
-
 addonTable.DT_events = {}
 
 -- 1. Gebruikersinstellingen (Koppel dit in je core add-on aan je SavedVariables)
@@ -79,7 +66,7 @@ function addonTable.DT_events:GetStatus(eventKey)
     local data = EventDatabase[eventKey]
     if not data then return nil end
 
-    -- Controleer of de expansie of het specifieke event is uitgevinkt
+    -- Controleer of de expansie óf het specifieke event is uitgevinkt
     local settings = addonTable.DT_events.Settings
     if not settings.expansions[data.expansion] or not settings.events[eventKey] then
         return nil -- Geef niks terug als het gefilterd is
@@ -123,16 +110,16 @@ function addonTable.DT_events:GetVisibleEvents()
     return visibleEvents
 end
 -- ============================================================================
--- ABUNDANCE SCANNER v2.0 - geverifieerde API (2026-06-07)
+-- ABUNDANCE SCANNER v2.0 — geverifieerde API (2026-06-07)
 -- Bronnen: warcraft.wiki.gg, EverythingDelves (Wheelbarrel00), Waxus tracker
 -- ============================================================================
 -- HOE HET WERKT:
 -- Abundance roteert elke 8 uur over 4 caves (één per Midnight zone)
 -- API flow:
---   1. C_AreaPoiInfo.GetDelvesForMap(mapID) -> delve POI IDs
---   2. C_AreaPoiInfo.GetAreaPOIInfo([mapID], poiID) -> info incl atlasName
---   3. C_AreaPoiInfo.GetAreaPOISecondsLeft(poiID) -> exacte timer in seconden
---   4. C_AreaPoiInfo.IsAreaPOITimed(poiID) -> is het getimed (Abundant Harvest)?
+--   1. C_AreaPoiInfo.GetDelvesForMap(mapID) → delve POI IDs
+--   2. C_AreaPoiInfo.GetAreaPOIInfo([mapID], poiID) → info incl atlasName
+--   3. C_AreaPoiInfo.GetAreaPOISecondsLeft(poiID) → exacte timer in seconden
+--   4. C_AreaPoiInfo.IsAreaPOITimed(poiID) → is het getimed (Abundant Harvest)?
 -- Abundant Harvest = atlasName:find("abundance") = ACTIEVE cave met Dundun vendor
 -- Shard of Dundun (ID 3376) = vereiste key voor Abundant Harvest
 -- ============================================================================
@@ -151,19 +138,15 @@ local DT_AbundanceData = {
 -- Alle Midnight mapIDs waar Abundance actief kan zijn
 -- Abundance roteert elke 8 uur over 4 caves: Eversong, Zul'Aman, Harandar, Voidstorm
 -- Silvermoon en Sunfury Spire zijn hubs maar kunnen ook abundance events hebben
--- S3-05: Abundance roteert ALLEEN over 4 cave locaties (geverifieerd via Wowhead)
--- Silvermoon en Sunfury Spire zijn hubs - geen abundance caves
--- Cave locaties: Watha'nan Crypts (Eversong), Loaknit Den (Zul'Aman),
---               Floaret Grotto (Harandar), Abundant Voidburrow (Voidstorm)
 local ABUNDANCE_MAPS = {
-    2393,  -- Eversong Woods outdoor (Watha'nan Crypts: /way 56.78 65.79)
-    2395,  -- Eversong Woods alt zone
-    2437,  -- Zul'Aman combat zone (Loaknit Den: /way 31.62 26.14)
-    2413,  -- Harandar (Floaret Grotto: /way 66.14 61.69)
-    2405,  -- Voidstorm (Abundant Voidburrow: /way 38.82 53.31)
-    2394,  -- Eversong fly-through (zekerheidshalve)
-    -- 2444 Silvermoon: GEEN abundance cave (enkel hub) - verwijderd
-    -- 2536 Sunfury Spire: GEEN abundance cave - verwijderd
+    2393,  -- Eversong Woods (outdoor)
+    2395,  -- Eversong Woods (alt/instanced)
+    2437,  -- Zul'Aman (combat zone — abundance roots hier)
+    2413,  -- Harandar
+    2405,  -- Voidstorm
+    2444,  -- Silvermoon City (hub)
+    2536,  -- Sunfury Spire
+    2394,  -- Eversong fly-through (ook checken)
 }
 
 local function IsAbundancePOI(info)
@@ -175,7 +158,7 @@ local function IsAbundancePOI(info)
 end
 
 -- ScanAbundanceOnMap: geeft true terug als gevonden, false als niet
--- Schrijft NOOIT active=false - dat doet ScanAllMidnightMaps pas na alle maps
+-- Schrijft NOOIT active=false — dat doet ScanAllMidnightMaps pas na alle maps
 local function ScanAbundanceOnMap(mapID)
     if not (mapID and C_AreaPoiInfo) then return false end
 
@@ -227,7 +210,7 @@ local function ScanAbundanceOnMap(mapID)
                 local cok, cinfo = pcall(C_CurrencyInfo.GetCurrencyInfo, 3376)
                 if cok and cinfo then DT_AbundanceData.shards = cinfo.quantity or 0 end
             end
-            return true  -- gevonden - stop zoeken
+            return true  -- gevonden — stop zoeken
         end
     end
     return false  -- niet gevonden op deze map, maar active NIET overschrijven
@@ -257,8 +240,6 @@ local _abFrame = CreateFrame("Frame")
 _abFrame:RegisterEvent("AREA_POIS_UPDATED")
 _abFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 _abFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-_abFrame:RegisterEvent("WORLD_STATE_TIMER_START")  -- S3-05: ook bij timer events
-_abFrame:RegisterEvent("DISPLAY_SIZE_CHANGED")     -- fallback re-scan
 _abFrame:SetScript("OnEvent", function(self, event)
     -- Throttle: max 1x per 30 sec
     if GetTime() - DT_AbundanceData.lastScan < 30 and event ~= "PLAYER_ENTERING_WORLD" then return end
@@ -288,12 +269,12 @@ C_Timer.After(4.0, ScanAllMidnightMaps)
 --   Texture: "Interface\\WorldStateFrame\Icons-Classes"
 --   Coords via: CLASS_ICON_TCOORDS["DEATHKNIGHT"] etc.
 -- SPEC ICONS:
---   GetSpecializationInfoByID(specID) -> id,name,desc,iconID,role
+--   GetSpecializationInfoByID(specID) → id,name,desc,iconID,role
 -- RACE ICONS:
 --   "Interface\\Icons\Achievement_Character_{race}_{faction}"
 -- ABUNDANCE POI:
---   C_AreaPoiInfo.GetAreaPOIForMap(mapID) -> {poiID,...}
---   C_AreaPoiInfo.GetAreaPOIInfo(poiID) -> {atlasName,description,timeRemaining,...}
+--   C_AreaPoiInfo.GetAreaPOIForMap(mapID) → {poiID,...}
+--   C_AreaPoiInfo.GetAreaPOIInfo(poiID) → {atlasName,description,timeRemaining,...}
 --   Chip vendor: POI atlas "delve-abundance" of description:find("abundance")
 -- CURRENCY IDs (geverifieerd Midnight):
 --   3028 = Restored Coffer Keys

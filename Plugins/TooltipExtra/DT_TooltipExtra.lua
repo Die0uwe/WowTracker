@@ -4,19 +4,6 @@
 -- =====================================================
 
 if DelveTracker then
-
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
     -- 1. DATABASE & SETTINGS
     local function GetSettings()
         if not DelveTrackerDB then DelveTrackerDB = {} end
@@ -161,7 +148,7 @@ end
     f:SetScript("OnShow", RefreshRows)
 
     -- 4. SLASH COMMANDS
-    SLASH_DMENU1 = "/wt-menu"; SLASH_DMENU2 = "/dmenu"  -- beide werken
+    SLASH_DMENU1 = "/dmenu"
     SlashCmdList["DMENU"] = function() if f:IsShown() then f:Hide() else f:Show() end end
 
     -- 5. RIGHT-CLICK MENU
@@ -184,7 +171,7 @@ end
                     -- Check if following entry is a sub-item (starts with "-")
                     local hasSub = settings[i+1] and settings[i+1].label and settings[i+1].label:match("^%-")
                     if hasSub then
-                        -- Parent entry -> create submenu button
+                        -- Parent entry → create submenu button
                         local sub = "|cff0000ff"
                         if cfg.label:find("Settings") then sub = "|cffffa500" end
                         if cfg.label:find("UC")       then sub = "|cffff6666" end

@@ -3,19 +3,6 @@
 -- =====================================================
 
 if DelveTracker then
-
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
     -- 1. DATABASE
     local function CheckDB()
         DelveTrackerDB = DelveTrackerDB or {}
@@ -76,7 +63,7 @@ end
     local TextFrame = CreateFrame("Frame", nil, CA_Frame)
     TextFrame:SetSize(400, 60)
     TextFrame:SetFrameLevel(shield:GetFrameLevel() + 10) 
-    local CA_Text = TextFrame:CreateFontString(nil, "OVERLAY")
+    local CA_Text = TextFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
     CA_Text:SetFont("Fonts\\2002.ttf", 32, "OUTLINE")
     CA_Text:SetPoint("CENTER", TextFrame, "CENTER")
     TextFrame:SetAlpha(0)
@@ -143,9 +130,7 @@ end
         frame:SetBackdropColor(0.05, 0.05, 0.05, 0.95)
         frame:SetBackdropBorderColor(0.2, 0.2, 0.2, 1)
 
-        local title = frame:CreateFontString(nil, "OVERLAY")
-        title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-        title:SetTextColor(0.85, 0.85, 0.85, 1)
+        local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
         title:SetPoint("TOP", 0, -15); title:SetText("SLAYER ALLIANCE"); title:SetTextColor(0.6, 0.4, 1)
 
         local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
@@ -157,9 +142,7 @@ end
             btn:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1})
             btn:SetBackdropColor(0.15, 0.15, 0.15, 1)
             btn:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
-            btn.t = btn:CreateFontString(nil, "OVERLAY")
-            btn.t:SetFont("Fonts\\2002.ttf", 10, "")
-            btn.t:SetTextColor(0.85, 0.85, 0.85, 1)
+            btn.t = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
             btn.t:SetPoint("CENTER"); btn.t:SetText(label)
             btn:SetScript("OnClick", func)
             return btn
@@ -178,15 +161,13 @@ end
         soundBtn.t:SetText("Combat Sound: "..(DelveTrackerDB.enableCombatSound and "ON" or "OFF"))
 
         local function CreateSld(label, dbKey, y, minVal, maxVal)
-            -- OptionsSliderTemplate deprecated in 10.0 -> manual slider, preserves s.Text API
+            -- OptionsSliderTemplate deprecated in 10.0 → manual slider, preserves s.Text API
             local s = CreateFrame("Slider", nil, frame)
             s:SetPoint("TOP", 0, y); s:SetSize(200,16); s:SetOrientation("HORIZONTAL")
             s:SetMinMaxValues(minVal, maxVal); s:SetValueStep(0.1); s:SetObeyStepOnDrag(true)
             s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
             local bg=s:CreateTexture(nil,"BACKGROUND"); bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
-            s.Text = s:CreateFontString(nil, "OVERLAY")
-s.Text:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-s.Text:SetTextColor(1,1,1,1)
+            s.Text = s:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             s.Text:SetPoint("BOTTOM", s, "TOP", 0, 2); s:SetValue(DelveTrackerDB[dbKey] or 1)
             s:SetScript("OnValueChanged", function(self, v) DelveTrackerDB[dbKey] = v; self.Text:SetText(label .. " (" .. string.format("%.1f", v) .. ")") end)
             s.Text:SetText(label .. " (" .. string.format("%.1f", s:GetValue()) .. ")")
@@ -196,9 +177,7 @@ s.Text:SetTextColor(1,1,1,1)
         CreateSld("Scale", "CA_Size", -210, 0.5, 2.5)
 
         local function CreateEB(label, dbKey, y)
-            local t = frame:CreateFontString(nil, "OVERLAY")
-            t:SetFont("Fonts\\2002.ttf", 10, "")
-            t:SetTextColor(0.85, 0.85, 0.85, 1)
+            local t = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
             t:SetPoint("TOP", 0, y); t:SetText(label); t:SetTextColor(0.8, 0.8, 0.8)
             local eb = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
             eb:SetSize(220, 22); eb:SetPoint("TOP", 0, y-18); eb:SetAutoFocus(false)

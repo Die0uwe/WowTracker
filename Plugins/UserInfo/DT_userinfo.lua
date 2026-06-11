@@ -1,63 +1,63 @@
 -- ================================================================
---  DT_userinfo.lua  v8.1.0  -  Character Dashboard . Midnight Edition
+--  DT_userinfo.lua  v8.1.0  —  Character Dashboard · Midnight Edition
 --  Compatible with: Retail 12.0.5.67314 (Midnight)
 --  Loaded via DelveTracker.xml after DelveTracker.lua
 --  Storage: DelveTrackerDB.UserInfo + DelveTrackerDB.characters
 --
---  v8.1.0 - Layout & Scroll Audit vs v8.0.0
---  ------------------------------------------
+--  v8.1.0 — Layout & Scroll Audit vs v8.0.0
+--  ──────────────────────────────────────────
 --  [SCROLL-1] SCROLLBAR_W = 20 constant added to layout block.
 --             All ScrollFrame panels now subtract this from content
 --             width so text never runs behind the scrollbar thumb.
 --
---  [SCROLL-2] Currency panel (pCurrency) -> UIPanelScrollFrameTemplate.
---             Root cause: CUR_DISPLAY contains 13 currencies x 28 px
---             + 3 dividers x 10 px = ~394 px content inside a 300 px
+--  [SCROLL-2] Currency panel (pCurrency) → UIPanelScrollFrameTemplate.
+--             Root cause: CUR_DISPLAY contains 13 currencies × 28 px
+--             + 3 dividers × 10 px = ~394 px content inside a 300 px
 --             panel; Conquest and Honor rows were fully invisible.
 --             Fix: wrap rows in DT_CurScroll ScrollFrame; mouse-wheel
 --             scrolls 28 px/tick (= one row). Content height computed
 --             dynamically before rows are built.
 --
---  [SCROLL-3] Warband character grid (wbScroll) ->
+--  [SCROLL-3] Warband character grid (wbScroll) →
 --             UIPanelScrollFrameTemplate ("DT_WbCharScroll").
 --             Previously used a bare CreateFrame("ScrollFrame") with
---             no template - the scrollbar was invisible and could not
---             be dragged. charW reduced from 237 -> 232 px to leave
+--             no template — the scrollbar was invisible and could not
+--             be dragged. charW reduced from 237 → 232 px to leave
 --             SCROLLBAR_W room; wbContent width reduced accordingly.
 --
---  [SCROLL-4] Warband reputation panel (wbRepScroll) ->
+--  [SCROLL-4] Warband reputation panel (wbRepScroll) →
 --             UIPanelScrollFrameTemplate ("DT_WbRepScroll").
 --             Same invisible-scrollbar issue as wbScroll. Mouse-wheel
 --             added (17 px/tick = one rep line). repW and wbRepContent
 --             width both reduced by SCROLLBAR_W.
 --
---  [SCROLL-5] WBH.wblvl width guard: 200 -> 160 px.
+--  [SCROLL-5] WBH.wblvl width guard: 200 → 160 px.
 --             "Warband Level 99" rendered at ~234 px (GameFontHighlight)
 --             which overflowed its 200 px SetWidth guard. Clamped to
 --             160 px; right-aligned text truncates cleanly.
 --
---  v8.0.0 - Midnight Architecture Upgrade vs v7.0.1
---  -------------------------------------------------
---  [UPG-1]  Wide Mode    : FW 820 -> 1025 (+25%), FH 610 -> 650
---  [UPG-2]  Wider column : LCOL 210 -> 262; PANELW 290 -> 366
---  [UPG-3]  Readability  : FS() font GameFontHighlightSmall -> GameFontHighlight
---  [UPG-4]  Panel titles : GameFontNormal -> GameFontNormalLarge
---  [UPG-5]  Currency icons: 18px -> 27px (1.5x per spec)
---  [UPG-6]  Affix icons  : 36px -> 54px (1.5x)
---  [UPG-7]  Season icons : 22px -> 33px (1.5x)
---  [UPG-8]  Rank nodes   : NODE_W 26 -> 30 (easier to click)
---  [UPG-9]  Gear slots   : SLOT_SIZE 50 -> 60 (more visible)
---  [UPG-10] Warband cards: WB_CARD_H 38 -> 46 (roomier text)
---  [UPG-11] Row & bar    : ROW_H 20 -> 22, BAR_H 6 -> 8
---  [UPG-12] Tab buttons  : 94x24 -> 120x26 (better hit area)
+--  v8.0.0 — Midnight Architecture Upgrade vs v7.0.1
+--  ─────────────────────────────────────────────────
+--  [UPG-1]  Wide Mode    : FW 820 → 1025 (+25%), FH 610 → 650
+--  [UPG-2]  Wider column : LCOL 210 → 262; PANELW 290 → 366
+--  [UPG-3]  Readability  : FS() font GameFontHighlightSmall → GameFontHighlight
+--  [UPG-4]  Panel titles : GameFontNormal → GameFontNormalLarge
+--  [UPG-5]  Currency icons: 18px → 27px (1.5× per spec)
+--  [UPG-6]  Affix icons  : 36px → 54px (1.5×)
+--  [UPG-7]  Season icons : 22px → 33px (1.5×)
+--  [UPG-8]  Rank nodes   : NODE_W 26 → 30 (easier to click)
+--  [UPG-9]  Gear slots   : SLOT_SIZE 50 → 60 (more visible)
+--  [UPG-10] Warband cards: WB_CARD_H 38 → 46 (roomier text)
+--  [UPG-11] Row & bar    : ROW_H 20 → 22, BAR_H 6 → 8
+--  [UPG-12] Tab buttons  : 94×24 → 120×26 (better hit area)
 --
---  [FIX-1]  C_QuestLog.GetQuestInfo(questID) -> GetTitleForQuestID
---           (was nil in 12.0.5 - questID ≠ log index)
+--  [FIX-1]  C_QuestLog.GetQuestInfo(questID) → GetTitleForQuestID
+--           (was nil in 12.0.5 — questID ≠ log index)
 --  [FIX-2]  Warband characters: scrollable grid, all chars visible
 --  [FIX-3]  Vault button: InCombatLockdown() guard added
---  [FIX-4]  GetTotalAchievementPoints() ->
+--  [FIX-4]  GetTotalAchievementPoints() →
 --           C_AchievementInfo.GetTotalAchievementPoints() with fallback
---  [FIX-5]  AbbreviateNumbers() -> AbbreviateLargeNumbers() (12.0.x rename)
+--  [FIX-5]  AbbreviateNumbers() → AbbreviateLargeNumbers() (12.0.x rename)
 --           with safe fallback wrapper Abbrev()
 --  [FIX-6]  Dungeon/Raid bar widths now correctly stored (was discarded _)
 --  [FIX-7]  startY upvalue explicitly documented in PvP do..end block
@@ -69,33 +69,20 @@
 -- ================================================================
 
 if not DelveTrackerDB then
-
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
     print("|cffff4444[DT_userinfo]:|r DelveTrackerDB not found. Load DelveTracker first.")
     return
 end
 
 -- ================================================================
---  PHASE 1 - _W12 API COMPATIBILITY NAMESPACE
+--  PHASE 1 — _W12 API COMPATIBILITY NAMESPACE
 --  Wraps every Midnight-era API change behind safe pcall guards.
 --  Reason: Blizzard restructured C_PvP, C_MythicPlus, C_QuestLog
---  significantly between 11.x -> 12.0.5 (confirmed via Wowhead /
+--  significantly between 11.x → 12.0.5 (confirmed via Wowhead /
 --  Blue Tracker API changelog for build 67314).
 -- ================================================================
 local _W12 = (function()
 
-    -- Map panel slot index -> PvP bracket enum value
+    -- Map panel slot index → PvP bracket enum value
     local BRACKET_MAP = { [1]=0, [2]=1, [3]=2, [4]=4, [5]=7 }
 
     local function GetRatedBracket(n)
@@ -204,7 +191,7 @@ local _W12 = (function()
             local t = C_QuestLog.GetTitleForQuestID(id)
             if t then return t end
         end
-        -- Fallback: resolve questID -> log index -> title
+        -- Fallback: resolve questID → log index → title
         if C_QuestLog.GetLogIndexForQuestID and C_QuestLog.GetInfo then
             local idx = C_QuestLog.GetLogIndexForQuestID(id)
             if idx then
@@ -233,7 +220,7 @@ end)()
 
 -- ================================================================
 --  [FIX-5] AbbreviateLargeNumbers compatibility wrapper
---  Blizzard renamed AbbreviateNumbers -> AbbreviateLargeNumbers in 12.x.
+--  Blizzard renamed AbbreviateNumbers → AbbreviateLargeNumbers in 12.x.
 --  This local wrapper tries both, then falls back to tostring().
 -- ================================================================
 local function Abbrev(n)
@@ -310,14 +297,14 @@ local L = {
     LBL_BRACKET_BLITZ = "BG Blitz (8v8)",
     LBL_BRACKET_RBG   = "Rated BG (10v10)",
     LBL_BRACKET_SS    = "Solo Shuffle",
-    ENCH_ALL_OK   = "* All enchants present",
-    ENCH_MISSING  = "[x] Missing: ",
-    BLAS_ACTIVE   = "* Blasphemite active",
-    BLAS_INACTIVE = "* Blasphemite inactive",
+    ENCH_ALL_OK   = "✦ All enchants present",
+    ENCH_MISSING  = "✕ Missing: ",
+    BLAS_ACTIVE   = "◈ Blasphemite active",
+    BLAS_INACTIVE = "◈ Blasphemite inactive",
     NO_ALTS       = "Login with alts to track them",
-    ACTIVE_CHAR   = " <- active",
-    EMPTY_SLOT    = "- empty -",
-    CHAT_UPDATED  = "Data refreshed - ",
+    ACTIVE_CHAR   = " ← active",
+    EMPTY_SLOT    = "— empty —",
+    CHAT_UPDATED  = "Data refreshed — ",
     STAND = {
         "Hated","Hostile","Unfriendly","Neutral",
         "Friendly","Honored","Revered","Exalted",
@@ -370,8 +357,8 @@ local SEASON = {
 -- Factions are filtered by factionID range and sorted by recency.
 local MIDNIGHT_REPS = {}  -- kept for API compatibility; populated dynamically
 
--- Midnight enchant IDs -> display names
--- [FIX-12 v8.1] Midnight 12.0.x enchant names - verified via NextTier.pro, Icy Veins, Method.gg
+-- Midnight enchant IDs → display names
+-- [FIX-12 v8.1] Midnight 12.0.x enchant names — verified via NextTier.pro, Icy Veins, Method.gg
 -- NOTE: IDs 7400-7452 are placeholders; verify exact IDs in-game or via Wowhead Looter.
 -- REMOVED enchant slots in Midnight: Neck(2), Wrists(9), Cloak/Back(15)
 -- NEW enchant slots in Midnight: Helm(1) returns, Shoulders(3) return
@@ -591,7 +578,7 @@ function _G81:RefreshGearRecs()
     local sd    = self:GetSpecEntry()
     local SCOL  = {Haste="ffdd44",Crit="ff5544",Mastery="4dc8ff",Vers="44ee66"}
 
-    -- -- Spec priority strip ---------------------------------------------------
+    -- ── Spec priority strip ───────────────────────────────────────────────────
     if self.spFS then
         if sd then
             self.spFS:SetText("|cff4dc8ff"..sd.nm.."|r  |cff4a6a9a| Priority:|r")
@@ -609,7 +596,7 @@ function _G81:RefreshGearRecs()
         end
     end
 
-    -- -- Recommendation label (multi-line, single FontString) -----------------
+    -- ── Recommendation label (multi-line, single FontString) ─────────────────
     if not self.recLabel then return end
 
     local SLOT_DEFS = {
@@ -627,7 +614,7 @@ function _G81:RefreshGearRecs()
         local icon, col, txt
 
         if not link then
-            icon = "|cff4a6a9a-|r"; col = "4a6a9a"; txt = "-"
+            icon = "|cff4a6a9a-|r"; col = "4a6a9a"; txt = "—"
         elseif self.LEG_SLOTS[sid] then
             if eID then icon="|cff44ee66ok|r"; col="44ee66"; txt=rname
             else         icon="|cffffdd44>>|r"; col="ffdd44"; txt=rname end
@@ -646,7 +633,7 @@ function _G81:RefreshGearRecs()
     end
     self.recLabel:SetText(table.concat(lines, "|n"))
 
-    -- -- Gem recommendations ---------------------------------------------------
+    -- ── Gem recommendations ───────────────────────────────────────────────────
     if self.REC.gem1 then
         local gr = sd and self:GetGemRec(sd)
         self.REC.gem1:SetText("|cff4a6a9aMeta:  |r|cffffdd44"..self.GEM_RECS.meta.name.."|r")
@@ -655,9 +642,9 @@ function _G81:RefreshGearRecs()
 end
 
 -- ================================================================
---  PHASE 2 - LAYOUT CONSTANTS
---  [UPG-1] Wide Mode: FW 820 -> 1025 (+25%)
---  [UPG-2] Height bump: FH 610 -> 650
+--  PHASE 2 — LAYOUT CONSTANTS
+--  [UPG-1] Wide Mode: FW 820 → 1025 (+25%)
+--  [UPG-2] Height bump: FH 610 → 650
 --  All derived dimensions are auto-calculated from FW/FH.
 -- ================================================================
 local FW          = 1025          -- [UPG-1] was 820
@@ -679,10 +666,10 @@ local SLOT_PAD    = 8             -- gear slot spacing (was 6)
 local SCROLLBAR_W = 20
 
 -- Panel width: auto-calculated to fill the two-column layout
-local PANELW = math.floor((FW - LCOL - 14) / 2) - PGAP   -- -> 366
+local PANELW = math.floor((FW - LCOL - 14) / 2) - PGAP   -- → 366
 
 -- ================================================================
---  COLOR HELPERS  (local - no global pollution)
+--  COLOR HELPERS  (local — no global pollution)
 -- ================================================================
 local function CC(h, t)    return "|cff" .. h .. t .. "|r" end
 local function Blue(t)     return CC("4dc8ff", t) end
@@ -695,7 +682,7 @@ local function Orange(t)   return CC("ff9922", t) end
 local function Dim(t)      return CC("4a6a9a", t) end
 local function Teal(t)     return CC("44ddcc", t) end
 
--- Item quality colors (index 0-6)
+-- Item quality colors (index 0–6)
 local QCOLOR = {
     [0]="9d9d9d",[1]="ffffff",[2]="1eff00",
     [3]="0070dd",[4]="a335ee",[5]="ff8000",[6]="00ccff",
@@ -735,7 +722,7 @@ end
 local function SafeGet(fn, ...) local ok, v = pcall(fn, ...); return ok and v or nil end
 
 local function SafeFmt(val, fmt, color)
-    if val == nil then return Dim("-") end
+    if val == nil then return Dim("—") end
     local ok, r = pcall(string.format, fmt, val)
     if not ok then r = Abbrev(val) end
     return color and color(r) or r
@@ -844,8 +831,6 @@ end
 -- MakePanel: standard dark backdrop panel
 local function MakePanel(parent, x, y, w, h)
     local p = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    -- Stap5: panels altijd op level 8+ zodat ze boven model (level 2) liggen
-    p:SetFrameLevel(max(8, (parent:GetFrameLevel() or 1) + 6))
     p:SetSize(w, h)
     p:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
     p:SetBackdrop({
@@ -860,15 +845,13 @@ end
 
 -- PanelTitle: [UPG-4] now uses GameFontNormalLarge for better readability
 local function PanelTitle(panel, text, y)
-    local t = panel:CreateFontString(nil, "OVERLAY")
-    t:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    t:SetTextColor(0.85, 0.85, 0.85, 1)
+    local t = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     t:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, y or -PAD + 2)
     t:SetText(text)
     return t
 end
 
--- FS: [UPG-3] GameFontHighlightSmall -> GameFontHighlight for legibility
+-- FS: [UPG-3] GameFontHighlightSmall → GameFontHighlight for legibility
 local function FS(parent, yOff, width, xOff)
     local f = parent:CreateFontString(nil, "OVERLAY")
     f:SetFont("Fonts\\2002.ttf", 13, "")
@@ -915,10 +898,10 @@ local function Div(parent, yOff)
 end
 
 -- MakeCurrencyRow: icon + label + right-aligned value
--- [UPG-5] iconSize 18 -> 27 (1.5x)
+-- [UPG-5] iconSize 18 → 27 (1.5×)
 local function MakeCurrencyRow(parent, y, id, label, r, g, b)
     local rowH    = 24          -- slightly taller for bigger icons
-    local iconSz  = 28          -- [T07] was 27, nu 28px
+    local iconSz  = 27          -- [UPG-5] was 18
     local xOff    = PAD
 
     local iconF = parent:CreateTexture(nil, "ARTWORK")
@@ -960,7 +943,7 @@ end
 
 -- ================================================================
 --  MAIN FRAME
---  [UPG-1] Size 820x610 -> 1025x650
+--  [UPG-1] Size 820×610 → 1025×650
 --  [SEC-1] ClampedToScreen ensures the frame never goes off-screen
 -- ================================================================
 local frame = CreateFrame("Frame", "DT_UserInfoFrame", UIParent, "BackdropTemplate")
@@ -995,9 +978,7 @@ hdrBG:SetPoint("TOP", frame, "TOP", 0, -4)
 hdrBG:SetColorTexture(0.03, 0.07, 0.16, 1)
 
 -- [UPG-4] Header title uses GameFontNormalLarge
-local hdrT = frame:CreateFontString(nil, "OVERLAY")
-hdrT:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-hdrT:SetTextColor(0.85, 0.85, 0.85, 1)
+local hdrT = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 hdrT:SetPoint("LEFT", hdrBG, "LEFT", 12, 0)
 
 local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
@@ -1006,7 +987,7 @@ closeBtn:SetFrameLevel(frame:GetFrameLevel() + 20)
 
 -- ================================================================
 --  TAB SYSTEM
---  [UPG-12] Button size 94x24 -> 120x26; step 97 -> 126
+--  [UPG-12] Button size 94×24 → 120×26; step 97 → 126
 -- ================================================================
 local tabBtns, tabFrames = {}, {}
 local activeTab = 1
@@ -1030,7 +1011,7 @@ end
 
 for i = 1, 5 do
     local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    btn:SetSize(120, 26)                              -- [UPG-12] was 94x24
+    btn:SetSize(120, 26)                              -- [UPG-12] was 94×24
     btn:SetPoint("TOPLEFT", frame, "TOPLEFT", 8 + (i - 1) * 126, -40)
     btn:SetFrameLevel(frame:GetFrameLevel() + 15)
     tabBtns[i] = btn
@@ -1051,12 +1032,7 @@ local modelBox = MakePanel(OV, 0, 0, LCOL, 248)
 local model    = CreateFrame("PlayerModel", nil, modelBox)
 model:SetPoint("TOPLEFT",     modelBox, "TOPLEFT",     2, -2)
 model:SetPoint("BOTTOMRIGHT", modelBox, "BOTTOMRIGHT", -2, 2)
--- Model op laag level zodat panels eroverheen liggen
-C_Timer.After(0.05, function()
-    local parentLevel = modelBox:GetParent() and modelBox:GetParent():GetFrameLevel() or 5
-    model:SetFrameLevel(math.max(1, parentLevel - 3))
-end)
-model:SetAlpha(0.95)
+model:SetFrameLevel(modelBox:GetFrameLevel() + 1)
 model:SetCamera(0); model:SetPortraitZoom(0)
 
 -- Spin model on hover
@@ -1087,7 +1063,7 @@ IL.achiev = ILine(-(PAD + ROW_H * 8))
 IL.profA  = ILine(-(PAD + ROW_H * 9))
 IL.profB  = ILine(-(PAD + ROW_H * 10))
 
--- Right area: four data panels in a 2x2 grid
+-- Right area: four data panels in a 2×2 grid
 local RX     = LCOL + PGAP
 local startY = -(PAD + ROW_H + 6)   -- shared top offset for panel content
 
@@ -1111,7 +1087,7 @@ CS.speed   = SR(pCombat, startY - ROW_H * 5 - 8)
 CS.hp      = SR(pCombat, startY - ROW_H * 6 - 8)
 CS.stam    = SR(pCombat, startY - ROW_H * 7 - 8)
 
--- Mythic+ panel: affix icons [UPG-6] 36 -> 54px
+-- Mythic+ panel: affix icons [UPG-6] 36 → 54px
 local affixFrames = {}
 for i = 1, 4 do
     local af  = CreateFrame("Frame", nil, pMythic)
@@ -1166,12 +1142,12 @@ WK.raidBar, WK.raidBW = Bar(pWeekly, startY - ROW_H * 3 - BAR_H * 2, 0.53, 0.20,
 Div(pWeekly, startY - ROW_H * 3 - BAR_H * 2 - 10)
 WK.reset = SR(pWeekly, startY - ROW_H * 3 - BAR_H * 2 - 20)
 
--- World Vault 3x3 grid (Raid/M+/World x Slot 1/2/3)
+-- World Vault 3×3 grid (Raid/M+/World × Slot 1/2/3)
 do
     local vaultDivY = startY - ROW_H * 4 - BAR_H * 2 - 20
     Div(pWeekly, vaultDivY + 8)
     local vHdr = SFS(pWeekly, vaultDivY)
-    vHdr:SetText(Dim("-- World Vault  (Raid . M+ . World  x  Slot 1 . 2 . 3) --"))
+    vHdr:SetText(Dim("── World Vault  (Raid · M+ · World  ×  Slot 1 · 2 · 3) ──"))
 
     local ROW_TYPES = {
         { label="Raid",  r=0.53, g=0.20, b=0.80, lockR=0.18, lockG=0.08, lockB=0.28 },
@@ -1229,9 +1205,9 @@ do
 end
 
 -- ================================================================
---  [FIX-SCROLL] Currency panel - ScrollFrame wrapper
---  Problem: CUR_DISPLAY contains ~13 currencies x 28 px + 3 dividers
---  x 10 px ~ 394 px of content inside a WEEKLY_H = 300 px panel.
+--  [FIX-SCROLL] Currency panel — ScrollFrame wrapper
+--  Problem: CUR_DISPLAY contains ~13 currencies × 28 px + 3 dividers
+--  × 10 px ≈ 394 px of content inside a WEEKLY_H = 300 px panel.
 --  Without a scroll frame the bottom rows (Conquest, Honor) are
 --  fully hidden and cannot be seen or scrolled to.
 --  Fix: wrap all currency rows in UIPanelScrollFrameTemplate so the
@@ -1297,7 +1273,7 @@ local GR        = tabFrames[2]
 local gearPanel = MakePanel(GR, 0, 0, FW - 8, FH - 70 - 44)
 PanelTitle(gearPanel,
     Blue("Equipment") ..
-    Dim("  -  hover = tooltip . dots = gems . border = quality"))
+    Dim("  —  hover = tooltip · dots = gems · border = quality"))
 
 -- [ADD-6 v8.1] Spec priority strip (do..end = no new top-level locals)
 do
@@ -1309,9 +1285,7 @@ do
     sp:SetBackdrop({bgFile="Interface\\ChatFrame\\ChatFrameBackground",edgeFile="Interface\\Buttons\\WHITE8X8",edgeSize=1})
     sp:SetBackdropColor(0.02, 0.04, 0.14, 1)
     sp:SetBackdropBorderColor(0.10, 0.20, 0.42, 0.7)
-    _G81.spFS = sp:CreateFontString(nil, "OVERLAY")
-_G81.spFS:SetFont("Fonts\\2002.ttf",10,"")
-_G81.spFS:SetTextColor(0.85,0.85,0.85,1)
+    _G81.spFS = sp:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     _G81.spFS:SetPoint("LEFT", sp, "LEFT", 10, 0)
     _G81.spFS:SetWidth(220)
     _G81.spFS:SetText("|cff4a6a9a(Loading spec...)|r")
@@ -1336,11 +1310,9 @@ local smryY = -(SLOT_SIZE * 2 + 24 * 2 + PAD + ROW_H + SLOT_PAD + 10)
 local gearDetailH = 102
 local gearDetail  = MakePanel(GR, 0, smryY - gearDetailH - 4, math.floor((FW-8-8)/2), gearDetailH)
 local GD = {}
-GD.title = gearDetail:CreateFontString(nil, "OVERLAY")
-GD.title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-GD.title:SetTextColor(0.85, 0.85, 0.85, 1)
+GD.title = gearDetail:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 GD.title:SetPoint("TOPLEFT", gearDetail, "TOPLEFT", PAD, -PAD)
-GD.title:SetText(Dim("<- hover a slot for details"))
+GD.title:SetText(Dim("← hover a slot for details"))
 
 local gDW = math.floor((math.floor((FW-8-8)/2) - 28) / 2)  -- 2-col layout in halfW
 GD.ilvl    = FS(gearDetail, -(PAD + ROW_H + 2), gDW)
@@ -1364,7 +1336,7 @@ local function UpdateGearDetail(slotID, slotName)
     local link = GetInventoryItemLink("player", slotID)
     local name, _, quality, ilvl, _, _, subType = GetItemInfo(link or "")
     if not name then
-        GD.title:SetText(Dim(slotName .. "  - empty"))
+        GD.title:SetText(Dim(slotName .. "  — empty"))
         GD.ilvl:SetText(""); GD.enchant:SetText("")
         GD.gem1:SetText(""); GD.gem2:SetText("")
         GD.stat1:SetText(""); GD.stat2:SetText("")
@@ -1372,7 +1344,7 @@ local function UpdateGearDetail(slotID, slotName)
     end
 
     local qc = QC(quality or 0)
-    GD.title:SetText(Dim(slotName .. "  .  ") .. CC(qc, name))
+    GD.title:SetText(Dim(slotName .. "  ·  ") .. CC(qc, name))
     GD.ilvl:SetText(
         Dim("ilvl: ") .. CC(qc, tostring(ilvl or "?")) ..
         "  " .. Dim(subType or ""))
@@ -1382,20 +1354,20 @@ local function UpdateGearDetail(slotID, slotName)
 
     if enchID then
         GD.enchant:SetText(
-            Green("* ") ..
+            Green("✦ ") ..
             (ENCHANT_NAMES[enchID] or Dim("ID:") .. Yellow(tostring(enchID))))
     elseif _G81.ENCH_SLOTS_12[slotID] then
         GD.enchant:SetText(Red("X No enchant!"))
     elseif _G81.LEG_SLOTS[slotID] then
         GD.enchant:SetText(Dim("via Tailoring / LW kit"))
     else
-        GD.enchant:SetText(Dim("-"))
+        GD.enchant:SetText(Dim("—"))
     end
 
     GD.gem1:SetText(gems[1] and
-        Purple("* ") .. (GetItemInfo(gems[1]) or "?") or Dim("No gems"))
+        Purple("◆ ") .. (GetItemInfo(gems[1]) or "?") or Dim("No gems"))
     GD.gem2:SetText(gems[2] and
-        Purple("* ") .. (GetItemInfo(gems[2]) or "?") or "")
+        Purple("◆ ") .. (GetItemInfo(gems[2]) or "?") or "")
 
     local stats = {}
     _W12.GetItemStats(link, stats)
@@ -1415,7 +1387,7 @@ local function UpdateGearDetail(slotID, slotName)
         sd[#sd + 1] = { n, Abbrev(v) }
     end
     table.sort(sd, function(a, b) return a[1] < b[1] end)
-    -- stat3/stat4 removed (no room in halfW) - show top 2 stats only
+    -- stat3/stat4 removed (no room in halfW) — show top 2 stats only
     local sl = { GD.stat1, GD.stat2 }
     for i = 1, 2 do
         sl[i]:SetText(sd[i] and Dim(sd[i][1] .. ": ") .. Yellow(sd[i][2]) or "")
@@ -1425,8 +1397,8 @@ end
 -- Gear summary panel
 local gearSummary = MakePanel(GR, 0, smryY, math.floor((FW-8-8)/2), 90) -- [v8.1] left half only
 PanelTitle(gearSummary,
-    Dim("Summary  .  ") .. Green("* Enchants") ..
-    Dim("  &  ") .. Purple("* Gems"))
+    Dim("Summary  ·  ") .. Green("✦ Enchants") ..
+    Dim("  &  ") .. Purple("◆ Gems"))
 
 local smryW = math.floor((math.floor((FW-8-8)/2) - 28) / 3)  -- [v8.1] fits left-half panel
 local GS    = {}
@@ -1439,7 +1411,7 @@ GS.gemBonus:SetPoint("TOPLEFT", gearSummary, "TOPLEFT",
     PAD + (smryW + 10) * 2, -(PAD + ROW_H))
 GS.detail = FS(gearSummary, -(PAD + ROW_H * 2 + 4), math.floor((FW-8-8)/2) - PAD * 2)
 
--- [v8.1 FIXED] Recommendation panel - single multi-line FontString, reliable
+-- [v8.1 FIXED] Recommendation panel — single multi-line FontString, reliable
 do
     local recH   = 230
     local recW   = math.floor((FW - 8 - 8) / 2)
@@ -1478,7 +1450,7 @@ do
     _G81.REC.disc:SetText("* Legs: Tailoring / LW kit  |  Sim: Raidbots")
 end
 
--- Build 16 gear slot buttons in a 8x2 grid
+-- Build 16 gear slot buttons in a 8×2 grid
 for row = 0, 1 do
     for col = 0, 7 do
         local idx     = row * 8 + col + 1
@@ -1588,7 +1560,7 @@ do  -- PvP layout block (auto-releases internal locals on exit)
     end)
 
     local pvW    = FW - 30
-    local pvpH   = 180   -- was 150; 6 rows x ROW_H(22) + startY(42) = 174 -> 180 with margin
+    local pvpH   = 180   -- was 150; 6 rows × ROW_H(22) + startY(42) = 174 → 180 with margin
     local pvpBW  = math.floor((pvW - PGAP * 2) / 3)
 
     -- Section 1: Rated bracket panels (3 across top)
@@ -1676,15 +1648,11 @@ do  -- PvP layout block (auto-releases internal locals on exit)
     pvpInst         = MakePanel(PV, 0, pvSec3Y, pvW, 218)
     local instColW  = math.floor((pvW - PAD * 3) / 2)
 
-    local bgHdr = pvpInst:CreateFontString(nil, "OVERLAY")
-    bgHdr:SetFont("Fonts\\2002.ttf", 12, "")
-    bgHdr:SetTextColor(0.85, 0.85, 0.85, 1)
+    local bgHdr = pvpInst:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     bgHdr:SetPoint("TOPLEFT", pvpInst, "TOPLEFT", PAD, -PAD + 2)
     bgHdr:SetText(Green("Battlegrounds & Training Grounds"))
 
-    local amHdr = pvpInst:CreateFontString(nil, "OVERLAY")
-    amHdr:SetFont("Fonts\\2002.ttf", 12, "")
-    amHdr:SetTextColor(0.85, 0.85, 0.85, 1)
+    local amHdr = pvpInst:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     amHdr:SetPoint("TOPLEFT", pvpInst, "TOPLEFT", PAD + instColW + PAD, -PAD + 2)
     amHdr:SetText(Teal("Arena Maps & Decor Duels"))
 
@@ -1752,8 +1720,8 @@ local wbHdr = MakePanel(WBT, 0, 0, FW - 8, 58)
 local WBH   = {
     btag  = FS(wbHdr, -PAD),
     realm = FS(wbHdr, -(PAD + ROW_H)),
-    -- [FIX-SCROLL] Width guard: "Warband Level 99" ~ 18 chars at
-    -- GameFontHighlight ~ 216 px. Clamped to 160 px (right-aligned)
+    -- [FIX-SCROLL] Width guard: "Warband Level 99" ≈ 18 chars at
+    -- GameFontHighlight ≈ 216 px. Clamped to 160 px (right-aligned)
     -- so long text truncates instead of overflowing past the left edge.
     wblvl = FS(wbHdr, -PAD, 160),
 }
@@ -1766,16 +1734,16 @@ local WB_ROWS_VISIBLE = 3
 local WB_STRIP_H     = WB_ROWS_VISIBLE * (WB_CARD_H + PGAP) + PAD + ROW_H + 4
 
 -- [FIX-SCROLL] charW now accounts for SCROLLBAR_W so card text does
--- not run under the scrollbar thumb (was 237 px -> now 232 px).
+-- not run under the scrollbar thumb (was 237 px → now 232 px).
 local charW = math.floor(
     (FW - 8 - PAD * 2 - SCROLLBAR_W - PGAP * (WB_COLS - 1)) / WB_COLS)
 
 local wbCharsOuter = MakePanel(WBT, 0, -62, FW - 8, WB_STRIP_H)
 PanelTitle(wbCharsOuter,
     Blue("Characters") ..
-    Dim("  (auto-sync via DelveTrackerDB  .  sorted by iLvl)"))
+    Dim("  (auto-sync via DelveTrackerDB  ·  sorted by iLvl)"))
 
--- [FIX-SCROLL] Inner scroll frame - UIPanelScrollFrameTemplate gives
+-- [FIX-SCROLL] Inner scroll frame — UIPanelScrollFrameTemplate gives
 -- the user a visible, draggable scrollbar (previously invisible).
 -- BOTTOMRIGHT offset = -(PAD + SCROLLBAR_W) to leave room for the bar.
 local wbScroll = CreateFrame(
@@ -1817,11 +1785,11 @@ for pi = 1, WB_POOL_SIZE do
     cf:SetBackdropBorderColor(0.10, 0.20, 0.42, 0.7)
 
     -- [UPG-3] Both font strings use GameFontHighlight for better legibility
-    cf.nameFS = cf:CreateFontString(nil, "OVERLAY")
+    cf.nameFS = cf:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     cf.nameFS:SetPoint("TOPLEFT", cf, "TOPLEFT", 4, -4)
     cf.nameFS:SetWidth(charW - 8); cf.nameFS:SetJustifyH("LEFT")
 
-    cf.specFS = cf:CreateFontString(nil, "OVERLAY")
+    cf.specFS = cf:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     cf.specFS:SetPoint("TOPLEFT", cf, "TOPLEFT", 4, -4 - ROW_H)
     cf.specFS:SetWidth(charW - 8); cf.specFS:SetJustifyH("LEFT")
 
@@ -1834,7 +1802,7 @@ local wbAccW  = math.floor((FW - 8 - PGAP) / 2)
 local wbMidY  = -(62 + WB_STRIP_H + PGAP)
 local wbAcc   = MakePanel(WBT, 0, wbMidY, wbAccW, 175)
 PanelTitle(wbAcc, Gold("Account Totals"))
--- [FIX-SCROLL] ScrollFrame inside wbAcc - same pattern as wbRepScroll.
+-- [FIX-SCROLL] ScrollFrame inside wbAcc — same pattern as wbRepScroll.
 -- wbAccScroll/wbAccContent wrapped in do..end: saves 3 main-chunk locals
 -- (Lua 5.1 hard limit = 200 per chunk).
 local WA = {}
@@ -1863,7 +1831,7 @@ do
 end
 
 local wbRep     = MakePanel(WBT, wbAccW + PGAP, wbMidY, FW - 8 - wbAccW - PGAP, 175)
--- [FIX-SCROLL] ScrollFrame inside wbRep - add UIPanelScrollFrameTemplate
+-- [FIX-SCROLL] ScrollFrame inside wbRep — add UIPanelScrollFrameTemplate
 -- so the scrollbar is visible when the reputation list is longer than
 -- the visible area. BOTTOMRIGHT is inset -(SCROLLBAR_W+4) on the right
 -- so the scrollbar sits inside the panel border cleanly.
@@ -1884,7 +1852,7 @@ local wbRepContent = CreateFrame("Frame", nil, wbRepScroll)
 wbRepContent:SetSize(FW - 8 - wbAccW - PGAP - 8 - SCROLLBAR_W, 1)
 wbRepScroll:SetScrollChild(wbRepContent)
 PanelTitle(wbRep, Purple("Midnight Reputations") .. Dim(" (warband)"))
--- [v8.1] rep lines inside scrollable content frame - 12 rows x 18px
+-- [v8.1] rep lines inside scrollable content frame — 12 rows × 18px
 local repLines = {}
 -- [FIX-SCROLL] repW reduced by SCROLLBAR_W to prevent text clipping
 local repW = FW - 8 - wbAccW - PGAP - 12 - SCROLLBAR_W
@@ -1901,7 +1869,7 @@ wbRepContent:SetHeight(12 * 18 + 4)
 
 -- Weekly Overview (full width, below account panels)
 local wbWeek = MakePanel(WBT, 0, wbMidY - 183, FW - 8, 105)
-PanelTitle(wbWeek, Teal("Weekly Overview - All Characters"))
+PanelTitle(wbWeek, Teal("Weekly Overview — All Characters"))
 local wwW = math.floor((FW - PAD * 3) / 4)
 local WW  = {
     del   = FS(wbWeek, startY, wwW),
@@ -1915,7 +1883,7 @@ WW.chars:SetPoint("TOPLEFT", wbWeek, "TOPLEFT", PAD + (wwW + 8) * 3, startY)
 
 -- ================================================================
 --  TAB 5: SEASON
---  [UPG-7] Season panel icons 22px -> 33px (1.5x)
+--  [UPG-7] Season panel icons 22px → 33px (1.5×)
 -- ================================================================
 local SZ_OUTER = tabFrames[5]
 local szScroll = CreateFrame(
@@ -1939,7 +1907,7 @@ local PGAP_SZ = 8
 local szPH   = { DJ=248, PR=238, RS=198, VF=95, SUM=90 }
 
 -- Helper: create a season section panel with a coloured icon
--- [UPG-7] iconSize 22 -> 33
+-- [UPG-7] iconSize 22 → 33
 local function MakeSeasonPanelWithIcon(parent, y, h,
         iconFileOrColor, titleText, titleColor)
     local p     = MakePanel(parent, 0, y, szW, h)
@@ -1957,9 +1925,7 @@ local function MakeSeasonPanelWithIcon(parent, y, h,
     end
 
     -- [UPG-4] Section title uses GameFontNormalLarge
-    local t = p:CreateFontString(nil, "OVERLAY")
-    t:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    t:SetTextColor(0.85, 0.85, 0.85, 1)
+    local t = p:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     t:SetPoint("LEFT", iconF, "RIGHT", 6, 0)
     t:SetText(CC(titleColor, titleText))
 
@@ -1976,33 +1942,33 @@ end
 local yOff = 0
 
 local pDelve = MakeSeasonPanelWithIcon(SZ, yOff, szPH.DJ,
-    {0.27,0.87,0.8}, "Delver's Journey - Season 1", "44ddcc")
+    {0.27,0.87,0.8}, "Delver's Journey — Season 1", "44ddcc")
 yOff = yOff - szPH.DJ - PGAP_SZ
 
 local pPrey = MakeSeasonPanelWithIcon(SZ, yOff, szPH.PR,
-    {0.8,0.2,0.2}, "Prey: Season 1  .  Faction 2764  .  Remnant of Anguish (3392)", "ff5544")
+    {0.8,0.2,0.2}, "Prey: Season 1  ·  Faction 2764  ·  Remnant of Anguish (3392)", "ff5544")
 yOff = yOff - szPH.PR - PGAP_SZ
 
 local pRitual = MakeSeasonPanelWithIcon(SZ, yOff, szPH.RS,
-    {0.53,0.2,0.8}, "Ritual Sites - 12.0.5  .  Voidlight Marl (3316)", "cc88ff")
+    {0.53,0.2,0.8}, "Ritual Sites — 12.0.5  ·  Voidlight Marl (3316)", "cc88ff")
 yOff = yOff - szPH.RS - PGAP_SZ
 
 local pVoidforge = MakeSeasonPanelWithIcon(SZ, yOff, szPH.VF,
-    {1.0,0.6,0.13}, "Voidforge - Patch 12.0.5  .  Decimus", "ff9922")
+    {1.0,0.6,0.13}, "Voidforge — Patch 12.0.5  ·  Decimus", "ff9922")
 yOff = yOff - szPH.VF - PGAP_SZ
 
 local pSzSum = MakeSeasonPanelWithIcon(SZ, yOff, szPH.SUM,
-    {0.3,0.5,0.8}, "World Vault - combined", "4dc8ff")
+    {0.3,0.5,0.8}, "World Vault — combined", "4dc8ff")
 SZ:SetHeight(math.abs(yOff) + szPH.SUM + 20)
 
 -- Delver's Journey content
 SFS(pDelve, -(PAD + ROW_H + 2)):SetText(
-    Dim("Season rank  .  hover nodes for rewards"))
+    Dim("Season rank  ·  hover nodes for rewards"))
 local _, updateDelveRank = BuildRankTrack(pDelve, PAD, -(PAD + ROW_H * 2 + 4), 10, {
     "Dirigible: Lantern Wing", "Dirigible: Exhaust",
     "Dirigible: Front Lantern", "Dirigible: Zeppelin",
     "Dirigible: Brown Paint",  "Toy: Trusty Hat",
-    "3x Coffer Keys/week",     "Title: Spelunker",
+    "3× Coffer Keys/week",     "Title: Spelunker",
     "Cosmetic: Delver armor set", "Mount: Bountiful Coffer Gyrocraft",
 })
 local DJ = {}
@@ -2021,7 +1987,7 @@ DJ.seasonXP = FS(pDelve, dOff - ROW_H * 5 - 4)
 
 -- Prey section content
 SFS(pPrey, -(PAD + ROW_H + 2)):SetText(
-    Dim("Preyseeker's Journey  .  hover nodes for rewards"))
+    Dim("Preyseeker's Journey  ·  hover nodes for rewards"))
 local _, updatePreyRank = BuildRankTrack(
     pPrey, PAD, -(PAD + ROW_H * 2 + 4),
     SEASON.PREY_RANKS, SEASON.PREY_RANK_REWARDS)
@@ -2061,7 +2027,7 @@ PR.currency  = FS(pPrey, prOff - 4 - ROW_H * 3, pr2col, pr2col)
 
 -- Ritual Sites section content
 SFS(pRitual, -(PAD + ROW_H + 2)):SetText(
-    Dim("Renown Track (8 ranks)  .  hover nodes for rewards"))
+    Dim("Renown Track (8 ranks)  ·  hover nodes for rewards"))
 local _, updateRitualRank = BuildRankTrack(
     pRitual, PAD, -(PAD + ROW_H * 2 + 4),
     SEASON.RITUAL_RANKS, SEASON.RITUAL_RANK_REWARDS)
@@ -2093,7 +2059,7 @@ for i = 1, 5 do
     tb.statusFS = tb:CreateFontString(nil, "OVERLAY")
     tb.statusFS:SetFont("Fonts\\2002.ttf", 8, "")
     tb.statusFS:SetPoint("BOTTOM", tb, "BOTTOM", 0, 3)
-    tb.statusFS:SetText(Dim("-"))
+    tb.statusFS:SetText(Dim("—"))
     tierBoxes[i] = tb
 end
 
@@ -2150,7 +2116,7 @@ local function StyleBtn(btn)
 end
 
 -- ================================================================
---  SCALE CONTROL  < [100%] >  - saved per account in DB
+--  SCALE CONTROL  ◄ [100%] ►  — saved per account in DB
 --  ApplyScale forward-declared so event handlers can reach it.
 --  Constants + widgets in do..end: saves 6 main-chunk locals.
 -- ================================================================
@@ -2178,7 +2144,7 @@ do
     local scaleDown = CreateFrame("Button", "DT_ScaleDown", frame, "UIPanelButtonTemplate")
     scaleDown:SetSize(26, 22)
     scaleDown:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 9)
-    scaleDown:SetText("<")
+    scaleDown:SetText("◄")
     StyleBtn(scaleDown)
     scaleDown:SetScript("OnClick", function()
         ApplyScale((DB().uiScale or 1.0) - SCALE_STEP)
@@ -2187,7 +2153,7 @@ do
     local scaleUp = CreateFrame("Button", "DT_ScaleUp", frame, "UIPanelButtonTemplate")
     scaleUp:SetSize(26, 22)
     scaleUp:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 136, 9)
-    scaleUp:SetText(">")
+    scaleUp:SetText("►")
     StyleBtn(scaleUp)
     scaleUp:SetScript("OnClick", function()
         ApplyScale((DB().uiScale or 1.0) + SCALE_STEP)
@@ -2218,7 +2184,7 @@ footerFS:SetTextColor(0.29, 0.42, 0.6, 1)
 local function ApplyPanelTitles()
     hdrT:SetText(
         Blue(L["TITLE"] or "CHARACTER DASHBOARD") ..
-        Dim("  .  " .. (L["EDITION"] or "Midnight Edition") .. "  .  v8.1.0"))
+        Dim("  ·  " .. (L["EDITION"] or "Midnight Edition") .. "  ·  v8.1.0"))
 
     local keys = { "TAB_OVERVIEW","TAB_GEAR","TAB_PVP","TAB_WARBAND","TAB_SEASON" }
     for i, k in ipairs(keys) do tabBtns[i]:SetText(L[k] or k) end
@@ -2226,13 +2192,13 @@ local function ApplyPanelTitles()
     PanelTitle(pCombat,   Blue("Combat Stats"))
     PanelTitle(pMythic,   Orange("Mythic+"))
     PanelTitle(pWeekly,   Blue("Weekly Progress"))
-    PanelTitle(pCurrency, Gold("Currency - Midnight"))
+    PanelTitle(pCurrency, Gold("Currency — Midnight"))
     PanelTitle(gearPanel,
         Blue("Equipment") ..
-        Dim("  -  hover = tooltip . dots = gems . border = quality"))
+        Dim("  —  hover = tooltip · dots = gems · border = quality"))
     PanelTitle(gearSummary,
-        Dim("Summary  .  ") .. Green("* Enchants") ..
-        Dim("  &  ") .. Purple("* Gems"))
+        Dim("Summary  ·  ") .. Green("✦ Enchants") ..
+        Dim("  &  ") .. Purple("◆ Gems"))
 
     local btitles = {
         {1,"Arena 2v2","ff5544"}, {2,"Arena 3v3","cc88ff"},
@@ -2242,12 +2208,12 @@ local function ApplyPanelTitles()
     for _, bt in ipairs(btitles) do
         PanelTitle(pvpPanels[bt[1]], CC(bt[3], bt[2]))
     end
-    PanelTitle(pvpLifetime, Dim("Lifetime Stats  .  Season KB  .  Honor"))
+    PanelTitle(pvpLifetime, Dim("Lifetime Stats  ·  Season KB  ·  Honor"))
     PanelTitle(pvpInst,     Dim(""))   -- headers are FontStrings already inside
     PanelTitle(pvpTot,      Dim("Season Totals"))
     PanelTitle(wbAcc,   Gold("Account Totals"))
     PanelTitle(wbRep,   Purple("Midnight Reputations") .. Dim(" (warband)"))
-    PanelTitle(wbWeek,  Teal("Weekly Overview - All Characters"))
+    PanelTitle(wbWeek,  Teal("Weekly Overview — All Characters"))
 
     updateBtn:SetText(L["BTN_UPDATE"] or "UPDATE")
     vaultBtn:SetText(L["BTN_VAULT"]   or "OPEN VAULT")
@@ -2407,7 +2373,7 @@ local function RefreshCharacter()
     local p1, p2 = GetProfessions()
 
     local function ProfText(pid)
-        if not pid then return Dim("-") end
+        if not pid then return Dim("—") end
         local pn, _, rk, mx = GetProfessionInfo(pid)
         return (pn or "?") .. Dim(" " .. rk .. "/" .. mx)
     end
@@ -2429,7 +2395,7 @@ local function RefreshCharacter()
 
     footerFS:SetText(
         Dim("Server time: ") .. Green(ServerTime()) ..
-        "  .  " .. Dim("/cdb [tab]"))
+        "  ·  " .. Dim("/cdb [tab]"))
 end
 
 local function RefreshCombat()
@@ -2445,7 +2411,7 @@ local function RefreshCombat()
     if ok and cur and run then
         CS.speed:SetText(Dim("Speed:   ") .. Yellow(Abbrev(cur) .. " / " .. Abbrev(run)))
     else
-        CS.speed:SetText(Dim("Speed:   ") .. Dim("-"))
+        CS.speed:SetText(Dim("Speed:   ") .. Dim("—"))
     end
 
     CS.hp:SetText(Dim("HP:      ") ..
@@ -2453,7 +2419,7 @@ local function RefreshCombat()
         Dim("/" .. BreakUpLargeNumbers(UnitHealthMax("player"))))
 
     local ok2, _, stam = pcall(UnitStat, "player", 3)
-    CS.stam:SetText(Dim("Stamina: ") .. (ok2 and stam and Abbrev(stam) or Dim("-")))
+    CS.stam:SetText(Dim("Stamina: ") .. (ok2 and stam and Abbrev(stam) or Dim("—")))
 end
 
 local function RefreshMythic()
@@ -2536,7 +2502,7 @@ local function RefreshWeekly()
                                 math.floor(rt.g*255),
                                 math.floor(rt.b*255)),
                             tostring(s.level)))
-                        card.subFS:SetText(Green("[v]"))
+                        card.subFS:SetText(Green("✓"))
                         card.subFS:SetTextColor(0.20, 0.82, 0.35, 1)
                     elseif s.threshold > 0 then
                         card.frame:SetBackdropColor(0.02, 0.04, 0.10, 1)
@@ -2548,7 +2514,7 @@ local function RefreshWeekly()
                         card.frame:SetBackdropColor(0.01, 0.02, 0.06, 1)
                         card.frame:SetBackdropBorderColor(0.06, 0.09, 0.18, 0.3)
                         card.mainFS:SetText(Dim("--"))
-                        card.subFS:SetText(Dim("-"))
+                        card.subFS:SetText(Dim("—"))
                         card.subFS:SetTextColor(0.22, 0.28, 0.40, 1)
                     end
                 end
@@ -2632,15 +2598,15 @@ local function RefreshGear()
 
     GS.enchMiss:SetText(
         #enchMissing == 0
-        and Green(L["ENCH_ALL_OK"] or "* All enchants present")
-        or  Red((L["ENCH_MISSING"] or "[x] Missing: ") ..
+        and Green(L["ENCH_ALL_OK"] or "✦ All enchants present")
+        or  Red((L["ENCH_MISSING"] or "✕ Missing: ") ..
                 table.concat(enchMissing, ", ")))
 
-    GS.gemMiss:SetText(Purple("* Gems: ") .. gemOK .. " socketed")
+    GS.gemMiss:SetText(Purple("◆ Gems: ") .. gemOK .. " socketed")
     GS.gemBonus:SetText(blasActive
-        and Teal(L["BLAS_ACTIVE"]   or "* Blasphemite active")
-        or  Dim(L["BLAS_INACTIVE"] or "* Blasphemite inactive"))
-    GS.detail:SetText(table.concat(detailBuf, "  .  "))
+        and Teal(L["BLAS_ACTIVE"]   or "◈ Blasphemite active")
+        or  Dim(L["BLAS_INACTIVE"] or "◈ Blasphemite inactive"))
+    GS.detail:SetText(table.concat(detailBuf, "  ·  "))
     -- [ADD-8 v8.1] Update spec strip + recommendation panel
     _G81:RefreshGearRecs()
 end
@@ -2832,7 +2798,7 @@ local function RefreshWarband()
             local nm   = entry.key:match("([^-]+)") or entry.key
 
             cf.nameFS:SetText(
-                CC(hx, nm) .. (isMe and Dim(" <- active") or ""))
+                CC(hx, nm) .. (isMe and Dim(" ← active") or ""))
 
             local st = (d.spec or "?") .. "  " .. Dim((d.ilvl or 0) .. " ilvl")
             if d.mplus   and d.mplus   > 0 then st = st .. "  " .. Dim("M+:" .. d.mplus) end
@@ -2874,7 +2840,7 @@ local function RefreshWarband()
     WA.manaflux:SetText(Dim("Dawnlight Manaflux: ")    .. Teal(totMaf) ..
         (numChars > 1 and Dim("  (all chars)") or ""))
 
-    -- [v8.1] Midnight Reputations - direct ID lookup (GetNumFactions=0 in Midnight 12.x)
+    -- [v8.1] Midnight Reputations — direct ID lookup (GetNumFactions=0 in Midnight 12.x)
     -- Old rep API removed: we call C_MajorFactions/C_Reputation directly with verified IDs.
     -- Faction IDs confirmed via Wowhead (March 2026):
     --   2696=Amani Tribe  2699=The Singularity  2704=Hara'ti
@@ -2887,10 +2853,10 @@ local function RefreshWarband()
             {id=2699, name="The Singularity",   col="cc88ff", pri=1, mode="renown"},
             {id=2704, name="Hara'ti",           col="44ee66", pri=1, mode="renown"},
             {id=2710, name="Silvermoon Court",  col="ffd700", pri=1, mode="renown"},
-            -- Ritual Sites (12.0.5) - scan IDs 2775-2810 to auto-find
+            -- Ritual Sites (12.0.5) — scan IDs 2775-2810 to auto-find
             -- Slayer's Duellum: classic standing (not Renown)
             {id=2770, name="Slayer's Duellum",  col="ff4444", pri=1, mode="standing"},
-            -- Sub-factions - scan IDs 2711-2730 to auto-find (after Silvermoon Court=2710)
+            -- Sub-factions — scan IDs 2711-2730 to auto-find (after Silvermoon Court=2710)
         }
 
         -- Hardcoded Midnight sub-faction IDs (confirmed via Wowhead March 2026)
@@ -2957,7 +2923,7 @@ local function RefreshWarband()
         local STAND = {"Hated","Hostile","Unfriendly","Neutral",
                        "Friendly","Honored","Revered","Exalted"}
         -- Midnight sub-faction standings (6 social ranks, confirmed order):
-        -- Interloper -> Gossip -> Guest -> Socialite -> Host -> VIP
+        -- Interloper → Gossip → Guest → Socialite → Host → VIP
         -- WoW maps these to reaction 3-8 (Unfriendly=Interloper to Exalted=VIP)
         local MIDNIGHT_SUB_STAND = {
             [1]="Interloper", [2]="Interloper", [3]="Interloper",
@@ -3004,7 +2970,7 @@ local function RefreshWarband()
                             local pct = math.floor(100 * rnwXP / rnwMax)
                             right = right .. Dim("  "..rnwXP.."/"..rnwMax.." ("..pct.."%)")
                         end
-                        -- else: show just "Renown N" - no XP noise when 0
+                        -- else: show just "Renown N" — no XP noise when 0
 
                     else
                         -- Classic standing faction
@@ -3079,7 +3045,7 @@ local function RefreshSeason()
     local wd = weeklyCache
     local sv = DB()
 
-    -- -- Delver's Journey ----------------------------------------
+    -- ── Delver's Journey ────────────────────────────────────────
     local djRank, djXP, djMaxXP = 1, 0, 4000
     if C_DelvesUI and C_DelvesUI.GetDelvesFactionForSeason then
         local fID = C_DelvesUI.GetDelvesFactionForSeason()
@@ -3097,9 +3063,9 @@ local function RefreshSeason()
     updateDelveRank(djRank)
     pDelve.rankFS:SetText(CC("44ee66", "Rank " .. djRank))
     DJ.xpLabel:SetText(
-        Dim("Rank " .. djRank .. "  .  ") ..
+        Dim("Rank " .. djRank .. "  ·  ") ..
         Yellow(djXP .. " / " .. djMaxXP .. " XP") ..
-        Dim("  .  Total: ") .. Teal(djXP + (djRank - 1) * 4000))
+        Dim("  ·  Total: ") .. Teal(djXP + (djRank - 1) * 4000))
     DJ.xpBar:SetWidth(SafeBar(DJ.xpBW, djXP, djMaxXP))
     DJ.weekly:SetText(ColorProg(wd.wCur, wd.wMax) .. "  " .. Dim("Bountiful Delves"))
     DJ.delBar:SetWidth(SafeBar(DJ.delBW, wd.wCur, wd.wMax))
@@ -3116,7 +3082,7 @@ local function RefreshSeason()
     DJ.zekvir:SetText(Dim("M+ Score: ") .. Orange((ok_sc and sc) or 0))
     DJ.seasonXP:SetText(Dim("Season total: ") .. Yellow(djXP + (djRank - 1) * 4000) .. " XP")
 
-    -- -- Prey ----------------------------------------------------
+    -- ── Prey ────────────────────────────────────────────────────
     local preyRank, preyXP, preyMaxXP = 1, 0, SEASON.PREY_XP_PER_RANK
     local mIPrey = C_MajorFactions
         and C_MajorFactions.GetMajorFactionRenownInfo
@@ -3144,7 +3110,7 @@ local function RefreshSeason()
     updatePreyRank(preyRank)
     pPrey.rankFS:SetText(CC("ff5544", "Rank " .. preyRank))
     PR.xpLabel:SetText(
-        Dim("Rank " .. preyRank .. "  .  ") ..
+        Dim("Rank " .. preyRank .. "  ·  ") ..
         Yellow(preyXP .. " / " .. preyMaxXP .. " XP"))
     PR.xpBar:SetWidth(SafeBar(PR.xpBW, preyXP, preyMaxXP))
 
@@ -3154,7 +3120,7 @@ local function RefreshSeason()
         if i <= wH then
             hc:SetBackdropColor(0.03, 0.12, 0.05, 1)
             hc:SetBackdropBorderColor(0.1, 0.4, 0.15, 1)
-            hc.numFS:SetText(Green("[v]"))
+            hc.numFS:SetText(Green("✓"))
         else
             hc:SetBackdropColor(0.02, 0.03, 0.07, 1)
             hc:SetBackdropBorderColor(0.06, 0.10, 0.20, 0.8)
@@ -3163,15 +3129,15 @@ local function RefreshSeason()
     end
     PR.huntLabel:SetText(ColorProg(wH, SEASON.PREY_MAX_WEEKLY) .. "  " .. Dim("hunts completed"))
     PR.extraHunt:SetText(eH > 0
-        and Dim("Extra: ") .. Yellow(eH .. " x +50 pt")
-        or  Dim("Extra hunts: -"))
-    PR.diffNorm:SetText( Dim("Normal:    ") .. Yellow("-> see in-game"))
-    PR.diffHard:SetText( Dim("Hard:      ") .. Yellow("-> see in-game"))
+        and Dim("Extra: ") .. Yellow(eH .. " × +50 pt")
+        or  Dim("Extra hunts: —"))
+    PR.diffNorm:SetText( Dim("Normal:    ") .. Yellow("→ see in-game"))
+    PR.diffHard:SetText( Dim("Hard:      ") .. Yellow("→ see in-game"))
     PR.diffNM:SetText(   Dim("Nightmare: ") .. Red("Hardest"))
     PR.currency:SetText( Dim("Remnant of Anguish (3392): ") ..
         Orange(GetCur(CUR.REMNANT_OF_ANGUISH)))
 
-    -- -- Ritual Sites --------------------------------------------
+    -- ── Ritual Sites ────────────────────────────────────────────
     local rsRank, rsXP, rsMaxXP = 1, 0, 2000
     local rsData = C_Reputation
         and C_Reputation.GetFactionDataByID
@@ -3196,7 +3162,7 @@ local function RefreshSeason()
     updateRitualRank(rsRank)
     pRitual.rankFS:SetText(CC("cc88ff", "Rank " .. rsRank))
     RS.xpLabel:SetText(
-        Dim("Rank " .. rsRank .. "  .  ") ..
+        Dim("Rank " .. rsRank .. "  ·  ") ..
         Yellow(rsXP .. " / " .. rsMaxXP .. " XP"))
     RS.xpBar:SetWidth(SafeBar(RS.xpBW, rsXP, rsMaxXP))
 
@@ -3206,12 +3172,12 @@ local function RefreshSeason()
             tb:SetBackdropColor(0.03, 0.12, 0.05, 1)
             tb:SetBackdropBorderColor(0.1, 0.4, 0.15, 1)
             tb.tierFS:SetText(Green("T" .. i))
-            tb.statusFS:SetText(Green("[v]"))
+            tb.statusFS:SetText(Green("✓"))
         elseif i == hT + 1 then
             tb:SetBackdropColor(0.04, 0.10, 0.20, 1)
             tb:SetBackdropBorderColor(0.15, 0.45, 0.80, 1)
             tb.tierFS:SetText(Blue("T" .. i))
-            tb.statusFS:SetText(Blue(">"))
+            tb.statusFS:SetText(Blue("►"))
         else
             tb:SetBackdropColor(0.02, 0.03, 0.07, 1)
             tb:SetBackdropBorderColor(0.06, 0.10, 0.20, 0.8)
@@ -3220,22 +3186,22 @@ local function RefreshSeason()
         end
     end
     RS.runsWeek:SetText(Dim("Runs this week: ") .. Yellow(sv.ritualRunsWeek or 0))
-    RS.highTier:SetText(Dim("Highest tier: ") .. Purple("T" .. (hT > 0 and hT or "-")))
+    RS.highTier:SetText(Dim("Highest tier: ") .. Purple("T" .. (hT > 0 and hT or "—")))
     RS.fa:SetText(Dim("Voidlight Marl (3316): ") .. Yellow(GetCur(CUR.VOIDLIGHT_MARL)))
     RS.dp:SetText(Dim("Brimming Arcana (3379): ") .. Teal(GetCur(CUR.BRIMMING_ARCANA)))
 
-    -- -- Voidforge -----------------------------------------------
+    -- ── Voidforge ───────────────────────────────────────────────
     sv.voidforgeUnlocked = sv.voidforgeUnlocked or false
     VF.status:SetText(Dim("Voidforge: ") ..
-        (sv.voidforgeUnlocked and Green("[v] Unlocked") or Yellow("-> In progress")))
+        (sv.voidforgeUnlocked and Green("✓ Unlocked") or Yellow("→ In progress")))
     VF.cores:SetText( Dim("Bonus rolls this week: ") ..
         Yellow(sv.voidforgeRollsWeek or 0) .. " / 2")
     VF.rolls:SetText( Dim("Decor Duels: ") ..
         Purple(#(sv.ddStats or {}) .. " maps tracked"))
     VF.detail:SetText(
-        Dim("Unlocked via: Mythic+ . Raids . Bountiful Delves . Prey Hunts (Nightmare)"))
+        Dim("Unlocked via: Mythic+ · Raids · Bountiful Delves · Prey Hunts (Nightmare)"))
 
-    -- -- Season Summary ------------------------------------------
+    -- ── Season Summary ──────────────────────────────────────────
     SUM.world:SetText(    Dim("World Vault: ") ..
         ColorProg(wd.wCur, wd.wMax))
     SUM.worldBar:SetWidth(SafeBar(SUM.worldBW, wd.wCur, wd.wMax))
@@ -3272,7 +3238,7 @@ updateBtn:SetScript("OnClick", function()
     elseif activeTab == 5 then RefreshSeason()
     end
     print(CC("4dc8ff", "[CharDashboard]: ") ..
-        (L["CHAT_UPDATED"] or "Data refreshed - ") .. ServerTime())
+        (L["CHAT_UPDATED"] or "Data refreshed — ") .. ServerTime())
 end)
 
 -- [FIX-3] Vault button: guard against InCombatLockdown to prevent taint
@@ -3367,7 +3333,7 @@ pvpEvt:SetScript("OnEvent", function(self, event)
     end
 end)
 
--- [FIX-1] Prey quest tracking - use GetQuestTitleByID (12.0.5 compatible)
+-- [FIX-1] Prey quest tracking — use GetQuestTitleByID (12.0.5 compatible)
 local preyEvt = CreateFrame("Frame")
 preyEvt:RegisterEvent("QUEST_TURNED_IN")
 preyEvt:SetScript("OnEvent", function(self, event, questID)
@@ -3411,7 +3377,7 @@ frame:RegisterEvent("PLAYER_MONEY")
 frame:RegisterEvent("ADDON_LOADED")
 
 frame:SetScript("OnEvent", function(self, event, arg1)
-    if event == "ADDON_LOADED" and (arg1 == "WowTracker" or arg1 == "DelveTracker") then
+    if event == "ADDON_LOADED" and arg1 == "DelveTracker" then
         SetLocale("en"); ApplyPanelTitles()
         ApplyScale(DB().uiScale or 1.0)
 
@@ -3444,14 +3410,9 @@ end)
 -- ================================================================
 --  SLASH COMMANDS  (global keys required by WoW API)
 -- ================================================================
--- Primaire commands (uniek prefix)
-SLASH_DTUSER1 = "/wtuser"
-SLASH_DTUSER2 = "/wt-char"
-SLASH_DTUSER3 = "/wtchardash"
--- Originele commands als backup (worden runtime ook geregistreerd via WowTracker.lua)
-SLASH_DTUSER4 = "/userinfo"
-SLASH_DTUSER5 = "/chardash"
-SLASH_DTUSER6 = "/cdb"
+SLASH_DTUSER1 = "/userinfo"
+SLASH_DTUSER2 = "/chardash"
+SLASH_DTUSER3 = "/cdb"
 
 SlashCmdList["DTUSER"] = function(msg)
     msg = msg and msg:lower():trim() or ""

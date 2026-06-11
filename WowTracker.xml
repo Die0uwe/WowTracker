@@ -1,6 +1,6 @@
 <!-- ============================================================ -->
 <!-- WowTracker — Addon Load Manifest v2.7.0                     -->
-<!-- Retail 12.0.7 / Midnight / Interface: 120007  -->
+<!-- Retail 12.0.5 / Build 67314 (Midnight) / Interface: 120005  -->
 <!-- Load order: Core FIRST, Debugger LAST (always)              -->
 <!-- DelveTracker → WowTracker rename · 2026-06-07               -->
 <!-- ============================================================ -->
@@ -10,12 +10,7 @@
     <!-- CORE ENGINE                                            -->
     <!-- Definieert DelveTracker global + plugin API           -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- THEME SYSTEEM — ALTIJD EERSTE                          -->
-    <!-- Definieert WTTheme global: kleuren, fonts, theme API   -->
-    <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Core\DT_Theme.lua"/>
-
     <Script file="Core\WowTracker.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
@@ -48,7 +43,6 @@
     <!-- REGISTRY (XL karakter index · /crew)                  -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\Registry\DT_Registry.lua"/>
-    <Script file="Plugins\WarbankBuddy\DT_WarbankBuddy.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- LOCKOUT & CURRENCY SCANNER                            -->
@@ -113,4 +107,5 @@
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\Debugger\DT_Debugger.lua"/>
 
+    <Script file="Plugins\WarbankBuddy\DT_WarbankBuddy.lua"/>
 </Ui>

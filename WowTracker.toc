@@ -1,9 +1,9 @@
 ## Interface: 120005
 ## Title: |cffbf00ffWow|r|cff00dfffTracker|r |cffccaa00Slayer Alliance Edition|r
-## Notes: Complete WoW addon suite — Prey Hunt HUD · Bounty Tracker · Warband Registry · ClothCounter · SkinNRare · AFK Screen · Events | v3.2.0
+## Notes: Complete WoW addon suite — Prey Hunt HUD · Bounty Tracker · Warband Registry · ClothCounter · SkinNRare · AFK Screen · Events | v2.9.7
 ## Author: DieOuwe
-## Version: 3.2.0
-## SavedVariables: DelveTrackerDB, DT_CustomAFK_Settings, ClothWarbandDB, WarBankBuddyDB
+## Version: 2.9.7
+## SavedVariables: DelveTrackerDB, DT_CustomAFK_Settings, ClothWarbandDB
 ## SavedVariablesPerCharacter:
 ## IconTexture: Interface\AddOns\WowTracker\Media\Icons\WowTracker_Icon_64
 ## X-Website: https://dieouwe.nl

@@ -4,44 +4,30 @@
 -- Command  : /cbot  |  /cureset
 -- Interface: 120005 (WoW Midnight 12.0.5.67314)
 --
--- Features : Class-colored theme . 4-col card layout . hover glow
---            Prey Hunts . Void Assaults & Ritual Sites . Voidforge (12.0.5)
---            Warbound currency transfer . Scale ±/Reset . Portrait
---            Collapsible sections . Status bar . Slash commands
+-- Features : Class-colored theme · 4-col card layout · hover glow
+--            Prey Hunts · Void Assaults & Ritual Sites · Voidforge (12.0.5)
+--            Warbound currency transfer · Scale ±/Reset · Portrait
+--            Collapsible sections · Status bar · Slash commands
 --
 -- CHANGELOG v19.0
 --   !! Header grid RESTORED to v18 original (slots 1-6 unchanged) !!
 --   !! extraFrames RESTORED to v18: left=3377, right=3378           !!
 --
 --   NEW subsections added under MIDNIGHT (research: Wowhead/Bnet/IcyVeins):
---   + PREY HUNTS sub - Remnant of Anguish (3392, confirmed wowhead.com/currency=3392)
---       Prey-system currency; already in MIDNIGHT flat list -> moved to dedicated sub
---   + VOID ASSAULTS & RITUAL SITES sub - Field Accolade (3405, wowhead.com/currency=3405)
+--   + PREY HUNTS sub — Remnant of Anguish (3392, confirmed wowhead.com/currency=3392)
+--       Prey-system currency; already in MIDNIGHT flat list → moved to dedicated sub
+--   + VOID ASSAULTS & RITUAL SITES sub — Field Accolade (3405, wowhead.com/currency=3405)
 --       Shared currency from both Void Assaults (Eversong/Zul'Aman) and Ritual Sites
 --       Spend at Maren Silverwing / Rae'ana in Silvermoon Bazaar for gear + cosmetics
---   + VOIDFORGE sub - Nebulous Voidcore (3418, wowhead.com/currency=3418)
+--   + VOIDFORGE sub — Nebulous Voidcore (3418, wowhead.com/currency=3418)
 --       Patch 12.0.5 bonus-roll currency; buy from Decimus for gold/Marl/Dawncrests
 --
 --   + subDefaults updated for 3 new subsections
 --   + Section ordering reviewed & comments expanded
---   + All locals confirmed - no global leaks
+--   + All locals confirmed — no global leaks
 -- ============================================================
 
 if not DelveTracker then return end
-
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
-
 DelveTracker:RegisterPlugin("ExchangeBot", function() end)
 
 -- ============================================================
@@ -110,15 +96,15 @@ closeBtn:SetPoint("TOPRIGHT", -4, -4)
 closeBtn:SetScript("OnClick", function() EB:Hide() end)
 
 -- ============================================================
--- 3. HEADER BAR - Live time / date / zone (1-second ticker)
+-- 3. HEADER BAR — Live time / date / zone (1-second ticker)
 -- ============================================================
-EB.worldInfo = EB:CreateFontString(nil, "OVERLAY")
+EB.worldInfo = EB:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 EB.worldInfo:SetPoint("TOP", 0, -10)
 
 C_Timer.NewTicker(1, function()
     if EB:IsShown() then
         EB.worldInfo:SetText(string.format(
-            "|cff%02x%02x%02x%s|r  -  |cffffffff%s|r  -  |cff00ff88%s|r",
+            "|cff%02x%02x%02x%s|r  —  |cffffffff%s|r  —  |cff00ff88%s|r",
             cc.r * 255, cc.g * 255, cc.b * 255,
             BetterDate("%H:%M:%S", time()),
             BetterDate("%d/%m/%Y", time()),
@@ -136,22 +122,20 @@ portrait:SetPoint("TOPLEFT", 16, -22)
 portrait:SetPortraitZoom(1)
 
 -- Phase 2: GameFontNormalLarge for high readability
-EB.headerText = EB:CreateFontString(nil, "OVERLAY")
-EB.headerText:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-EB.headerText:SetTextColor(0.85, 0.85, 0.85, 1)
+EB.headerText = EB:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 EB.headerText:SetPoint("TOPLEFT", portrait, "TOPRIGHT", 12, -5)
 
-EB.goldText = EB:CreateFontString(nil, "OVERLAY")
+EB.goldText = EB:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
 EB.goldText:SetPoint("TOPRIGHT", -50, -42)
 
 -- ============================================================
 -- 5. HEADER GRID  (6 quick-view currency/item slots)
 --
 --    Slot layout: [ 1 | 2 | 3 ] | [ 4 | 5 | 6 ]
---    IDs > 100000 = item  -> GetItemInfoInstant + GetItemCount
---    IDs <= 100000 = currency -> C_CurrencyInfo.GetCurrencyInfo
+--    IDs > 100000 = item  → GetItemInfoInstant + GetItemCount
+--    IDs ≤ 100000 = currency → C_CurrencyInfo.GetCurrencyInfo
 --
---    RESTORED to v18 original - new 12.0.5 currencies live in dataset subs.
+--    RESTORED to v18 original — new 12.0.5 currencies live in dataset subs.
 --    DO NOT change slots without updating the extraFrames section too.
 -- ============================================================
 local gridIDs = {
@@ -192,7 +176,7 @@ for i = 1, 6 do
     gRt:SetPoint("TOPRIGHT", 0, 0); gRt:SetPoint("BOTTOMRIGHT", 0, 0)
     gRt:SetColorTexture(0.5, 0, 0.8, 0.6)
 
-    f.qty = f:CreateFontString(nil, "OVERLAY")
+    f.qty = f:CreateFontString(nil, "OVERLAY", "SystemFont_Outline_Small")
     f.qty:SetPoint("BOTTOMRIGHT", -2, 2)
 
     local capturedI = i
@@ -218,14 +202,14 @@ for i = 1, 6 do
 end
 
 -- ============================================================
--- 6. EXTRA HEADER ICONS - Unalloyed Abundance + Dawnlight Manaflux
+-- 6. EXTRA HEADER ICONS — Unalloyed Abundance + Dawnlight Manaflux
 --    Anchored BELOW goldText so they never overlap portrait.
 --    RESTORED to v18 original: { 3377, 3378 }
 --    Phase 2: icons effectively 1.5x via SetSize(33,33) vs default 22
 -- ============================================================
 local extraIDs = {
-    3377,   -- Unalloyed Abundance  (left)  - RESTORED v18 original
-    3378,   -- Dawnlight Manaflux   (right) - RESTORED v18 original
+    3377,   -- Unalloyed Abundance  (left)  — RESTORED v18 original
+    3378,   -- Dawnlight Manaflux   (right) — RESTORED v18 original
 }
 EB.extraFrames = {}
 
@@ -252,7 +236,7 @@ for i, eid in ipairs(extraIDs) do
     eRt:SetPoint("TOPRIGHT", 0, 0); eRt:SetPoint("BOTTOMRIGHT", 0, 0)
     eRt:SetColorTexture(0.5, 0, 0.8, 0.5)
 
-    ef.qty = ef:CreateFontString(nil, "OVERLAY")
+    ef.qty = ef:CreateFontString(nil, "OVERLAY", "SystemFont_Outline_Small")
     ef.qty:SetPoint("BOTTOMRIGHT", -2, 2)
 
     local cid = eid
@@ -277,14 +261,14 @@ end
 --   sub     = array of subsections { name, isOpen, items }
 --
 -- Transfer state flags from C_CurrencyInfo.GetCurrencyInfo():
---   isAccountTransferable = true  -> Warbound; right-click to send to alt
---   isAccountTransferred  = true  -> Already account-wide (no send needed)
+--   isAccountTransferable = true  → Warbound; right-click to send to alt
+--   isAccountTransferred  = true  → Already account-wide (no send needed)
 -- ============================================================
 local datasets = {
 
-    -- ---------------------------------------------------------
-    -- MIDNIGHT  (Expansion 12.0.x - current patch tier)
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
+    -- MIDNIGHT  (Expansion 12.0.x — current patch tier)
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "MIDNIGHT",
         icon   = "Interface\\Icons\\Spell_Arcane_Blast",
@@ -300,7 +284,7 @@ local datasets = {
             { id=3378, name="Dawnlight Manaflux" },
         },
         sub = {
-            -- -- SEASON 1 CRESTS ------------------------------
+            -- ── SEASON 1 CRESTS ──────────────────────────────
             {
                 name   = "SEASON 1",
                 isOpen = false,
@@ -312,23 +296,23 @@ local datasets = {
                     { id=3347, name="Myth Dawncrest"       },
                 },
             },
-            -- -- PREY . RITUAL SITES . VOIDFORGE (12.0.5) ------
+            -- ── PREY · RITUAL SITES · VOIDFORGE (12.0.5) ──────
             -- Samengevoegd: drie kleine subsecties gecombineerd.
             -- Sources: wowhead.com/currency=3392 / 3405 / 3418
             --
-            --  3392  Remnant of Anguish   -> Prey Hunts (Astalor's Sanctum)
+            --  3392  Remnant of Anguish   → Prey Hunts (Astalor's Sanctum)
             --         Verdien via Normal/Hard/Nightmare Prey Hunts
             --         Spend bij Construct V'anore voor mounts & cosmetics
             --
-            --  3405  Field Accolade       -> Void Assaults + Ritual Sites
+            --  3405  Field Accolade       → Void Assaults + Ritual Sites
             --         Shared currency voor beide 12.0.5 outdoor-systemen
             --         Spend bij Maren Silverwing / Rae'ana (Silvermoon Bazaar)
             --
-            --  3418  Nebulous Voidcore    -> Voidforge (bonus-roll)
+            --  3418  Nebulous Voidcore    → Voidforge (bonus-roll)
             --         2/week van Decimus (Howling Ridge, Voidstorm)
             --         Kosten: 1 core (M+ / Delves / Prey) of 2 (Raid)
             {
-                name   = "PREY . RITUAL SITES . VOIDFORGE",
+                name   = "PREY · RITUAL SITES · VOIDFORGE",
                 isOpen = false,
                 items  = {
                     { id=3392, name="Remnant of Anguish" },   -- Prey Hunts currency
@@ -339,9 +323,9 @@ local datasets = {
         },
     },
 
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     -- THE WAR WITHIN  (10.x / 11.x legacy currencies still active)
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "THE WAR WITHIN",
         icon   = "Interface\\Icons\\Achievement_Quests_Completed_WarsongGulch01",
@@ -369,9 +353,9 @@ local datasets = {
         },
     },
 
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     -- DUNGEON & RAID
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "DUNGEON & RAID",
         icon   = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider",
@@ -387,9 +371,9 @@ local datasets = {
         },
     },
 
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     -- PROFESSION MOXIES
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "PROFESSION MOXIES",
         icon   = "Interface\\Icons\\INV_Misc_Wrench_01",
@@ -428,9 +412,9 @@ local datasets = {
         },
     },
 
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     -- PvP
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "PvP",
         icon   = "Interface\\Icons\\Achievement_PVP_A_01",
@@ -443,9 +427,9 @@ local datasets = {
         },
     },
 
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     -- EVENTS & MISC
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "EVENTS & MISC",
         icon   = "Interface\\Icons\\INV_Misc_Ticket_Darkmoon_01",
@@ -458,9 +442,9 @@ local datasets = {
         },
     },
 
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     -- LEGACY  (all sub-sections closed by default)
-    -- ---------------------------------------------------------
+    -- ─────────────────────────────────────────────────────────
     {
         name   = "LEGACY",
         icon   = "Interface\\Icons\\Achievement_Quests_Completed_Daily",
@@ -552,9 +536,7 @@ scrollFrame:SetScrollChild(content)
 -- ============================================================
 
 -- Status bar at bottom of frame (auto-clears after 5 s)
-local statusBar = EB:CreateFontString(nil, "OVERLAY")
-statusBar:SetFont("Fonts\\2002.ttf",10,"")
-statusBar:SetTextColor(0.85,0.85,0.85,1)
+local statusBar = EB:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 statusBar:SetPoint("BOTTOM", 0, 47)
 statusBar:SetText("")
 
@@ -600,7 +582,7 @@ local function OpenCurrencyTransfer(id, name)
     local state, qty = GetTransferState(id)
 
     if state == "account-wide" then
-        ShowStatus(name .. " is account-wide - already visible on all characters.", 0.9, 0.8, 0.1)
+        ShowStatus(name .. " is account-wide — already visible on all characters.", 0.9, 0.8, 0.1)
         return
     end
     if state == "none" then
@@ -610,8 +592,8 @@ local function OpenCurrencyTransfer(id, name)
     end
     -- transferable: open Currency tab
     OpenTokenFrame()
-    ShowStatus("Currency tab opened - right-click  " .. name .. "  to choose an alt.", 0.3, 1, 0.5)
-    print(string.format("|cff9966ff[ExchangeBot]|r Currency tab opened -> right-click |cffffffff%s|r (you have %d).", name, qty))
+    ShowStatus("Currency tab opened — right-click  " .. name .. "  to choose an alt.", 0.3, 1, 0.5)
+    print(string.format("|cff9966ff[ExchangeBot]|r Currency tab opened → right-click |cffffffff%s|r (you have %d).", name, qty))
 end
 
 -- ============================================================
@@ -654,11 +636,11 @@ local function DrawCards(items, xOff, cols, startY)
             f.icon:SetPoint("LEFT", 6, 0)
             f.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
             -- Quantity: large outlined font for readability
-            f.qty = f:CreateFontString(nil, "OVERLAY")
+            f.qty = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
             f.qty:SetPoint("TOPLEFT", 44, -4)
             f.qty:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
             -- Currency name: smaller clean label
-            f.cname = f:CreateFontString(nil, "OVERLAY")
+            f.cname = f:CreateFontString(nil, "OVERLAY", "SystemFont_Outline_Small")
             f.cname:SetPoint("TOPLEFT", 44, -20)
             f.cname:SetFont("Fonts\\ARIALN.TTF", 11, "")
             pool[key] = f
@@ -676,7 +658,7 @@ local function DrawCards(items, xOff, cols, startY)
         local canXfer = (state == "transferable")
 
         f:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" })
-        do local _b=TH().bg.main; f:SetBackdropColor(_b.r,_b.g,_b.b,_b.a) end
+        f:SetBackdropColor(0.07, 0.07, 0.09, 0.88)
         f.glow:SetColorTexture(sc.r, sc.g, sc.b, 0.05)
         f.icon:SetTexture(iconID)
         f.qty:SetText(string.format("|cff00ff88%d|r", qty))
@@ -699,7 +681,7 @@ local function DrawCards(items, xOff, cols, startY)
             if canXfer then
                 GameTooltip:AddLine("|cff55ff55Right-click: Transfer to alt|r")
             elseif capturedState == "account-wide" then
-                GameTooltip:AddLine("|cffffcc00Account-wide - on all characters|r")
+                GameTooltip:AddLine("|cffffcc00Account-wide — on all characters|r")
             else
                 GameTooltip:AddLine("|cffff5555Not transferable|r")
             end
@@ -730,7 +712,7 @@ local function Build()
     local y = -12
 
     for _, sec in ipairs(datasets) do
-        -- -- Section header ----------------------------------
+        -- ── Section header ──────────────────────────────────
         local hk = "H_" .. sec.name
         local h  = pool[hk]
         if not h then
@@ -741,13 +723,9 @@ local function Build()
             h.tline:SetPoint("TOPLEFT"); h.tline:SetPoint("TOPRIGHT")
             h.bline = h:CreateTexture(nil, "OVERLAY");   h.bline:SetHeight(1)
             h.bline:SetPoint("BOTTOMLEFT"); h.bline:SetPoint("BOTTOMRIGHT")
-            h.arrow = h:CreateFontString(nil, "OVERLAY")
-            h.arrow:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-            h.arrow:SetTextColor(0.85, 0.85, 0.85, 1)
+            h.arrow = h:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
             h.arrow:SetPoint("LEFT", 8, 0)
-            h.label = h:CreateFontString(nil, "OVERLAY")
-            h.label:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-            h.label:SetTextColor(0.85, 0.85, 0.85, 1)
+            h.label = h:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
             h.label:SetPoint("LEFT", 22, 0)
             pool[hk] = h
         end
@@ -755,7 +733,7 @@ local function Build()
         h.bg:SetColorTexture(0, 0, 0, 0.58)
         h.tline:SetColorTexture(sec.color.r, sec.color.g, sec.color.b, 0.70)
         h.bline:SetColorTexture(sec.color.r*0.35, sec.color.g*0.35, sec.color.b*0.35, 0.45)
-        h.arrow:SetText(sec.isOpen and "|cff888888v|r" or "|cff888888>|r")
+        h.arrow:SetText(sec.isOpen and "|cff888888▾|r" or "|cff888888▸|r")
 
         local iconStr = sec.icon and string.format("|T%s:20:20:2:0|t ", sec.icon) or "  "
         h.label:SetText(string.format("%s|cff%02x%02x%02x%s|r",
@@ -774,7 +752,7 @@ local function Build()
             -- Subsections
             if sec.sub then
                 for _, sub in ipairs(sec.sub) do
-                    -- -- Sub-section header --------------------
+                    -- ── Sub-section header ────────────────────
                     local sk = "S_" .. sec.name .. "_" .. sub.name
                     local sh = pool[sk]
                     if not sh then
@@ -785,13 +763,9 @@ local function Build()
                         sh.tline:SetPoint("TOPLEFT"); sh.tline:SetPoint("TOPRIGHT")
                         sh.bline = sh:CreateTexture(nil, "OVERLAY");    sh.bline:SetHeight(1)
                         sh.bline:SetPoint("BOTTOMLEFT"); sh.bline:SetPoint("BOTTOMRIGHT")
-                        sh.arrow = sh:CreateFontString(nil, "OVERLAY")
-                        sh.arrow:SetFont("Fonts\\2002.ttf", 12, "")
-                        sh.arrow:SetTextColor(0.85, 0.85, 0.85, 1)
+                        sh.arrow = sh:CreateFontString(nil, "OVERLAY", "GameFontNormal")
                         sh.arrow:SetPoint("LEFT", 8, 0)
-                        sh.label = sh:CreateFontString(nil, "OVERLAY")
-                        sh.label:SetFont("Fonts\\2002.ttf", 12, "")
-                        sh.label:SetTextColor(0.85, 0.85, 0.85, 1)
+                        sh.label = sh:CreateFontString(nil, "OVERLAY", "GameFontNormal")
                         sh.label:SetPoint("LEFT", 22, 0)
                         pool[sk] = sh
                     end
@@ -799,7 +773,7 @@ local function Build()
                     sh.bg:SetColorTexture(0, 0, 0, 0.35)
                     sh.tline:SetColorTexture(sec.color.r*0.6, sec.color.g*0.6, sec.color.b*0.6, 0.65)
                     sh.bline:SetColorTexture(sec.color.r*0.25, sec.color.g*0.25, sec.color.b*0.25, 0.35)
-                    sh.arrow:SetText(sub.isOpen and "|cff666666v|r" or "|cff666666>|r")
+                    sh.arrow:SetText(sub.isOpen and "|cff666666▾|r" or "|cff666666▸|r")
                     sh.label:SetText(string.format("|cff%02x%02x%02x%s|r",
                         sec.color.r*180, sec.color.g*180, sec.color.b*180, sub.name))
                     sh:SetScript("OnClick", function() sub.isOpen = not sub.isOpen; Build() end)
@@ -832,9 +806,7 @@ local function MakeDarkButton(parent, w, h, label, onClick, tooltipText)
     btn:SetBackdropColor(0.06, 0.04, 0.10, 0.95)
     btn:SetBackdropBorderColor(0.30, 0.10, 0.50, 0.85)
 
-    local txt = btn:CreateFontString(nil, "OVERLAY")
-    txt:SetFont("Fonts\\2002.ttf", 12, "")
-    txt:SetTextColor(0.85, 0.85, 0.85, 1)
+    local txt = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     txt:SetAllPoints(); txt:SetJustifyH("CENTER"); txt:SetJustifyV("MIDDLE")
     txt:SetText("|cffaa88cc" .. label .. "|r")
     btn._txt = txt
@@ -868,7 +840,7 @@ local function MakeDarkButton(parent, w, h, label, onClick, tooltipText)
 end
 
 -- ============================================================
--- 12. SCALE CONTROLS   -   [ - ]  1.00x  [ + ]  [Reset]
+-- 12. SCALE CONTROLS   ─   [ - ]  1.00x  [ + ]  [Reset]
 -- ============================================================
 local curScale  = 1.0
 local scaleStep = 0.05
@@ -883,9 +855,7 @@ local scDown = MakeDarkButton(EB, 26, 20, "  -  ",
     function() ApplyScale(curScale - scaleStep) end, "Scale down")
 scDown:SetPoint("BOTTOMLEFT", 12, 12)
 
-EB.scaleLabel = EB:CreateFontString(nil, "OVERLAY")
-EB.scaleLabel:SetFont("Fonts\\2002.ttf",10,"")
-EB.scaleLabel:SetTextColor(0.85,0.85,0.85,1)
+EB.scaleLabel = EB:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 EB.scaleLabel:SetPoint("BOTTOMLEFT", 42, 15)
 EB.scaleLabel:SetWidth(50); EB.scaleLabel:SetJustifyH("CENTER")
 EB.scaleLabel:SetText("|cff8866aa1.00x|r")
@@ -898,9 +868,7 @@ local scReset = MakeDarkButton(EB, 48, 20, "Reset",
     function() ApplyScale(1.0) end, "Reset scale to 1.00x")
 scReset:SetPoint("BOTTOMLEFT", 126, 12)
 
-local verLabel = EB:CreateFontString(nil, "OVERLAY")
-verLabel:SetFont("Fonts\\2002.ttf",9,"")
-verLabel:SetTextColor(0.85,0.85,0.85,1)
+local verLabel = EB:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 verLabel:SetPoint("BOTTOMLEFT", 185, 15)
 verLabel:SetText("|cff28183aExchangeBot v19.0|r")
 
@@ -911,14 +879,14 @@ local wbBtn = MakeDarkButton(EB, 160, 20,
     "  Currency Transfer",
     function()
         OpenTokenFrame()
-        ShowStatus("Currency tab opened - right-click any Warbound currency to transfer.", 0.5, 0.9, 1)
+        ShowStatus("Currency tab opened — right-click any Warbound currency to transfer.", 0.5, 0.9, 1)
     end,
-    "Opens Character -> Currency tab.\nRight-click a Warbound currency to send it to an alt.")
+    "Opens Character → Currency tab.\nRight-click a Warbound currency to send it to an alt.")
 wbBtn:SetPoint("BOTTOMRIGHT", -14, 12)
 wbBtn._txt:SetText("|TInterface\\GossipFrame\\BankerGossipIcon:13:13:0:0|t  |cffaa88ccCurrency Transfer|r")
 
 -- ============================================================
--- 14. ON SHOW - refresh all dynamic data
+-- 14. ON SHOW — refresh all dynamic data
 -- ============================================================
 local function RefreshGrid()
     for _, gd in ipairs(EB.gridFrames) do
@@ -984,7 +952,7 @@ local defaults = {
 -- Alle subsecties standaard gesloten; alleen op expliciete request openen.
 local subDefaults = {
     ["SEASON 1"]                     = false,
-    ["PREY . RITUAL SITES . VOIDFORGE"] = false,
+    ["PREY · RITUAL SITES · VOIDFORGE"] = false,
     ["CRESTS / UPGRADES"]            = false,
     ["PROFESSION KNOWLEDGE"]         = false,
     -- LEGACY subs: allemaal gesloten (niet vermeld = false)
@@ -1004,13 +972,13 @@ local function ResetToDefaults()
     print("|cff9966ff[ExchangeBot]|r Settings reset to defaults.")
 end
 
--- /cbot - toggle panel
+-- /cbot — toggle panel
 SLASH_CBOT1 = "/cbot"
 SlashCmdList["CBOT"] = function()
     if EB:IsShown() then EB:Hide() else EB:Show() end
 end
 
--- /cureset - reset scale + all section states to defaults
+-- /cureset — reset scale + all section states to defaults
 SLASH_CURESET1 = "/cureset"
 SlashCmdList["CURESET"] = function()
     ResetToDefaults()

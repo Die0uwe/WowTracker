@@ -1,6 +1,6 @@
 -- =====================================================
--- DelveTracker - QuickSet | Tab3
--- Midnight 12.0.05 | v7.1 - Live POI Fix
+-- DelveTracker – QuickSet | Tab3
+-- Midnight 12.0.05 | v7.1 – Live POI Fix
 --
 -- Container: 400 x 335 px (PluginArea)
 -- Tab 1: Nemesis + Required Items
@@ -38,7 +38,7 @@ local VALEERA_DISPLAY_ID = 26365  -- creature/NPC display ID for Valeera Sanguin
 
 -- ── Layout constants ──────────────────────────────────────────────────────────
 -- UIPanelScrollFrameTemplate places scrollbar 4px to the right of the frame,
--- scrollbar width = 16px -> total overhang = 20px.
+-- scrollbar width = 16px → total overhang = 20px.
 -- To keep scrollbar inside container: right offset must be ≥ 20.
 local CONT_W   = 400
 local SF_RIGHT = 20      -- right offset for scrollframe so scrollbar stays inside
@@ -287,11 +287,16 @@ end
 -- ── Tile factory ──────────────────────────────────────────────────────────────
 local function NewTile(parent, idx)
     local t = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    t:SetSize(SCROLL_W, TILE_H)
-    t:SetPoint("TOPLEFT", 0, -((idx - 1) * (TILE_H + TILE_G)))
+    -- 2-naast-2: oneven links, even rechts
+    local col = (idx - 1) % 2        -- 0=links, 1=rechts
+    local row = math.floor((idx - 1) / 2)
+    local tileW = math.floor((SCROLL_W - TILE_G) / 2)
+    local tileH = math.floor(TILE_H * 1.4)  -- hoger dan voor, meer ruimte voor info
+    t:SetSize(tileW, tileH)
+    t:SetPoint("TOPLEFT", col * (tileW + TILE_G), -(row * (tileH + TILE_G)))
     t:SetBackdrop(BD(1))
 
-    -- Art background - alpha 0.50: images are clear, no haze
+    -- Art background – alpha 0.50: images are clear, no haze
     t.artBg = t:CreateTexture(nil, "BACKGROUND", nil, -2)
     t.artBg:SetPoint("TOPLEFT",     2,  -1)
     t.artBg:SetPoint("BOTTOMRIGHT", -2,  1)
@@ -303,13 +308,13 @@ local function NewTile(parent, idx)
     t.stripe:SetSize(4, TILE_H - 2)
     t.stripe:SetPoint("LEFT", 1, 0)
 
-    -- Icon - clean, no color overlay
+    -- Icon – clean, no color overlay
     t.icon = t:CreateTexture(nil, "ARTWORK")
     t.icon:SetSize(38, 38)
     t.icon:SetPoint("LEFT", 9, 0)
     t.icon:SetTexCoord(0.06, 0.94, 0.06, 0.94)
 
-    -- Icon rim - kept fully transparent (no tint)
+    -- Icon rim – kept fully transparent (no tint)
     t.iconRim = t:CreateTexture(nil, "OVERLAY")
     t.iconRim:SetSize(40, 40)
     t.iconRim:SetPoint("CENTER", t.icon, "CENTER", 0, 0)
@@ -334,24 +339,24 @@ local function NewTile(parent, idx)
     t.badge:SetSize(56, TILE_H - 2)
     t.badge:SetPoint("RIGHT", -1, 0)
 
-    t.badgeTxt = t:CreateFontString(nil, "OVERLAY")
+    t.badgeTxt = t:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     t.badgeTxt:SetPoint("CENTER", t.badge, "CENTER", 0, 0)
     t.badgeTxt:SetJustifyH("CENTER")
 
     -- Delve name
-    t.nameTxt = t:CreateFontString(nil, "OVERLAY")
+    t.nameTxt = t:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     t.nameTxt:SetPoint("TOPLEFT",  t.icon,  "TOPRIGHT", 8, -5)
     t.nameTxt:SetPoint("RIGHT",    t.badge, "LEFT",     -4,  0)
     t.nameTxt:SetJustifyH("LEFT")
 
     -- Story progress (e.g. "Story: 2/4")
-    t.storyTxt = t:CreateFontString(nil, "OVERLAY")
+    t.storyTxt = t:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     t.storyTxt:SetPoint("BOTTOMLEFT", t.icon,  "BOTTOMRIGHT", 8, 12)
     t.storyTxt:SetPoint("RIGHT",      t.badge, "LEFT",        -4,  0)
     t.storyTxt:SetJustifyH("LEFT")
 
     -- Delve type label
-    t.typeTxt = t:CreateFontString(nil, "OVERLAY")
+    t.typeTxt = t:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     t.typeTxt:SetPoint("BOTTOMLEFT", t.icon,  "BOTTOMRIGHT", 8,  3)
     t.typeTxt:SetPoint("RIGHT",      t.badge, "LEFT",        -4,  0)
     t.typeTxt:SetJustifyH("LEFT")
@@ -553,6 +558,21 @@ end
 local function BuildGrid(container)
     if container._dtBuilt then return end
     container._dtBuilt = true
+    -- Gebruik container breedte — wacht tot frame gelayout is
+    C_Timer.After(0.05, function()
+        local cw = container:GetWidth()
+        if cw and cw > 200 then
+            CONT_W   = math.floor(cw)
+            SF_RIGHT = 20
+            SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
+        end
+    end)
+    local cw = container:GetWidth()
+    if cw and cw > 200 then
+        CONT_W   = math.floor(cw)
+        SF_RIGHT = 20
+        SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
+    end
 
     -- ════════════════════════════════════════════════
     -- 1. VALEERA HEADER
@@ -560,8 +580,10 @@ local function BuildGrid(container)
     --    3D NPC portrait (Valeera Sanguinar).
     -- ════════════════════════════════════════════════
     local hdr = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    -- hdr breed als container, gecentreerd
     hdr:SetSize(CONT_W - 2, HDR_H)
     hdr:SetPoint("TOPLEFT", container, "TOPLEFT", 1, -1)
+    hdr:SetPoint("TOPRIGHT", container, "TOPRIGHT", -1, -1)
     hdr:SetBackdrop(BD(1))
     hdr:SetBackdropColor(0.02, 0.05, 0.12, 0.98)
     hdr:SetBackdropBorderColor(0.0, 0.75, 0.70, 1)
@@ -619,12 +641,12 @@ local function BuildGrid(container)
 
     -- Name
     local textAnchor = hdr.model
-    hdr.nameTxt = hdr:CreateFontString(nil, "OVERLAY")
+    hdr.nameTxt = hdr:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     hdr.nameTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -4)
     hdr.nameTxt:SetText(CO.teal .. "Valeera Sanguinar|r")
 
     -- Level / rep
-    hdr.levelTxt = hdr:CreateFontString(nil, "OVERLAY")
+    hdr.levelTxt = hdr:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     hdr.levelTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -18)
     hdr.levelTxt:SetText(CO.gray .. "Loading...")
 
@@ -642,7 +664,7 @@ local function BuildGrid(container)
     hdr.bar:SetStatusBarColor(0.0, 0.90, 0.80)
     hdr.bar:SetMinMaxValues(0, 1); hdr.bar:SetValue(0)
 
-    hdr.xpTxt = hdr.bar:CreateFontString(nil, "OVERLAY")
+    hdr.xpTxt = hdr.bar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     hdr.xpTxt:SetPoint("CENTER", hdr.bar, "CENTER", 0, 0)
     hdr.xpTxt:SetText("")
 
@@ -687,7 +709,7 @@ local function BuildGrid(container)
         tb:SetSize(tabW, TAB_H)
         tb:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 1 + offsetX, 2)
         tb:SetBackdrop(BD(1))
-        local lbl = tb:CreateFontString(nil, "OVERLAY")
+        local lbl = tb:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         lbl:SetPoint("CENTER", tb, "CENTER", 0, 0)
         lbl:SetText(label)
         tb.lbl = lbl
@@ -802,20 +824,25 @@ local function BuildGrid(container)
         if not pool[idx] then
             pool[idx] = NewTile(parent, idx)
         else
-            pool[idx]:SetPoint("TOPLEFT", 0, -((idx - 1) * (TILE_H + TILE_G)))
-            pool[idx]:SetSize(SCROLL_W, TILE_H)
+            -- 2-naast-2 layout
+        local col2 = (idx - 1) % 2
+        local row2 = math.floor((idx - 1) / 2)
+        local tileW2 = math.floor((SCROLL_W - TILE_G) / 2)
+        local tileH2 = math.floor(TILE_H * 1.4)
+        pool[idx]:SetPoint("TOPLEFT", col2 * (tileW2 + TILE_G), -(row2 * (tileH2 + TILE_G)))
+            pool[idx]:SetSize(tileW2, tileH2)
         end
         return pool[idx]
     end
 
     -- ════════════════════════════════════════════════
-    -- 6. ITEM BOXES (Nemesis tab - Required Items)
+    -- 6. ITEM BOXES (Nemesis tab – Required Items)
     --
     --   Layout per box  (≈ ITEM_W x ITEM_H px):
     --   ┌───────────────────────────────┐
     --   ║▌  [ICON 40x40]  Item Name    ║
     --   ║▌       ┌──┐                  ║
-    --   ║▌       │x2│ <- badge on icon  ║
+    --   ║▌       │x2│ ← badge on icon  ║
     --   ║▌       └──┘                  ║
     --   └───────────────────────────────┘
     --
@@ -870,13 +897,13 @@ local function BuildGrid(container)
 
         -- Count text: outlined, sits on top of the icon corner badge
         box.countTxt = box:CreateFontString(nil, "OVERLAY", nil, 2)
-        box.countTxt:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
+        box.countTxt:SetFont("Fonts\\2002.ttf", 12, "OUTLINE")
         box.countTxt:SetPoint("CENTER", box.countBg, "CENTER", 0, 0)
         box.countTxt:SetJustifyH("CENTER")
         box.countTxt:SetText("|cffffffff?|r")
 
         -- Item name: right of icon, up to 2 lines
-        box.nameTxt = box:CreateFontString(nil, "OVERLAY")
+        box.nameTxt = box:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         box.nameTxt:SetPoint("TOPLEFT",  box.icon, "TOPRIGHT",  5, -3)
         box.nameTxt:SetPoint("TOPRIGHT", box,      "TOPRIGHT", -4, -3)
         box.nameTxt:SetJustifyH("LEFT")
@@ -964,7 +991,7 @@ local function BuildGrid(container)
 
         local bc = #bountiful
         tabBoun.lbl:SetText(bc > 0
-            and (CO.orange .. "Bountiful (" .. bc .. ")|r")
+            and ("|cff00ccff" .. "Bountiful (" .. bc .. ")|r")
             or  (CO.gray   .. "Bountiful|r"))
         tabNorm.lbl:SetText(CO.blue .. "Normal (" .. #normal .. ")|r")
 
@@ -1004,7 +1031,7 @@ local function BuildGrid(container)
             hl:SetPoint("TOPLEFT",  1, -1); hl:SetPoint("TOPRIGHT", -1, -1)
             hl:SetColorTexture(1.0, 0.35, 1.0, 0.75)
 
-            local hlbl = hbar:CreateFontString(nil, "OVERLAY")
+            local hlbl = hbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             hlbl:SetPoint("LEFT", 12, 0)
             hlbl:SetText(CO.magenta .. "Required Items|r")
 
@@ -1051,7 +1078,64 @@ local function BuildGrid(container)
             end
         end
 
-        scN:SetHeight(math.max(ITEMS_Y + ITEM_H + 6, 10))
+        -- ── ABUNDANCE BLOK onder Required Items ───────────────────────
+        local AB_Y = ITEMS_Y + ITEM_H + 10
+        if not scN.abundanceFrame then
+            local abf = CreateFrame("Frame", nil, scN, "BackdropTemplate")
+            abf:SetSize(SCROLL_W, 60)
+            abf:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            abf:SetBackdropColor(0.04, 0.08, 0.04, 0.95)
+            abf:SetBackdropBorderColor(0.20, 0.65, 0.20, 0.9)
+            -- Groen stripe links
+            local abStripe = abf:CreateTexture(nil,"ARTWORK")
+            abStripe:SetSize(4,58); abStripe:SetPoint("LEFT",1,0)
+            abStripe:SetColorTexture(0.20,0.80,0.20,1)
+            -- Titel
+            abf.title = abf:CreateFontString(nil,"OVERLAY")
+            abf.title:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
+            abf.title:SetPoint("TOPLEFT",10,-6)
+            abf.title:SetText("|cff44cc66✦ Abundance Delve|r")
+            -- Info
+            abf.info = abf:CreateFontString(nil,"OVERLAY")
+            abf.info:SetFont("Fonts\\2002.ttf",10,"")
+            abf.info:SetPoint("TOPLEFT",10,-22)
+            abf.info:SetWidth(SCROLL_W-20)
+            abf.info:SetText("|cff887799Laden...|r")
+            -- Timer
+            abf.timer = abf:CreateFontString(nil,"OVERLAY")
+            abf.timer:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
+            abf.timer:SetPoint("TOPRIGHT",-8,-6)
+            abf.timer:SetText("")
+            scN.abundanceFrame = abf
+        end
+        scN.abundanceFrame:SetPoint("TOPLEFT",0,-AB_Y)
+        -- Vul abundance data
+        local abData = DT_GetAbundanceData and DT_GetAbundanceData()
+        if abData and abData.active then
+            scN.abundanceFrame:SetBackdropBorderColor(0.30,0.90,0.30,1)
+            scN.abundanceFrame.title:SetText("|cff44cc66✦ Abundance Actief: |r|cffffffff"..(abData.zone or "?").."|r")
+            local timeStr = ""
+            if abData.secondsLeft and abData.secondsLeft > 0 then
+                local h=math.floor(abData.secondsLeft/3600)
+                local m=math.floor((abData.secondsLeft%3600)/60)
+                timeStr = h>0 and string.format("|cffff8800%dh %dm|r",h,m) or string.format("|cffff8800%dm|r",m)
+            end
+            scN.abundanceFrame.timer:SetText(timeStr)
+            local shards = abData.shards or 0
+            local dundunCol = shards > 0 and "|cff44cc66" or "|cffff5555"
+            scN.abundanceFrame.info:SetText(
+                "|cff887799Shard of Dundun: |r"..dundunCol..shards.."|r  "..
+                "|cff887799Chip vendor: |r|cff00ccffChel the Chip|r"
+            )
+        else
+            scN.abundanceFrame:SetBackdropBorderColor(0.20,0.40,0.20,0.6)
+            scN.abundanceFrame.title:SetText("|cff887799✦ Abundance|r")
+            scN.abundanceFrame.timer:SetText("")
+            scN.abundanceFrame.info:SetText("|cff887799Geen actieve Abundant Harvest in Quel'Thalas|r")
+        end
+        scN.abundanceFrame:Show()
+
+        scN:SetHeight(math.max(AB_Y + 70, 10))
 
         -- ── TAB 2: BOUNTIFUL ───────────────────────────
         local iB = 0

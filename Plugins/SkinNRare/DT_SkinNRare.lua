@@ -1,61 +1,52 @@
 -------------------------------------------------
 -- MAJESTIC TRACKER
 -- Retail 12.0.5 Midnight Edition
--- FIXED VERSION - Audit Build 2025-05-16 (v7 MBT-sourced coords + item fix)
+-- FIXED VERSION — Audit Build 2025-05-16 (v7 MBT-sourced coords + item fix)
 -- Architect: Dieouwe
 --
 -- FIXES APPLIED (Build 2025-05-09):
 --   [FIX-1] Removed orphaned first modelFrame declaration (line 138)
---   [FIX-2] Corrected Netherscythe (Northern Rift) y-coordinate: 79.14 -> 22.50
---   [FIX-3] Row offset formula: -55-(i*48) -> -(HEADER_SPACE+5)-((i-1)*ROW_HEIGHT)
---   [FIX-4] StatusBar width: 700 -> 760 + explicit frame parent anchor
+--   [FIX-2] Corrected Netherscythe (Northern Rift) y-coordinate: 79.14 → 22.50
+--   [FIX-3] Row offset formula: -55-(i*48) → -(HEADER_SPACE+5)-((i-1)*ROW_HEIGHT)
+--   [FIX-4] StatusBar width: 700 → 760 + explicit frame parent anchor
 --   [FIX-5] Harandar mapID verification comment added
---   [FIX-6] Typo "COMBAD" -> "COMBAT" + explicit parent references throughout
+--   [FIX-6] Typo "COMBAD" → "COMBAT" + explicit parent references throughout
 --
 -- LOGO LAYOUT (Build 2025-05-11):
---   [LOGO-FIX-1] headerImg layer: BACKGROUND -> ARTWORK (renders above backdrop)
---   [LOGO-FIX-2] Size: 700x40 -> 160x70 (square brand mark format)
---   [LOGO-FIX-3] Anchor: TOP/CENTER -> TOPLEFT (10, -7) (left-aligned)
---   [LOGO-FIX-4] Alpha: 0.9 -> 1.0 (full opacity, logo must be sharp)
+--   [LOGO-FIX-1] headerImg layer: BACKGROUND → ARTWORK (renders above backdrop)
+--   [LOGO-FIX-2] Size: 700×40 → 160×70 (square brand mark format)
+--   [LOGO-FIX-3] Anchor: TOP/CENTER → TOPLEFT (10, -7) (left-aligned)
+--   [LOGO-FIX-4] Alpha: 0.9 → 1.0 (full opacity, logo must be sharp)
 --   [LOGO-FIX-5] Added logoLine separator (1px, purple, 160px wide under logo)
-
--- WTTheme: centraal kleurensysteem (Fase 3)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.01,g=0.01,b=0.02,a=0.98},card={r=0.05,g=0,b=0.10,a=0.95}},
-        border={main={r=0.30,g=0,b=0.50,a=1},card={r=0.20,g=0,b=0.40,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",grey="|cff887799",blue="|cff00dfff"}
-    }
-end
 --   [LOGO-FIX-6] Title text reinstated to RIGHT of logo (TOPRIGHT anchor)
 --   [LOGO-FIX-7] Added subTitle (zone/edition) and versionTag below title
---   [LOGO-FIX-8] HEADER_SPACE: 60 -> 85 (accommodates 70px logo height)
+--   [LOGO-FIX-8] HEADER_SPACE: 60 → 85 (accommodates 70px logo height)
 --
 -- COORDINATE AUDIT (Build 2025-05-11):
---   [COORD-FIX-1] Gloomclaw  (Eversong, #2395): x 42.18->42.00 / y 78.44->79.94
+--   [COORD-FIX-1] Gloomclaw  (Eversong, #2395): x 42.18→42.00 / y 78.44→79.94
 --                 Source: /way #2395 42.00 79.94 + Wowhead comment "/way 42 80"
---   [COORD-FIX-2] Silverscale (Zul'Aman, #2437): x 48.12->48.00 / y 54.03->54.00
+--   [COORD-FIX-2] Silverscale (Zul'Aman, #2437): x 48.12→48.00 / y 54.03→54.00
 --                 Source: /way #2437 48.00 54.00
---   [COORD-FIX-3] Lumenfin   (Harandar, #2413): x 66.20->66.63 / y 48.20->47.83
+--   [COORD-FIX-3] Lumenfin   (Harandar, #2413): x 66.20→66.63 / y 48.20→47.83
 --                 Source: wow-professions.com (authoritative) + Wowhead comment <66.2,48.2>
---   [COORD-FIX-4] Umbrafang  (Voidstorm, #2405): x 54.00->54.15 / y 65.00->65.27
+--   [COORD-FIX-4] Umbrafang  (Voidstorm, #2405): x 54.00→54.15 / y 65.00→65.27
 --                 Source: wow-professions.com 54.15 65.27
---   [COORD-FIX-5] Netherscythe (Grand, #2405): x 45.82->43.13 / y 22.50->82.81
+--   [COORD-FIX-5] Netherscythe (Grand, #2405): x 45.82→43.13 / y 22.50→82.81
 --                 !! MAJOR: y=22.50 (north) was wrong. Lure is SOUTH of Locus Point.
 --                 Source: wow-professions.com 43.13 82.81 + Method "south of Locus Point"
 --
 -- TOMTOM FIX (Build 2025-05-16):
---   [TT-1] Replaced SlashCmd with TomTom:AddWaypoint(mapID, x/100, y/100) - no string truncation
+--   [TT-1] Replaced SlashCmd with TomTom:AddWaypoint(mapID, x/100, y/100) — no string truncation
 --   [TT-2] C_SuperTrack.SetSuperTrackedUserWaypoint(true) after Blizzard waypoint
 --   [TT-3] TomTom UID stored in MajesticTracker_TomTomUID for targeted cleanup
 --
 -- MBT COORDINATE SYNC (Build 2025-05-16 v7):
 --   Source: MajesticBeastTracker v2.0.2 Core.lua (23K+ downloads, authoritative)
---   All waypoints now stored as 0-1 internally (x100 for display).
+--   All waypoints now stored as 0-1 internally (×100 for display).
 --   [MBT-1] Eversong:  41.95 / 80.05  (was 42.00 / 79.94)
---   [MBT-2] Zul'Aman:  47.69 / 53.25  (was 48.00 / 54.00  <- ΔY=0.75 noticeable)
+--   [MBT-2] Zul'Aman:  47.69 / 53.25  (was 48.00 / 54.00  ← ΔY=0.75 noticeable)
 --   [MBT-3] Harandar:  66.28 / 47.91  (was 66.63 / 47.83)
---   [MBT-4] Voidstorm: 54.60 / 65.80  (was 54.15 / 65.27  <- ΔY=0.53 noticeable)
+--   [MBT-4] Voidstorm: 54.60 / 65.80  (was 54.15 / 65.27  ← ΔY=0.53 noticeable)
 --   [MBT-5] Grand:     43.25 / 82.75  (was 43.13 / 82.81)
 --   Added recipeID to each entry (from MBT Core.lua)
 --   Item use: type=item + resolved itemName (MBT pattern: RequestLoadItemDataByID
@@ -65,16 +56,16 @@ end
 --   [FIX-1] lureName added to all rareData entries (hardcoded, no cache lookup)
 --   [FIX-2/3] type=macro + /use lureName replaces type=item + "item:ID"
 --            ROOT CAUSE: UseItemByName(C) only accepts names, not "item:ID" strings.
---            "item:238654" as attribute -> UseItemByName("item:238654") -> item not
---            found in bags -> silent fail. "/use Majestic Harandar Lure" -> macro
---            engine -> UseItemByName("Majestic Harandar Lure") -> WORKS.
+--            "item:238654" as attribute → UseItemByName("item:238654") → item not
+--            found in bags → silent fail. "/use Majestic Harandar Lure" → macro
+--            engine → UseItemByName("Majestic Harandar Lure") → WORKS.
 --
 -- LURE PLACEMENT FIX (Build 2025-05-16):
 --   [LP-1] SecureActionButton attributes set at SHOW time, NOT on OnEnter.
---          Root cause of popup not placing: OnLeave fires before MouseUp - the OS
+--          Root cause of popup not placing: OnLeave fires before MouseUp — the OS
 --          delivers MouseLeave before MouseUp when cursor moves 1px during click.
 --          Disarming on OnLeave cleared the attribute before the click was processed.
---   [LP-2] OnEnter/OnLeave now VISUAL ONLY - tooltip + glow - no attribute changes.
+--   [LP-2] OnEnter/OnLeave now VISUAL ONLY — tooltip + glow — no attribute changes.
 --   [LP-3] Main-frame lure buttons: attribute set at creation time (same pattern).
 --
 -- SIXTH SENSE POPUP (Build 2025-05-16):
@@ -92,7 +83,7 @@ end
 -------------------------------------------------
 
 -------------------------------------------------
--- LOCALIZED API - prevents global lookup overhead
+-- LOCALIZED API — prevents global lookup overhead
 -------------------------------------------------
 
 local CreateFrame        = CreateFrame
@@ -132,9 +123,9 @@ EventRegistry:GenerateCallbackEvents({
 -- COORDINATE SYSTEM REFERENCE:
 --   x = percentage from west edge (0 = far west, 100 = far east)
 --   y = percentage from north edge (0 = far north, 100 = far south)
---   -> Northern locations have LOW y values (< 35)
---   -> Southern locations have HIGH y values (> 65)
---   -> Eastern locations have HIGH x values (> 65)
+--   → Northern locations have LOW y values (< 35)
+--   → Southern locations have HIGH y values (> 65)
+--   → Eastern locations have HIGH x values (> 65)
 --
 -- TO VERIFY A mapID IN-GAME:
 --   /dump C_Map.GetMapInfo(XXXX)
@@ -142,7 +133,7 @@ EventRegistry:GenerateCallbackEvents({
 -------------------------------------------------
 
 -------------------------------------------------
--- RARE DATA - Sourced from MajesticBeastTracker v2.0.2 Core.lua
+-- RARE DATA — Sourced from MajesticBeastTracker v2.0.2 Core.lua
 -- Coordinates stored as 0-100 (MBT stores 0-1; we multiply by 100).
 -- All IDs cross-verified: npcID, itemID, recipeID, questID.
 -- recipeID = Skinning profession recipe for crafting the lure.
@@ -150,9 +141,9 @@ EventRegistry:GenerateCallbackEvents({
 
 local rareData = {
 
-    -- [MBT-1] Eversong Woods - Gloomclaw
-    -- MBT: x=0.4195, y=0.8005  (x100: 41.95, 80.05)
-    -- Reagents: Arcane Wyrmfish x8, Lynxfish x8
+    -- [MBT-1] Eversong Woods — Gloomclaw
+    -- MBT: x=0.4195, y=0.8005  (×100: 41.95, 80.05)
+    -- Reagents: Arcane Wyrmfish ×8, Lynxfish ×8
     {
         name      = "Gloomclaw (Eversong)",
         id        = 88545,
@@ -166,10 +157,10 @@ local rareData = {
         hint      = "Portal: Silvermoon -> South Woods"
     },
 
-    -- [MBT-2] Zul'Aman - Silverscale
-    -- MBT: x=0.4769, y=0.5325  (x100: 47.69, 53.25)
+    -- [MBT-2] Zul'Aman — Silverscale
+    -- MBT: x=0.4769, y=0.5325  (×100: 47.69, 53.25)
     -- Note: Under the large bridge. Look for a small lake.
-    -- Reagents: Gore Guppy x8
+    -- Reagents: Gore Guppy ×8
     {
         name      = "Silverscale (Zul'Aman)",
         id        = 88526,
@@ -183,10 +174,10 @@ local rareData = {
         hint      = "Portal: Silvermoon -> North Pass (under bridge)"
     },
 
-    -- [MBT-3] Harandar - Lumenfin
-    -- MBT: x=0.6628, y=0.4791  (x100: 66.28, 47.91)
+    -- [MBT-3] Harandar — Lumenfin
+    -- MBT: x=0.6628, y=0.4791  (×100: 66.28, 47.91)
     -- Near the giant mushroom strider and waterfall (dark blue mushroom area)
-    -- Reagents: Fungalskin Pike x8, Tender Lumifin x8
+    -- Reagents: Fungalskin Pike ×8, Tender Lumifin ×8
     {
         name      = "Lumenfin (Harandar)",
         id        = 88531,
@@ -200,10 +191,10 @@ local rareData = {
         hint      = "Midnight Capital -> East Harbor (mushroom waterfall)"
     },
 
-    -- [MBT-4] Voidstorm - Umbrafang
-    -- MBT: x=0.5460, y=0.6580  (x100: 54.60, 65.80)
+    -- [MBT-4] Voidstorm — Umbrafang
+    -- MBT: x=0.5460, y=0.6580  (×100: 54.60, 65.80)
     -- Ravine north of main hub: The Howling Ridge
-    -- Reagents: Ominous Octopus x4
+    -- Reagents: Ominous Octopus ×4
     {
         name      = "Umbrafang (Voidstorm)",
         id        = 88532,
@@ -217,10 +208,10 @@ local rareData = {
         hint      = "Void Portal -> The Howling Ridge"
     },
 
-    -- [MBT-5] Voidstorm - Netherscythe (Grand Beast)
-    -- MBT: x=0.4325, y=0.8275  (x100: 43.25, 82.75)
-    -- South of Locus Point - HIGH y value = deep south [v]
-    -- Reagents: Null Voidfish x4
+    -- [MBT-5] Voidstorm — Netherscythe (Grand Beast)
+    -- MBT: x=0.4325, y=0.8275  (×100: 43.25, 82.75)
+    -- South of Locus Point — HIGH y value = deep south ✓
+    -- Reagents: Null Voidfish ×4
     {
         name      = "Netherscythe (Grand)",
         id        = 88524,
@@ -242,7 +233,7 @@ local rareData = {
 -------------------------------------------------
 
 local ROW_HEIGHT   = 48   -- height of each rare row in pixels
-local HEADER_SPACE = 85   -- [LOGO-FIX] increased 60->85 for taller left-aligned logo block
+local HEADER_SPACE = 85   -- [LOGO-FIX] increased 60→85 for taller left-aligned logo block
 local FOOTER_SPACE = 100  -- reserved pixels for the status bar area
 local TOTAL_HEIGHT = HEADER_SPACE + (#rareData * ROW_HEIGHT) + FOOTER_SPACE
 
@@ -269,10 +260,10 @@ frame:SetScript("OnDragStart", frame.StartMoving)
 frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
 
 -------------------------------------------------
--- [FIX-1] BACKDROP - must be set BEFORE modelFrame
+-- [FIX-1] BACKDROP — must be set BEFORE modelFrame
 -- calls frame:GetBackdrop(). In the original code
 -- the first modelFrame (line 138) called GetBackdrop()
--- before the backdrop was defined -> returned nil.
+-- before the backdrop was defined → returned nil.
 -- The entire first modelFrame block was orphaned and
 -- is now removed. Backdrop is set here, first.
 -------------------------------------------------
@@ -286,13 +277,11 @@ frame:SetBackdrop({
     insets   = { left = 0, right = 0, top = 0, bottom = 0 }
 })
 
--- WTTheme: main frame
-local _ths=TH(); local _bgs=_ths.bg.main; local _brs=_ths.border.main
-frame:SetBackdropColor(_bgs.r,_bgs.g,_bgs.b,_bgs.a or 0.98)
-frame:SetBackdropBorderColor(_brs.r,_brs.g,_brs.b,_brs.a or 1)
+frame:SetBackdropColor(0.01, 0.01, 0.02, 0.98)
+frame:SetBackdropBorderColor(0.3, 0, 0.5, 1)
 
 -------------------------------------------------
--- MODEL FRAME (single declaration - FIX-1 removes duplicate)
+-- MODEL FRAME (single declaration — FIX-1 removes duplicate)
 -- Now correctly created AFTER backdrop is set on frame,
 -- so frame:GetBackdrop() returns the full backdrop table.
 -------------------------------------------------
@@ -306,10 +295,9 @@ local modelFrame = CreateFrame(
 
 modelFrame:SetSize(320, TOTAL_HEIGHT - 20)
 modelFrame:SetPoint("LEFT", frame, "RIGHT", 5, 0)
-modelFrame:SetBackdrop(frame:GetBackdrop())  -- now returns valid backdrop [v]
-local _thm=TH(); local _brm=_thm.border.card
-modelFrame:SetBackdropColor(0,0,0,0.95)
-modelFrame:SetBackdropBorderColor(_brm.r,_brm.g,_brm.b,_brm.a or 1)
+modelFrame:SetBackdrop(frame:GetBackdrop())  -- now returns valid backdrop ✓
+modelFrame:SetBackdropColor(0, 0, 0, 0.95)
+modelFrame:SetBackdropBorderColor(0.3, 0, 0.5, 1)
 
 -------------------------------------------------
 -- PLAYER MODEL
@@ -326,7 +314,7 @@ model:SetAllPoints()
 -- Title FontStrings sit to the RIGHT of the logo for a clean two-column header.
 -------------------------------------------------
 
--- Main logo texture - large, left-anchored
+-- Main logo texture — large, left-anchored
 local headerImg = frame:CreateTexture(nil, "ARTWORK")
 headerImg:SetSize(160, 70)                                        -- [LOGO-FIX] was 700x40
 headerImg:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -7)          -- [LOGO-FIX] was TOP/CENTER
@@ -339,33 +327,27 @@ logoLine:SetSize(160, 1)
 logoLine:SetPoint("TOPLEFT", headerImg, "BOTTOMLEFT", 0, -2)
 logoLine:SetColorTexture(0.4, 0.1, 0.8, 0.4)
 
--- Primary addon title - to the right of the logo
-local title = frame:CreateFontString(nil, "OVERLAY")
-title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-title:SetTextColor(0.85, 0.85, 0.85, 1)
+-- Primary addon title — to the right of the logo
+local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 title:SetPoint("TOPLEFT", headerImg, "TOPRIGHT", 16, -10)
 title:SetTextColor(0.78, 0.61, 1.0)
 title:SetText("MAJESTIC TRACKER")
 
--- Subtitle - zone context line below the title
-local subTitle = frame:CreateFontString(nil, "OVERLAY")
-subTitle:SetFont("Fonts\\2002.ttf", 10, "")
-subTitle:SetTextColor(0.85, 0.85, 0.85, 1)
+-- Subtitle — zone context line below the title
+local subTitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
 subTitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
 subTitle:SetTextColor(0.35, 0.22, 0.56)
-subTitle:SetText("Rare Beast Waypoints  .  Midnight 12.0.5")
+subTitle:SetText("Rare Beast Waypoints  ·  Midnight 12.0.5")
 
--- Version tag - smallest line, same column
-local versionTag = frame:CreateFontString(nil, "OVERLAY")
-versionTag:SetFont("Fonts\\2002.ttf",9,"")
-versionTag:SetTextColor(0.7,0.7,0.7,1)
+-- Version tag — smallest line, same column
+local versionTag = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 versionTag:SetPoint("TOPLEFT", subTitle, "BOTTOMLEFT", 0, -3)
 versionTag:SetTextColor(0.22, 0.14, 0.36)
-versionTag:SetText("Build 2025-05-16 v7  .  Dieouwe")
+versionTag:SetText("Build 2025-05-16 v7  ·  Dieouwe")
 
 -------------------------------------------------
 -- STATUS BAR
--- [FIX-4] Width corrected: 700 -> 760 (800px frame - 40px side margins)
+-- [FIX-4] Width corrected: 700 → 760 (800px frame - 40px side margins)
 -- [FIX-4] Explicit parent frame reference added to SetPoint
 -------------------------------------------------
 
@@ -382,9 +364,7 @@ statusBg:SetBackdrop({
 statusBg:SetBackdropColor(0.05, 0, 0.1, 0.5)
 statusBg:SetBackdropBorderColor(0.2, 0, 0.4, 1)
 
-local statusText = statusBg:CreateFontString(nil, "OVERLAY")
-statusText:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-statusText:SetTextColor(0.85, 0.85, 0.85, 1)
+local statusText = statusBg:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 statusText:SetPoint("CENTER")
 statusText:SetScale(1.1)
 statusText:SetTextColor(0.8, 0.6, 1)
@@ -409,7 +389,7 @@ local function OpenWorldMap(mapID)
     if WorldMapFrame then
         WorldMapFrame:Show()
         -- SetMapID is the correct modern (12.0.x) API.
-        -- SyncScrollContainer / RefreshOverlayFrames are NOT used here -
+        -- SyncScrollContainer / RefreshOverlayFrames are NOT used here —
         -- they are internal and often nil, causing errors.
         if WorldMapFrame.SetMapID and mapID then
             WorldMapFrame:SetMapID(mapID)
@@ -432,7 +412,7 @@ local function SetNavigation(data)
     -- where x and y are 0-100 percentage coordinates.
     -------------------------------------------------
 
-    -- [TT-1] Direct TomTom API - no string truncation, no re-parse
+    -- [TT-1] Direct TomTom API — no string truncation, no re-parse
     if TomTom and TomTom.RemoveWaypoint and MajesticTracker_TomTomUID then
         pcall(TomTom.RemoveWaypoint, TomTom, MajesticTracker_TomTomUID)
         MajesticTracker_TomTomUID = nil
@@ -507,12 +487,7 @@ end
 -------------------------------------------------
 
 local function StyleButton(btn, r, g, b)
-    -- UIPanelButtonTemplate heeft geen directe :SetFont() - gebruik GetFontString()
-    local fs = btn:GetFontString()
-    if fs then
-        fs:SetFont("Fonts\\2002.ttf", 13, "OUTLINE")
-        fs:SetTextColor(0.85, 0.85, 0.85, 1)
-    end
+    btn:SetNormalFontObject("GameFontNormalLarge")
 
     local bg = btn:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
@@ -531,7 +506,7 @@ local function StyleButton(btn, r, g, b)
 end
 
 -------------------------------------------------
--- UPDATE TABLE - collects references for UpdateRareData()
+-- UPDATE TABLE — collects references for UpdateRareData()
 -------------------------------------------------
 
 local updateFrames = {}
@@ -540,10 +515,10 @@ local updateFrames = {}
 -- BUTTON LOOP
 -- [FIX-3] Corrected offset formula:
 --   OLD: local offset = -55 - (i * 48)
---        -> row 1 at y=-103 (43px dead gap after 60px header)
+--        → row 1 at y=-103 (43px dead gap after 60px header)
 --   NEW: local offset = -(HEADER_SPACE + 5) - ((i-1) * ROW_HEIGHT)
---        -> row 1 at y=-65 (5px breathing room after header)
---        -> rows are evenly spaced by exactly ROW_HEIGHT
+--        → row 1 at y=-65 (5px breathing room after header)
+--        → rows are evenly spaced by exactly ROW_HEIGHT
 -------------------------------------------------
 
 for i, data in ipairs(rareData) do
@@ -552,7 +527,7 @@ for i, data in ipairs(rareData) do
     local offset = -(HEADER_SPACE + 5) - ((i - 1) * ROW_HEIGHT)
 
     -------------------------------------------------
-    -- TRACK BUTTON - triggers TomTom + Blizzard waypoint
+    -- TRACK BUTTON — triggers TomTom + Blizzard waypoint
     -------------------------------------------------
 
     local btnTrack = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -565,7 +540,7 @@ for i, data in ipairs(rareData) do
     end)
 
     -------------------------------------------------
-    -- MAP BUTTON - opens the Blizzard WorldMap to the zone
+    -- MAP BUTTON — opens the Blizzard WorldMap to the zone
     -------------------------------------------------
 
     local btnMap = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -581,9 +556,7 @@ for i, data in ipairs(rareData) do
     -- RARE NAME TEXT
     -------------------------------------------------
 
-    local text = frame:CreateFontString(nil, "OVERLAY")
-    text:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    text:SetTextColor(0.85, 0.85, 0.85, 1)
+    local text = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     text:SetPoint("LEFT", btnMap, "RIGHT", 15, 0)
     text:SetScale(1.05)
     text:SetTextColor(0.7, 0.5, 1)
@@ -594,7 +567,7 @@ for i, data in ipairs(rareData) do
     -- Attributes are only set outside combat to avoid taint.
     -------------------------------------------------
 
-    -- [LP-3] Attribute set at creation - no hover-arm race condition
+    -- [LP-3] Attribute set at creation — no hover-arm race condition
     local lureBtn = CreateFrame("Button", nil, frame, "SecureActionButtonTemplate")
     lureBtn:SetSize(54, 54)
     lureBtn:SetPoint("LEFT", btnMap, "RIGHT", 360, 0)
@@ -610,7 +583,7 @@ for i, data in ipairs(rareData) do
     icon:SetAllPoints()
     icon:SetTexture(C_Item.GetItemIconByID(data.lureID))
 
-    -- Glow border (visual only - no attribute logic)
+    -- Glow border (visual only — no attribute logic)
     local lureGlow = lureBtn:CreateTexture(nil, "OVERLAY")
     lureGlow:SetTexture("Interface\\Buttons\\CheckButtonHilight")
     lureGlow:SetBlendMode("ADD")
@@ -619,16 +592,16 @@ for i, data in ipairs(rareData) do
     lureGlow:SetVertexColor(1, 0.65, 0.1)
     lureGlow:SetAlpha(0)
 
-    -- [LP-2] OnEnter: VISUAL ONLY - tooltip + glow. No SetAttribute.
+    -- [LP-2] OnEnter: VISUAL ONLY — tooltip + glow. No SetAttribute.
     lureBtn:SetScript("OnEnter", function(self)
         lureGlow:SetAlpha(0.85)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetItemByID(data.lureID)
-        GameTooltip:AddLine("|cFF00FFFFHover to preview . Click to enter placement mode|r")
+        GameTooltip:AddLine("|cFF00FFFFHover to preview · Click to enter placement mode|r")
         GameTooltip:Show()
     end)
 
-    -- [LP-2] OnLeave: VISUAL ONLY - hide glow + tooltip.
+    -- [LP-2] OnLeave: VISUAL ONLY — hide glow + tooltip.
     lureBtn:SetScript("OnLeave", function()
         lureGlow:SetAlpha(0)
         GameTooltip:Hide()
@@ -638,9 +611,7 @@ for i, data in ipairs(rareData) do
     -- ITEM COUNT TEXT
     -------------------------------------------------
 
-    local countText = frame:CreateFontString(nil, "OVERLAY")
-    countText:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    countText:SetTextColor(0.85, 0.85, 0.85, 1)
+    local countText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     countText:SetPoint("LEFT", lureBtn, "RIGHT", 10, 0)
     countText:SetScale(1.15)
     countText:SetTextColor(0.8, 0.8, 1)
@@ -686,7 +657,7 @@ end
 -------------------------------------------------
 -- SIXTH SENSE POPUP SYSTEM
 -- Spell 1239120 (Wowhead) / 1239121 (in-game screenshot)
--- Nature debuff . 100yd radius . NOT active mounted
+-- Nature debuff · 100yd radius · NOT active mounted
 -------------------------------------------------
 
 local SIXTH_SENSE_IDS       = { 1239120, 1239121 }
@@ -700,7 +671,7 @@ popupFrame:SetToplevel(true)
 popupFrame:SetClampedToScreen(true)
 popupFrame:SetMovable(true)
 popupFrame:EnableMouse(true)
--- [FIX-A] Do NOT register drag on the whole frame - that steals
+-- [FIX-A] Do NOT register drag on the whole frame — that steals
 -- LeftButton clicks from child SecureActionButtons.
 -- Drag is handled exclusively by the dedicated title handle below.
 popupFrame:Hide()
@@ -741,24 +712,20 @@ popupClose:SetPoint("TOPRIGHT",popupFrame,"TOPRIGHT",-2,-2)
 popupClose:SetScript("OnClick", function() popupFrame:Hide() end)
 
 -- Header
-local popupHeader = popupFrame:CreateFontString(nil,"OVERLAY")
-popupHeader:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-popupHeader:SetTextColor(0.85, 0.85, 0.85, 1)
+local popupHeader = popupFrame:CreateFontString(nil,"OVERLAY","GameFontNormalLarge")
 popupHeader:SetPoint("TOP",popupFrame,"TOP",0,-12)
 popupHeader:SetTextColor(1.0,0.65,0.05)
-popupHeader:SetText("[!]  SIXTH SENSE")
+popupHeader:SetText("⚠  SIXTH SENSE")
 
 -- Zone line
-local popupZoneLine = popupFrame:CreateFontString(nil,"OVERLAY")
-popupZoneLine:SetFont("Fonts\\2002.ttf", 10, "")
-popupZoneLine:SetTextColor(0.85, 0.85, 0.85, 1)
+local popupZoneLine = popupFrame:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
 popupZoneLine:SetPoint("TOP",popupHeader,"BOTTOM",0,-5)
 popupZoneLine:SetTextColor(0.75,0.50,1.0)
 popupZoneLine:SetText("")
 
 -------------------------------------------------
 -- LURE BUTTON
--- [LP-1] Attribute set in ShowSixthSensePopup() - NOT on OnEnter.
+-- [LP-1] Attribute set in ShowSixthSensePopup() — NOT on OnEnter.
 -- [LP-2] OnEnter/OnLeave are VISUAL ONLY (glow + tooltip).
 -------------------------------------------------
 
@@ -768,7 +735,7 @@ local popupLureBtn = CreateFrame(
 popupLureBtn:SetSize(84, 84)
 popupLureBtn:SetPoint("CENTER",popupFrame,"CENTER",0,4)
 popupLureBtn._lureID = nil
--- [FIX-B] Explicit click registration - required for reliable secure
+-- [FIX-B] Explicit click registration — required for reliable secure
 -- action firing in 12.0.x even when template sets defaults.
 popupLureBtn:RegisterForClicks("AnyUp", "AnyDown")
 
@@ -791,16 +758,12 @@ popupGlow:SetVertexColor(1.0,0.55,0.08)
 popupGlow:SetAlpha(0.55)
 
 -- Labels
-local popupIdleLabel  = popupFrame:CreateFontString(nil,"OVERLAY")
-popupIdleLabel:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-popupIdleLabel:SetTextColor(0.85,0.85,0.85,1)
+local popupIdleLabel  = popupFrame:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 popupIdleLabel:SetPoint("TOP",popupLureBtn,"BOTTOM",0,-6)
 popupIdleLabel:SetTextColor(0.55,0.38,0.70)
 popupIdleLabel:SetText("CLICK TO PLACE LURE")
 
-local popupHintLine = popupFrame:CreateFontString(nil,"OVERLAY")
-popupHintLine:SetFont("Fonts\\2002.ttf",10,"")
-popupHintLine:SetTextColor(0.7,0.7,0.7,1)
+local popupHintLine = popupFrame:CreateFontString(nil,"OVERLAY","GameFontNormalSmall")
 popupHintLine:SetPoint("TOP",popupIdleLabel,"BOTTOM",0,-4)
 popupHintLine:SetTextColor(0.38,0.25,0.58)
 popupHintLine:SetText("")
@@ -827,7 +790,7 @@ local function StopPulse()
 end
 
 -------------------------------------------------
--- [LP-2] HOVER: VISUAL ONLY - no attribute changes
+-- [LP-2] HOVER: VISUAL ONLY — no attribute changes
 -------------------------------------------------
 
 -- [MBT pattern] PreClick: block item use on right-click (close popup)
@@ -873,7 +836,7 @@ end)
 
 -------------------------------------------------
 -- ZONE RESOLVER
--- Voidstorm (2405): quest state -> proximity
+-- Voidstorm (2405): quest state → proximity
 -------------------------------------------------
 
 local function GetLureForCurrentZone()
@@ -910,7 +873,7 @@ local function GetLureForCurrentZone()
 end
 
 -------------------------------------------------
--- [LP-1] SHOW: attributes set HERE - before any click
+-- [LP-1] SHOW: attributes set HERE — before any click
 -------------------------------------------------
 
 local function ShowSixthSensePopup()
@@ -1024,7 +987,7 @@ end)
 
 -------------------------------------------------
 -- SLASH COMMANDS
--- /snr or /mt - toggles the tracker frame
+-- /snr or /mt — toggles the tracker frame
 -------------------------------------------------
 
 SLASH_MAJESTICTRACKER1 = "/snr"
@@ -1035,7 +998,7 @@ SlashCmdList["MAJESTICTRACKER"] = function()
     if frame:IsShown() then frame:Hide() else frame:Show() end
 end
 
--- [SS-8] /snrpop - force-toggle popup for testing
+-- [SS-8] /snrpop — force-toggle popup for testing
 SLASH_MAJESTICPOPUP1 = "/snrpop"
 SlashCmdList["MAJESTICPOPUP"] = function()
     if InCombatLockdown() then return end
@@ -1068,10 +1031,10 @@ UpdateRareData()
 -- LOAD CONFIRMATION
 -------------------------------------------------
 
-print("|cFFC79CFFMajestic Tracker v7 - MBT coords + type=item fix + PreClick guard (12.0.5).|r")
+print("|cFFC79CFFMajestic Tracker v7 — MBT coords + type=item fix + PreClick guard (12.0.5).|r")
 
 -- ============================================================================
--- DELVETRACKER PLUGIN REGISTRATIE - SkinNRare
+-- DELVETRACKER PLUGIN REGISTRATIE — SkinNRare
 -- ============================================================================
 local _dtInt_SNR = CreateFrame("Frame")
 _dtInt_SNR:RegisterEvent("PLAYER_LOGIN")
@@ -1079,6 +1042,6 @@ _dtInt_SNR:SetScript("OnEvent", function(self)
     self:UnregisterAllEvents()
     if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
     DelveTracker:RegisterPlugin("SkinNRare", function() end)
-    -- Plugin registratie alleen - niet automatisch tonen bij login
+    -- Plugin registratie alleen — niet automatisch tonen bij login
     -- Gebruiker opent via slash command of murloc menu
 end)

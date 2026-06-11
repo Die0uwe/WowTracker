@@ -4,19 +4,6 @@
 -- =====================================================
 
 if DelveTracker then
-
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
     -- 1. PLUGIN REGISTRATION
     DelveTracker:RegisterPlugin("Registry", function(mode, data, key)
         if mode == "Tooltip" then
@@ -59,7 +46,7 @@ end
         bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1,
         insets = { left = 1, right = 1, top = 1, bottom = 1 }
     })
-    do local _b=TH().bg.main;local _br=TH().border.main; Registry:SetBackdropColor(_b.r,_b.g,_b.b,0.96); Registry:SetBackdropBorderColor(_br.r,_br.g,_br.b,0.8) end
+    Registry:SetBackdropColor(0, 0, 0, 0.96); Registry:SetBackdropBorderColor(0.3, 0.1, 0.5, 0.5)
 
     -- Media & Decoratie
     Registry.iconDecor = Registry:CreateTexture(nil, "ARTWORK", nil, 0)
@@ -76,9 +63,7 @@ end
     Registry.header:SetHeight(45); Registry.header:SetPoint("TOPLEFT", 1, -1); Registry.header:SetPoint("TOPRIGHT", -1, -1)
     Registry.header:SetColorTexture(0.1, 0.08, 0.12, 1)
 
-    Registry.title = Registry:CreateFontString(nil, "OVERLAY")
-    Registry.title:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    Registry.title:SetTextColor(0.85, 0.85, 0.85, 1)
+    Registry.title = Registry:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     Registry.title:SetPoint("LEFT", Registry.header, "LEFT", 25, 0)
     Registry.title:SetText("|cffa335eeSLAYER ALLIANCE|r - CHARACTER INDEX")
 
@@ -101,9 +86,7 @@ end
                 local b = CreateFrame("Button", nil, f, "BackdropTemplate")
                 b:SetSize(165, 24); b:SetPoint("TOP", f.line, "BOTTOM", 0, -((j-1)*26) - 10)
                 b:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8x8"}); b:SetBackdropColor(1, 1, 1, 0.03)
-                b.text = b:CreateFontString(nil, "OVERLAY"); b.text:SetPoint("CENTER")
-                b.text:SetFont("Fonts\\2002.ttf", 10, "")
-                b.text:SetTextColor(0.85, 0.85, 0.85, 1)
+                b.text = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); b.text:SetPoint("CENTER")
                 f.chars[j] = b
             end
             headers[idx] = f
@@ -235,8 +218,8 @@ end
             group:Show()
 
             -- Kolom layout:
-            -- Rij 0 (boven): kolom 0 t/m 6  -> alle 7 plaatsen vol
-            -- Rij 1+ (onder): kolom 3 overslaan -> 0,1,2 vol | 3 leeg | 4,5 vol | 6 leeg (kabouter)
+            -- Rij 0 (boven): kolom 0 t/m 6  → alle 7 plaatsen vol
+            -- Rij 1+ (onder): kolom 3 overslaan → 0,1,2 vol | 3 leeg | 4,5 vol | 6 leeg (kabouter)
             col = col + 1
             if col >= 7 then col = 0; row = row + 1 end
             if row >= 1 and col == 3 then col = 4 end
@@ -266,16 +249,13 @@ end
                 bookBtn:SetPoint("TOPRIGHT", DelveTrackerFrame, "TOPRIGHT", -98, -22)
             end
             bookBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
-            do local _b=TH().bg.card; bookBtn:SetBackdropColor(_b.r,_b.g,_b.b,0.95) end
+            bookBtn:SetBackdropColor(0.08,0.04,0.14,0.95)
             bookBtn:SetBackdropBorderColor(0.45,0.12,0.70,0.9)
-            bookBtn.t = bookBtn:CreateFontString(nil, "OVERLAY")
-bookBtn.t:SetFont("Fonts\\2002.ttf",10,"")
-bookBtn.t:SetTextColor(0.85,0.85,0.85,1)
-bookBtn.t:SetPoint("CENTER"); bookBtn.t:SetText("|cffa335eeB|r")
+            bookBtn.t = bookBtn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall"); bookBtn.t:SetPoint("CENTER"); bookBtn.t:SetText("|cffa335eeB|r")
             bookBtn:SetScript("OnClick", function() if Registry:IsShown() then Registry:Hide() else Registry:Show() end end)
         end
     end)
 
-    SLASH_DTCREW1 = "/wt-crew"; SLASH_DTCREW2 = "/crew"  -- beide werken
+    SLASH_DTCREW1 = "/crew"
     SlashCmdList["DTCREW"] = function() if Registry:IsShown() then Registry:Hide() else Registry:Show() end end
 end

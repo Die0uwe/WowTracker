@@ -1,18 +1,5 @@
 if not DT_CustomAFK_Settings then DT_CustomAFK_Settings = {} end
 
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
-
 DT_CustomAFK_Frame = CreateFrame("Frame", "DT_CustomAFK_Frame", WorldFrame, "BackdropTemplate")
 local f = DT_CustomAFK_Frame
 f:SetAllPoints(WorldFrame)
@@ -128,14 +115,10 @@ local function CreateSlot(id, width, height, x, y, r, g, b)
     slot.gridBorder:SetAllPoints(slot)
     slot.gridBorder:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 2 })
     slot.gridBorder:SetBackdropBorderColor(1, 1, 1, 0.8); slot.gridBorder:Hide()
-    slot.txt = slot:CreateFontString(nil, "OVERLAY")
-    slot.txt:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    slot.txt:SetTextColor(0.85, 0.85, 0.85, 1)
+    slot.txt = slot:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     if id == "MID_TOP" then slot.txt:SetPoint("TOP", slot, "TOP", 0, -20)
     else slot.txt:SetPoint("CENTER", 0, 0) end
-    slot.ID_txt = slot:CreateFontString(nil, "OVERLAY")
-    slot.ID_txt:SetFont("Fonts\\2002.ttf", 10, "")
-    slot.ID_txt:SetTextColor(0.85, 0.85, 0.85, 1)
+    slot.ID_txt = slot:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     slot.ID_txt:SetPoint("BOTTOM", slot, "BOTTOM", 0, 4); slot.ID_txt:SetText("ID: " .. id); slot.ID_txt:Hide()
     f.Slots[id] = slot
     return slot

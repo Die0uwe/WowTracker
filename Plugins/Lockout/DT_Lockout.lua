@@ -6,20 +6,6 @@
 
 if not DelveTracker then return end
 
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
-
-
 DT_TooltipModules = DT_TooltipModules or {}
 
 -- =====================================================
@@ -44,8 +30,8 @@ local MANAFLUX_ID = 3378
 
 -- Midnight profession knowledge currency IDs
 local PROF_KNOWLEDGE = {
-    [25229] = { total = 3156, weekly = 3194 },  -- Jewelcrafting   [v]
-    [45357] = { total = 3155, weekly = 3195 },  -- Inscription     [v]
+    [25229] = { total = 3156, weekly = 3194 },  -- Jewelcrafting   ✓
+    [45357] = { total = 3155, weekly = 3195 },  -- Inscription     ✓
     -- Vul aan na /dtprof op andere alts:
     -- Alchemy        total=3150  weekly=3189
     -- Blacksmithing  total=3151  weekly=3199
@@ -60,13 +46,13 @@ local PROF_KNOWLEDGE = {
 
 -- Secondary profs: show rank but no knowledge
 local SECONDARY = {
-    [2550]   = true,   -- Cooking   [v]
-    [131474] = true,   -- Fishing   [v]
+    [2550]   = true,   -- Cooking   ✓
+    [131474] = true,   -- Fishing   ✓
 }
 
 -- Gefilterde profs: bestaan niet in Midnight
 local FILTER_PROFS = {
-    [794] = true,   -- Archaeology [v]
+    [794] = true,   -- Archaeology ✓
 }
 
 -- =====================================================
@@ -131,7 +117,7 @@ local function ScanAll()
     local char = DelveTrackerDB.characters[charKey] or {}
     DelveTrackerDB.characters[charKey] = char
 
-    -- -- 3a. Raid lockouts ------------------------------------------------
+    -- ── 3a. Raid lockouts ────────────────────────────────────────────────
     char.lockouts = {}
     local numSaved = GetNumSavedInstances()
     for i = 1, numSaved do
@@ -150,7 +136,7 @@ local function ScanAll()
         end
     end
 
-    -- -- 3b. Mythic+ key --------------------------------------------------
+    -- ── 3b. Mythic+ key ──────────────────────────────────────────────────
     char.mythicKey = nil
     local ok1, keyLevel = pcall(function()
         return C_MythicPlus and C_MythicPlus.GetOwnedKeystoneLevel and
@@ -168,7 +154,7 @@ local function ScanAll()
         char.mythicKey = { level = keyLevel, mapName = mapName }
     end
 
-    -- -- 3c. M+ weekly best -----------------------------------------------
+    -- ── 3c. M+ weekly best ───────────────────────────────────────────────
     char.mythicBest = nil
     if C_MythicPlus and C_MythicPlus.GetWeeklyBestForSeason then
         local ok4, result = pcall(C_MythicPlus.GetWeeklyBestForSeason)
@@ -181,7 +167,7 @@ local function ScanAll()
         end
     end
 
-    -- -- 3d. RaiderIO score (optioneel) -----------------------------------
+    -- ── 3d. RaiderIO score (optioneel) ───────────────────────────────────
     char.rioScore = nil
     if RaiderIO and RaiderIO.GetProfile then
         local ok6, profile = pcall(RaiderIO.GetProfile,
@@ -191,7 +177,7 @@ local function ScanAll()
         end
     end
 
-    -- -- 3e. Professions -----------------------------------------------------
+    -- ── 3e. Professions ─────────────────────────────────────────────────────
     -- GetProfessions() geeft terug: prof1, prof2, archaeology, fishing, cooking
     -- Een nil slot (bv. Archaeology niet geleerd) stopt ipairs vroegtijdig.
     -- Expliciete uitpak garandeert dat fishing en cooking altijd bereikt worden.
@@ -242,7 +228,7 @@ local function ScanAll()
         end
     end
 
-    -- -- 3f. Currencies: Dundun + Manaflux (alleen opslaan voor Registry) -
+    -- ── 3f. Currencies: Dundun + Manaflux (alleen opslaan voor Registry) ─
     char.currencies = char.currencies or {}
     local okD, infoD = pcall(C_CurrencyInfo.GetCurrencyInfo, DUNDUN_ID)
     if okD and infoD then char.currencies[DUNDUN_ID] = infoD.quantity or 0 end
@@ -267,7 +253,7 @@ LockoutScanner:SetScript("OnEvent", ScanDelayed)
 
 table.insert(DT_TooltipModules, function(data, charKey)
 
-    -- -- 4a. Mythic+ ------------------------------------------------------
+    -- ── 4a. Mythic+ ──────────────────────────────────────────────────────
     Divider()
     GameTooltip:AddLine("|cff3399ff|TInterface\\Icons\\Achievement_Dungeon_GloryoftheRaider:14:14:0:0|t  Mythic+|r")
 
@@ -301,7 +287,7 @@ table.insert(DT_TooltipModules, function(data, charKey)
             string.format("%s%.0f|r", sc, data.rioScore), 1,1,1, 1,1,1)
     end
 
-    -- -- 4b. Raid Lockouts ------------------------------------------------
+    -- ── 4b. Raid Lockouts ────────────────────────────────────────────────
     Divider()
     GameTooltip:AddLine("|cffccaa00|TInterface\\Icons\\Achievement_Raid_NaxxramasWing:14:14:0:0|t  Raid Lockouts|r")
 
@@ -321,7 +307,7 @@ table.insert(DT_TooltipModules, function(data, charKey)
         GameTooltip:AddLine("  |cffaaaaaa-- no active lockouts --|r")
     end
 
-    -- -- 4c. Professions -----------------------------------------------------
+    -- ── 4c. Professions ─────────────────────────────────────────────────────
     local profs = data.professions
     if profs and #profs > 0 then
         local primary   = {}
@@ -441,7 +427,7 @@ SlashCmdList["DTPROF"] = function()
 end
 
 -- ============================================================================
--- DELVETRACKER PLUGIN REGISTRATIE - Lockout
+-- DELVETRACKER PLUGIN REGISTRATIE — Lockout
 -- ============================================================================
 local _dtInt_Lock = CreateFrame("Frame")
 _dtInt_Lock:RegisterEvent("PLAYER_LOGIN")

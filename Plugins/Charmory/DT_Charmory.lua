@@ -3,19 +3,6 @@
 -- =====================================================
 
 if DelveTracker then
-
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
     DelveTracker:RegisterPlugin("Charmory", function() end)
 
     local Armory = CreateFrame("Frame", "DT_ArmoryFrame", UIParent, "BackdropTemplate")
@@ -66,7 +53,7 @@ end
         Armory:EnableMouse(true)
         Armory:SetFrameStrata("DIALOG")
         Armory:ClearAllPoints()
-        -- Gecentreerd links van scherm midden - altijd zichtbaar
+        -- Gecentreerd links van scherm midden — altijd zichtbaar
         Armory:SetPoint("CENTER", UIParent, "CENTER", -250, 20)
     end
 
@@ -74,7 +61,7 @@ end
     Armory:SetScript("OnDragStop", Armory.StopMovingOrSizing)
 
     Armory:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
-    do local _b=TH().bg.main;local _br=TH().border.main; Armory:SetBackdropColor(_b.r,_b.g,_b.b,0.97); Armory:SetBackdropBorderColor(_br.r,_br.g,_br.b,1) end
+    Armory:SetBackdropColor(0, 0, 0, 0.9); Armory:SetBackdropBorderColor(0, 0, 0, 1)
 
     -- Shield: BACKGROUND laag -2, tot aan gold bar, achter gear+model+tekst
     Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -2)
@@ -92,21 +79,15 @@ end
         local f = CreateFrame("Frame", nil, Armory, "BackdropTemplate")
         f:SetSize(380, 28); f:SetPoint("BOTTOM", 0, yOff)
         f:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8X8"}); f:SetBackdropColor(0, 0, 0, 0.4) 
-        f.text = f:CreateFontString(nil, "OVERLAY"); f.text:SetPoint("CENTER")
-        f.text:SetFont("Fonts\\2002.ttf", 10, "")
-        f.text:SetTextColor(0.85, 0.85, 0.85, 1)
+        f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall"); f.text:SetPoint("CENTER")
         return f
     end
     Armory.statPrimary = CreateStatBox(85)
     Armory.statSecondary = CreateStatBox(55)
 
-    Armory.header = Armory:CreateFontString(nil, "OVERLAY")
-    Armory.header:SetFont("Fonts\\2002.ttf", 16, "OUTLINE")
-    Armory.header:SetTextColor(0.85, 0.85, 0.85, 1)
+    Armory.header = Armory:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge3")
     Armory.header:SetPoint("TOP", 0, -35); Armory.header:SetScale(1.1)
-    Armory.guildStr = Armory:CreateFontString(nil, "OVERLAY")
-    Armory.guildStr:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
-    Armory.guildStr:SetTextColor(0.85, 0.85, 0.85, 1)
+    Armory.guildStr = Armory:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     Armory.guildStr:SetPoint("TOP", Armory.header, "BOTTOM", 0, -4)
     Armory.model = CreateFrame("PlayerModel", nil, Armory)
     Armory.model:SetSize(280, 320); Armory.model:SetPoint("CENTER", 0, 40)
@@ -115,10 +96,7 @@ end
     Armory.goldFrame:SetSize(335, 26); Armory.goldFrame:SetPoint("BOTTOMLEFT", 15, 15)
     Armory.goldFrame:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8", edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1})
     Armory.goldFrame:SetBackdropColor(0, 0, 0, 0.9); Armory.goldFrame:SetBackdropBorderColor(1, 0.82, 0, 0.4)
-    Armory.goldText = Armory.goldFrame:CreateFontString(nil, "OVERLAY")
-    Armory.goldText:SetFont("Fonts\\2002.ttf", 11, "")
-    Armory.goldText:SetTextColor(0.85, 0.85, 0.85, 1)
-    Armory.goldText:SetPoint("CENTER")
+    Armory.goldText = Armory.goldFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight"); Armory.goldText:SetPoint("CENTER")
     
     local slotsPos = {
         {"HeadSlot", "LEFT", 12, 170}, {"NeckSlot", "LEFT", 12, 125}, {"ShoulderSlot", "LEFT", 12, 80},
@@ -134,21 +112,18 @@ end
         b:SetSize(42, 42); b:SetPoint(info[2], Armory, info[2], info[3], info[4])
         b.icon = b:CreateTexture(nil, "BACKGROUND"); b.icon:SetAllPoints(); b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         b:SetBackdrop({edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
-        b.ilvl = b:CreateFontString(nil, "OVERLAY")
-        b.ilvl:SetFont("Fonts\\2002.ttf", 9, "OUTLINE")
-        b.ilvl:SetTextColor(1, 1, 1, 1)
-        b.ilvl:SetPoint("BOTTOMRIGHT", -1, 2)
+        b.ilvl = b:CreateFontString(nil, "OVERLAY", "GameFontNormalSmallOutline"); b.ilvl:SetPoint("BOTTOMRIGHT", -1, 2)
         b:SetScript("OnEnter", function(self) if self.link then GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:SetHyperlink(self.link); GameTooltip:Show() end end)
         b:SetScript("OnLeave", GameTooltip_Hide)
         Armory.buttons[info[1]] = b
     end
 
-    -- -- STATS PANEL (rechts naast model in Tab5) -------------------------
+    -- ── STATS PANEL (rechts naast model in Tab5) ─────────────────────────
     local StatsPanel = CreateFrame("Frame", "DT_ArmoryStatsPanel", Armory, "BackdropTemplate")
     StatsPanel:SetSize(480, 500)
     StatsPanel:SetPoint("TOPLEFT", Armory, "TOPRIGHT", 4, 0)
     StatsPanel:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
-    do local _b=TH().bg.main; StatsPanel:SetBackdropColor(_b.r,_b.g,_b.b,0.96) end
+    StatsPanel:SetBackdropColor(0.04, 0.02, 0.08, 0.96)
     StatsPanel:SetBackdropBorderColor(0.20, 0.50, 0.80, 0.8)
     StatsPanel:Hide()
 
@@ -176,32 +151,32 @@ end
     end
 
     -- Bouw stat rijen
-    SecHdr("-- KARAKTER --", -12)
+    SecHdr("── KARAKTER ──", -12)
     local _,  vClass  = StatRow("Klasse",  -26)
     local _,  vSpec   = StatRow("Spec",    -42)
     local _,  vLevel  = StatRow("Level",   -58)
     local _,  vIlvl   = StatRow("iLvl",    -74)
     local _,  vGuild  = StatRow("Guild",   -90)
 
-    SecHdr("-- STATS --", -114)
+    SecHdr("── STATS ──", -114)
     local _,  vStam   = StatRow("Stamina",  -128)
     local _,  vStr    = StatRow("Strength", -144)
     local _,  vAgi    = StatRow("Agility",  -160)
     local _,  vInt    = StatRow("Intellect",-176)
     local _,  vArmor  = StatRow("Armor",    -192)
 
-    SecHdr("-- CURRENCIES --", -216)
+    SecHdr("── CURRENCIES ──", -216)
     local _,  vKeys   = StatRow("Coffer Keys",   -230)
     local _,  vShards = StatRow("Key Shards",    -246)
     local _,  vDundun = StatRow("Shard of Dundun",-262)
     local _,  vMana   = StatRow("Dawnlight Manaflux",-278)
 
-    SecHdr("-- DELVES DEZE WEEK --", -302)
+    SecHdr("── DELVES DEZE WEEK ──", -302)
     local _,  vD4     = StatRow("Threshold 4",  -316)
     local _,  vD8     = StatRow("Threshold 8",  -332)
     local _,  vD12    = StatRow("Threshold 12", -348)
 
-    SecHdr("-- GOUD --", -372)
+    SecHdr("── GOUD ──", -372)
     local _,  vGold   = StatRow("Totaal",  -386)
 
     StatsPanel.Fill = function(data)
@@ -226,7 +201,7 @@ end
             vInt:SetText("|cffffffff"..(data.stats.int or 0).."|r")
             vArmor:SetText("|cffffffff"..(data.stats.armor or 0).."|r")
         else
-            for _, v in ipairs({vStam,vStr,vAgi,vInt,vArmor}) do v:SetText("|cff554466-|r") end
+            for _, v in ipairs({vStam,vStr,vAgi,vInt,vArmor}) do v:SetText("|cff554466—|r") end
         end
 
         -- Currencies
@@ -250,10 +225,10 @@ end
                 end
             end
             for i=#data.delves+1,3 do
-                if targets[i] then targets[i]:SetText("|cff554466-|r") end
+                if targets[i] then targets[i]:SetText("|cff554466—|r") end
             end
         else
-            for _,v in ipairs({vD4,vD8,vD12}) do v:SetText("|cff554466-|r") end
+            for _,v in ipairs({vD4,vD8,vD12}) do v:SetText("|cff554466—|r") end
         end
 
         -- Gold
@@ -303,24 +278,12 @@ end
             if not allLoaded then C_Timer.After(0.2, FillGear) end
         end
 
-        local _clr = (RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class]) or
-                    (C_ClassColor and C_ClassColor.GetClassColor(data.class or "")) or
-                    {r=0.8,g=0.8,b=0.8}
-        local clr = (type(_clr)=="table" and _clr.r) and _clr or {r=0.8,g=0.8,b=0.8}
-        Armory.header:SetText(string.format("|cff%02x%02x%02x%s|r",
-            math.floor((clr.r or 0.8)*255), math.floor((clr.g or 0.8)*255), math.floor((clr.b or 0.8)*255),
-            data.name or "?"))
+        local clr = RAID_CLASS_COLORS[data.class] or {r=1, g=1, b=1}
+        Armory.header:SetText(string.format("|cff%02x%02x%02x%s|r", clr.r*255, clr.g*255, clr.b*255, data.name))
         Armory.guildStr:SetText("|cff00ccff<"..(data.guild or "Geen Guild")..">|r")
         Armory.goldText:SetText(GetCoinTextureString(data.money or 0))
 
-        if data.name == UnitName("player") then
-            Armory.model:SetUnit("player")
-        elseif data.displayID and data.displayID > 0 then
-            Armory.model:SetDisplayInfo(data.displayID)
-        else
-            -- Fallback: probeer SetUnit met karakter naam (werkt alleen voor friends/party)
-            Armory.model:SetUnit("player")  -- altijd de huidige speler als fallback
-        end
+        if data.name == UnitName("player") then Armory.model:SetUnit("player") else Armory.model:SetDisplayInfo(385) end
         Armory.model:SetAnimation(4); FillGear()
     end
 
