@@ -48,6 +48,7 @@
     <!-- REGISTRY (XL karakter index · /crew)                  -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\Registry\DT_Registry.lua"/>
+    <Script file="Plugins\WarbankBuddy\DT_WarbankBuddy.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- LOCKOUT & CURRENCY SCANNER                            -->

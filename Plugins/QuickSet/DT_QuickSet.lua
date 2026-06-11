@@ -19,19 +19,6 @@
 
 if not DelveTracker then return end
 
--- WTTheme: centraal kleurensysteem (Fase 3 - T04b)
-local function TH()
-    return WTTheme or {
-        bg={main={r=0.04,g=0.02,b=0.08,a=0.97},card={r=0.06,g=0.03,b=0.10,a=0.95},
-            row={r=0.05,g=0.02,b=0.08,a=0.90}},
-        border={main={r=0.35,g=0.08,b=0.55,a=1},card={r=0.20,g=0.05,b=0.35,a=0.8},
-               active={r=0.55,g=0.15,b=0.85,a=1}},
-        c={gold="|cffccaa00",purple="|cffbf00ff",blue="|cff00dfff",
-           grey="|cff887799",green="|cff44ff88",red="|cffff5555"}
-    }
-end
-
-
 -- ── Color scheme ─────────────────────────────────────────────────────────────
 local CO = {
     orange  = "|cffff6600",
@@ -300,16 +287,8 @@ end
 -- ── Tile factory ──────────────────────────────────────────────────────────────
 local function NewTile(parent, idx)
     local t = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    -- 2-naast-2: oneven links, even rechts
-    local col = (idx - 1) % 2        -- 0=links, 1=rechts
-    local row = math.floor((idx - 1) / 2)
-    local tileW = math.floor((SCROLL_W - TILE_G) / 2)
-    local tileH = math.floor(TILE_H * 1.4)  -- hoger dan voor, meer ruimte voor info
-    t:SetSize(tileW, tileH)
-    -- T04d: 2 tiles gecentreerd in scroll area (berekend vanuit SCROLL_W)
-    local totalTileW = 2 * tileW + TILE_G
-    local xPad = math.max(0, math.floor((SCROLL_W - totalTileW) / 2))
-    t:SetPoint("TOPLEFT", xPad + col * (tileW + TILE_G), -(row * (tileH + TILE_G)))
+    t:SetSize(SCROLL_W, TILE_H)
+    t:SetPoint("TOPLEFT", 0, -((idx - 1) * (TILE_H + TILE_G)))
     t:SetBackdrop(BD(1))
 
     -- Art background - alpha 0.50: images are clear, no haze
@@ -404,17 +383,16 @@ local function StyleTile(t, d, isBountiful, isNemesis)
     t.iconRim:SetColorTexture(1, 1, 1, 0)  -- always transparent
 
     if isBountiful then
-        -- T06: Bountiful -> SA gold-purple tint (was te oranje)
-        t:SetBackdropColor(0.08, 0.04, 0.12, 0.95)
-        t:SetBackdropBorderColor(0.65, 0.45, 0.0, 0.85)
-        t.stripe:SetColorTexture(0.80, 0.67, 0.0, 1)
-        t.badge:SetColorTexture(0.55, 0.38, 0.0, 0.92)
-        t.glowBar:SetColorTexture(0.80, 0.67, 0.0, 1)
-        t.glowLeft:SetColorTexture(0.80, 0.67, 0.0, 1)
-        t.badgeTxt:SetText("|cff100800BOUNTY|r")
-        t.typeTxt:SetText("|cffccaa00Bountiful Delve|r")
-        t._gr, t._gg, t._gb = 0.80, 0.67, 0.00
-        t._br, t._bg, t._bb, t._ba = 0.65, 0.45, 0.0, 0.85
+        t:SetBackdropColor(0.10, 0.04, 0.00, 0.95)
+        t:SetBackdropBorderColor(1.0, 0.55, 0.0, 0.85)
+        t.stripe:SetColorTexture(1.0, 0.55, 0.0, 1)
+        t.badge:SetColorTexture(0.85, 0.45, 0.0, 0.92)
+        t.glowBar:SetColorTexture(1.0, 0.70, 0.0, 1)
+        t.glowLeft:SetColorTexture(1.0, 0.70, 0.0, 1)
+        t.badgeTxt:SetText("|cff0d0500BOUNTY|r")
+        t.typeTxt:SetText(CO.orange .. "Bountiful Delve")
+        t._gr, t._gg, t._gb = 1.0, 0.75, 0.10
+        t._br, t._bg, t._bb, t._ba = 1.0, 0.55, 0.0, 0.85
 
     elseif isNemesis then
         t:SetBackdropColor(0.08, 0.00, 0.12, 0.95)
@@ -460,7 +438,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
         local prefix = isBountiful and "[BOUNTY] " or (isNemesis and "[NEMESIS] " or "")
         GameTooltip:AddLine(CO.white .. prefix .. d.name .. "|r")
         if isBountiful then
-            GameTooltip:AddLine("|cffccaa00Bountiful Delve|r")
+            GameTooltip:AddLine(CO.orange .. "Bountiful Delve|r")
         elseif isNemesis then
             GameTooltip:AddLine(CO.magenta .. "Nemesis Delve|r")
         else
@@ -575,21 +553,6 @@ end
 local function BuildGrid(container)
     if container._dtBuilt then return end
     container._dtBuilt = true
-    -- Gebruik container breedte - wacht tot frame gelayout is
-    C_Timer.After(0.05, function()
-        local cw = container:GetWidth()
-        if cw and cw > 200 then
-            CONT_W   = math.floor(cw)
-            SF_RIGHT = 20
-            SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
-        end
-    end)
-    local cw = container:GetWidth()
-    if cw and cw > 200 then
-        CONT_W   = math.floor(cw)
-        SF_RIGHT = 20
-        SCROLL_W = CONT_W - 1 - SF_RIGHT - 2
-    end
 
     -- ════════════════════════════════════════════════
     -- 1. VALEERA HEADER
@@ -597,10 +560,8 @@ local function BuildGrid(container)
     --    3D NPC portrait (Valeera Sanguinar).
     -- ════════════════════════════════════════════════
     local hdr = CreateFrame("Frame", nil, container, "BackdropTemplate")
-    -- hdr breed als container, gecentreerd
     hdr:SetSize(CONT_W - 2, HDR_H)
     hdr:SetPoint("TOPLEFT", container, "TOPLEFT", 1, -1)
-    hdr:SetPoint("TOPRIGHT", container, "TOPRIGHT", -1, -1)
     hdr:SetBackdrop(BD(1))
     hdr:SetBackdropColor(0.02, 0.05, 0.12, 0.98)
     hdr:SetBackdropBorderColor(0.0, 0.75, 0.70, 1)
@@ -740,11 +701,11 @@ local function BuildGrid(container)
     end
 
     local tabNem  = MakeTabBtn(CO.magenta .. "Nemesis|r",   0)
-    local tabBoun = MakeTabBtn("|cffccaa00" .. "Bountiful|r", tabW)
+    local tabBoun = MakeTabBtn(CO.orange  .. "Bountiful|r", tabW)
     local tabNorm = MakeTabBtn(CO.blue    .. "Normal|r",    tabW * 2)
 
     tabNem.glowBar:SetColorTexture(1.0, 0.30, 1.0, 1)
-    tabBoun.glowBar:SetColorTexture(0.80, 0.67, 0.0, 1)  -- T06: gold ipv oranje
+    tabBoun.glowBar:SetColorTexture(1.0, 0.70, 0.0, 1)
     tabNorm.glowBar:SetColorTexture(0.30, 0.70, 1.0, 1)
 
     -- ════════════════════════════════════════════════
@@ -790,8 +751,8 @@ local function BuildGrid(container)
         tabNem:SetBackdropColor(0.04, 0.01, 0.07, 1)
         tabNem:SetBackdropBorderColor(0.35, 0.10, 0.35, 1)
         tabNem.glowBar:SetAlpha(0)
-        tabBoun:SetBackdropColor(0.06, 0.03, 0.09, 1)  -- T06: neutral dark
-        tabBoun:SetBackdropBorderColor(0.25, 0.18, 0.30, 1)  -- subtle border
+        tabBoun:SetBackdropColor(0.06, 0.02, 0.00, 1)
+        tabBoun:SetBackdropBorderColor(0.35, 0.20, 0.00, 1)
         tabBoun.glowBar:SetAlpha(0)
         tabNorm:SetBackdropColor(0.02, 0.04, 0.10, 1)
         tabNorm:SetBackdropBorderColor(0.10, 0.20, 0.35, 1)
@@ -803,8 +764,8 @@ local function BuildGrid(container)
             tabNem:SetBackdropBorderColor(1.0, 0.20, 0.90, 1)
             tabNem.glowBar:SetAlpha(1)
         elseif n == 2 then
-            tabBoun:SetBackdropColor(0.10, 0.06, 0.14, 1)  -- T06: purple tint
-            tabBoun:SetBackdropBorderColor(0.65, 0.45, 0.00, 1)  -- gold border
+            tabBoun:SetBackdropColor(0.16, 0.06, 0.00, 1)
+            tabBoun:SetBackdropBorderColor(1.0, 0.55, 0.00, 1)
             tabBoun.glowBar:SetAlpha(1)
         else
             tabNorm:SetBackdropColor(0.03, 0.07, 0.18, 1)
@@ -841,16 +802,8 @@ local function BuildGrid(container)
         if not pool[idx] then
             pool[idx] = NewTile(parent, idx)
         else
-            -- 2-naast-2 layout
-        local col2 = (idx - 1) % 2
-        local row2 = math.floor((idx - 1) / 2)
-        local tileW2 = math.floor((SCROLL_W - TILE_G) / 2)
-        local tileH2 = math.floor(TILE_H * 1.4)
-        -- T04d: gecentreerd
-        local totalW2 = 2 * tileW2 + TILE_G
-        local xPad2 = math.max(0, math.floor((SCROLL_W - totalW2) / 2))
-        pool[idx]:SetPoint("TOPLEFT", xPad2 + col2 * (tileW2 + TILE_G), -(row2 * (tileH2 + TILE_G)))
-            pool[idx]:SetSize(tileW2, tileH2)
+            pool[idx]:SetPoint("TOPLEFT", 0, -((idx - 1) * (TILE_H + TILE_G)))
+            pool[idx]:SetSize(SCROLL_W, TILE_H)
         end
         return pool[idx]
     end
@@ -917,7 +870,7 @@ local function BuildGrid(container)
 
         -- Count text: outlined, sits on top of the icon corner badge
         box.countTxt = box:CreateFontString(nil, "OVERLAY", nil, 2)
-        box.countTxt:SetFont("Fonts\\2002.ttf", 12, "OUTLINE")
+        box.countTxt:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
         box.countTxt:SetPoint("CENTER", box.countBg, "CENTER", 0, 0)
         box.countTxt:SetJustifyH("CENTER")
         box.countTxt:SetText("|cffffffff?|r")
@@ -1011,7 +964,7 @@ local function BuildGrid(container)
 
         local bc = #bountiful
         tabBoun.lbl:SetText(bc > 0
-            and ("|cff00ccff" .. "Bountiful (" .. bc .. ")|r")
+            and (CO.orange .. "Bountiful (" .. bc .. ")|r")
             or  (CO.gray   .. "Bountiful|r"))
         tabNorm.lbl:SetText(CO.blue .. "Normal (" .. #normal .. ")|r")
 
@@ -1032,22 +985,42 @@ local function BuildGrid(container)
             t:Show()
         end
 
-        -- S3-03: Required Items header VERWIJDERD (niet correct)
-        -- Items direct onder tiles, gecentreerd
-        local ITEMS_Y = iN * (TILE_H + TILE_G) + 8
+        -- Required Items section header
+        local ITEMS_Y = iN * (TILE_H + TILE_G) + 6
 
-        -- Verberg itemHeaderFrame als die al bestaat van vorige versie
-        if scN.itemHeaderFrame then scN.itemHeaderFrame:Hide() end
+        if not scN.itemHeaderFrame then
+            local hbar = CreateFrame("Frame", nil, scN, "BackdropTemplate")
+            hbar:SetSize(SCROLL_W, 24)
+            hbar:SetBackdrop(BD(1))
+            hbar:SetBackdropColor(0.07, 0.00, 0.11, 0.97)
+            hbar:SetBackdropBorderColor(0.65, 0.10, 0.78, 1)
+
+            local hs = hbar:CreateTexture(nil, "ARTWORK")
+            hs:SetSize(4, 22); hs:SetPoint("LEFT", 1, 0)
+            hs:SetColorTexture(0.90, 0.15, 0.90, 1)
+
+            local hl = hbar:CreateTexture(nil, "OVERLAY")
+            hl:SetHeight(1)
+            hl:SetPoint("TOPLEFT",  1, -1); hl:SetPoint("TOPRIGHT", -1, -1)
+            hl:SetColorTexture(1.0, 0.35, 1.0, 0.75)
+
+            local hlbl = hbar:CreateFontString(nil, "OVERLAY")
+            hlbl:SetPoint("LEFT", 12, 0)
+            hlbl:SetText(CO.magenta .. "Required Items|r")
+
+            scN.itemHeaderFrame = hbar
+        end
+
+        scN.itemHeaderFrame:SetPoint("TOPLEFT", 0, -ITEMS_Y)
+        scN.itemHeaderFrame:Show()
+        ITEMS_Y = ITEMS_Y + 28
 
         -- Item boxes (3 side by side)
         for i, item in ipairs(SPECIAL_ITEMS) do
             if not itemBoxes[i] then MakeItemBox(scN, item, i) end
             local box = itemBoxes[i]
             box:SetParent(scN)
-            -- S3-03: gecentreerd - berekend vanuit SCROLL_W
-            local totalItemW = 3 * ITEM_W + 2 * ITEM_GAP
-            local itemPad = math.max(0, math.floor((SCROLL_W - totalItemW) / 2))
-            box:SetPoint("TOPLEFT", itemPad + box.xOffset, -ITEMS_Y)
+            box:SetPoint("TOPLEFT", box.xOffset, -ITEMS_Y)
             box:Show()
 
             local name, _, _, _, _, _, _, _, _, texture = GetItemInfo(item.id)
@@ -1078,301 +1051,7 @@ local function BuildGrid(container)
             end
         end
 
-        -- ── S3-04: BOSS TACTICS KNOP ────────────────────────────────
-        local BOSS_Y = ITEMS_Y + ITEM_H + 8
-
-        if not scN.bossTacticsBtn then
-            local bossBtn = CreateFrame("Button",nil,scN,"BackdropTemplate")
-            bossBtn:SetSize(SCROLL_W, 28)
-            bossBtn:SetBackdrop(BD(1))
-            bossBtn:SetBackdropColor(0.08,0.00,0.14,0.97)
-            bossBtn:SetBackdropBorderColor(0.65,0.10,0.85,0.9)
-
-            -- Magenta stripe links
-            local bs = bossBtn:CreateTexture(nil,"ARTWORK")
-            bs:SetSize(4,26); bs:SetPoint("LEFT",1,0)
-            bs:SetColorTexture(1.0,0.20,0.90,1)
-
-            -- Top glow
-            local bg = bossBtn:CreateTexture(nil,"OVERLAY",nil,2)
-            bg:SetHeight(1); bg:SetPoint("TOPLEFT",1,-1); bg:SetPoint("TOPRIGHT",-1,-1)
-            bg:SetColorTexture(1.0,0.30,1.0,0.8); bg:SetAlpha(0)
-
-            local btxt = bossBtn:CreateFontString(nil,"OVERLAY")
-            btxt:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-            btxt:SetPoint("LEFT",12,0)
-            btxt:SetText(CO.magenta.."Boss Tactics: Nullaeus|r  "..CO.gray.."(klik voor strat)|r")
-
-            local barrow = bossBtn:CreateFontString(nil,"OVERLAY")
-            barrow:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-            barrow:SetPoint("RIGHT",-8,0)
-            barrow:SetText(CO.gray.."[+]|r")
-
-            bossBtn:SetScript("OnEnter",function(s)
-                bg:SetAlpha(1)
-                s:SetBackdropBorderColor(1.0,0.40,1.0,1)
-            end)
-            bossBtn:SetScript("OnLeave",function(s)
-                bg:SetAlpha(0)
-                s:SetBackdropBorderColor(0.65,0.10,0.85,0.9)
-            end)
-
-            -- Boss Tactics Toast popup
-            local bossToast = nil
-            local function BuildBossToast()
-                if bossToast then return bossToast end
-                local bt = CreateFrame("Frame","DT_BossTacticsToast",UIParent,"BackdropTemplate")
-                bt:SetSize(520,340)
-                bt:SetPoint("CENTER",UIParent,"CENTER",0,50)
-                bt:SetFrameStrata("DIALOG")
-                bt:SetMovable(true); bt:EnableMouse(true)
-                bt:RegisterForDrag("LeftButton")
-                bt:SetClampedToScreen(true)
-                bt:SetScript("OnDragStart",bt.StartMoving)
-                bt:SetScript("OnDragStop",bt.StopMovingOrSizing)
-                bt:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-                bt:SetBackdropColor(0.04,0.01,0.08,0.98)
-                bt:SetBackdropBorderColor(0.65,0.10,0.85,1)
-                bt:Hide()
-
-                -- Header
-                local bh = bt:CreateFontString(nil,"OVERLAY")
-                bh:SetFont("Fonts\\2002.ttf",13,"OUTLINE")
-                bh:SetPoint("TOPLEFT",10,-10)
-                bh:SetText(CO.magenta.."NULLAEUS - Torment's Rise (Nemesis Delve)|r")
-
-                -- Sluit
-                local xb = CreateFrame("Button",nil,bt,"UIPanelCloseButton")
-                xb:SetSize(22,22); xb:SetPoint("TOPRIGHT",0,0)
-                xb:SetScript("OnClick",function() bt:Hide() end)
-
-                -- Scheidingslijn
-                local bl = bt:CreateTexture(nil,"OVERLAY")
-                bl:SetHeight(1); bl:SetPoint("TOPLEFT",8,-28); bl:SetPoint("TOPRIGHT",-8,-28)
-                bl:SetColorTexture(0.50,0.08,0.70,0.8)
-
-                -- Tab knoppen T8 / T11
-                local tabT8 = CreateFrame("Button",nil,bt,"BackdropTemplate")
-                tabT8:SetSize(80,20); tabT8:SetPoint("TOPLEFT",10,-34)
-                tabT8:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-
-                local tabT11 = CreateFrame("Button",nil,bt,"BackdropTemplate")
-                tabT11:SetSize(80,20); tabT11:SetPoint("LEFT",tabT8,"RIGHT",4,0)
-                tabT11:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-
-                local t8lbl = tabT8:CreateFontString(nil,"OVERLAY"); t8lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); t8lbl:SetPoint("CENTER"); t8lbl:SetText("Tier 8 (?)")
-                local t11lbl = tabT11:CreateFontString(nil,"OVERLAY"); t11lbl:SetFont("Fonts\\2002.ttf",10,"OUTLINE"); t11lbl:SetPoint("CENTER"); t11lbl:SetText("Tier 11 (??)")
-
-                -- Strat tekst scroll
-                local sf = CreateFrame("ScrollFrame",nil,bt,"UIPanelScrollFrameTemplate")
-                sf:SetPoint("TOPLEFT",8,-60); sf:SetPoint("BOTTOMRIGHT",-28,-8)
-                local sc = CreateFrame("Frame",nil,sf)
-                sc:SetWidth(480); sf:SetScrollChild(sc)
-
-                local txt = sc:CreateFontString(nil,"OVERLAY")
-                txt:SetFont("Fonts\\2002.ttf",11,"")
-                txt:SetPoint("TOPLEFT",4,-4)
-                txt:SetWidth(476)
-                txt:SetJustifyH("LEFT")
-                txt:SetWordWrap(true)
-
-                local STRAT_T8 = "|cffff88ccNULLAEUS - TIER 8 STRAT|r
-
-"..
-                    "|cffccaa00VALEERA ROL:|r Healer (auto-dispelt DoT en Ravager bleeds)
-
-"..
-                    "|cffff4444KRITIEK:|r |cffffffff"Emptiness of the Void"|r - ALTIJD interruppen!
-"..
-                    "Dit is een AoE one-shot als het doorgaat. Bouw je hele rotation
-around dit interrupt.
-
-"..
-                    "|cffbf00ffFASE 1 (100-75%):|r
-"..
-                    "- Interrupt Emptiness of the Void (letale AoE)
-"..
-                    "- Dispel/vermijd Devouring Essence DoT (shadow, 18 sec)
-"..
-                    "- Valeera Healer dispelt automatisch
-
-"..
-                    "|cffbf00ffINTERMISSION 75%:|r (~30 sec)
-"..
-                    "- Nullaeus = untargetable, kanalized Void Orb
-"..
-                    "- Kill 2x Razorshell Ravager snel!
-"..
-                    "- Spiny Leap = cirkel op verste speler - ga DICHTERBIJ staan
-"..
-                    "- Spiny Thorns = bleed DoT, Valeera Healer cleant dit
-
-"..
-                    "|cffbf00ffFASE 2 (75-50%):|r
-"..
-                    "- Zelfde als Fase 1 + Void Zone (1/3 kamer) - roteer weg
-"..
-                    "- Interrupt prio boven alles
-
-"..
-                    "|cffbf00ffINTERMISSION 50%:|r
-"..
-                    "- AoE + CC 7x Spitting Ticks DIRECT
-"..
-                    "- Beweeg weg van Black Hole (trekt in alles)
-
-"..
-                    "|cffbf00ffFASE 3 (50-0%):|r
-"..
-                    "- Boss + Void Zone + Black Hole tegelijk
-"..
-                    "- Interrupt blijft #1 prio, roteer constant
-"..
-                    "- Cooldowns gebruiken - niet sparen"
-
-                local STRAT_T11 = "|cffff88ccNULLAEUS - TIER 11 STRAT (??)|r
-
-"..
-                    "|cffccaa00VEREIST:|r Tier 10 gecleared met 1+ leven over
-"..
-                    "|cffccaa00SOLO KILL:|r = |cffccaa00Arcanovoid Construct mount|r
-
-"..
-                    "|cffffffff"Let Me Solo Him: Nullaeus" achievement
-vereist solo Tier 11 kill.|r
-
-"..
-                    "|cffff4444KRITIEK (zwaarder dan T8):|r
-"..
-                    "- Emptiness of the Void = hard enrage als gemist
-"..
-                    "- Alle mechanics tegelijk sneller/harder
-"..
-                    "- Razorshell Ravagers doen meer schade
-
-"..
-                    "|cffbf00ffSTRATEGIE:|r Zelfde fasestructuur als T8 maar:
-"..
-                    "- Interrupt CD management = kritiek (alt interrupts gebruiken)
-"..
-                    "- Black Hole + Void Zone overlap = meest dодelijk moment
-"..
-                    "- Als Healer: Valeera DPS voor interrupt hulp
-"..
-                    "- Als DPS/Tank: Valeera Healer (dispelt DoT + bleeds)
-
-"..
-                    "|cff44ff88RECOMMENDED iLvl:|r 274+
-"..
-                    "|cff44ff88VALEERA ROL T11:|r DPS als je healer bent of
-lange interrupt CD hebt, anders Healer"
-
-                local currentTier = "T8"
-                local function ShowTier(tier)
-                    currentTier = tier
-                    txt:SetText(tier == "T8" and STRAT_T8 or STRAT_T11)
-                    sc:SetHeight(txt:GetStringHeight() + 20)
-                    sf:SetVerticalScroll(0)
-                    tabT8:SetBackdropColor(tier=="T8" and 0.12 or 0.04, tier=="T8" and 0.02 or 0.01, tier=="T8" and 0.20 or 0.07, 1)
-                    tabT8:SetBackdropBorderColor(tier=="T8" and 0.65 or 0.20, 0.05, tier=="T8" and 0.90 or 0.30, 1)
-                    tabT11:SetBackdropColor(tier=="T11" and 0.12 or 0.04, tier=="T11" and 0.02 or 0.01, tier=="T11" and 0.20 or 0.07, 1)
-                    tabT11:SetBackdropBorderColor(tier=="T11" and 0.65 or 0.20, 0.05, tier=="T11" and 0.90 or 0.30, 1)
-                end
-
-                tabT8:SetScript("OnClick",function() ShowTier("T8") end)
-                tabT11:SetScript("OnClick",function() ShowTier("T11") end)
-                bt:SetScript("OnShow",function() ShowTier(currentTier) end)
-
-                bossToast = bt
-                return bt
-            end
-
-            bossBtn:SetScript("OnClick",function()
-                local toast = BuildBossToast()
-                if toast:IsShown() then toast:Hide()
-                else toast:Show() end
-            end)
-
-            scN.bossTacticsBtn = bossBtn
-        end
-        scN.bossTacticsBtn:SetPoint("TOPLEFT",0,-BOSS_Y)
-        scN.bossTacticsBtn:Show()
-
-        -- ── ABUNDANCE BLOK onder Boss Tactics ────────────────────────────
-        local AB_Y = BOSS_Y + 28 + 8
-        if not scN.abundanceFrame then
-            -- S3-07: compact abundance blok (52px)
-            local abf = CreateFrame("Frame", nil, scN, "BackdropTemplate")
-            abf:SetSize(SCROLL_W, 52)
-            abf:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-            abf:SetBackdropColor(0.03, 0.07, 0.03, 0.96)
-            abf:SetBackdropBorderColor(0.20, 0.55, 0.20, 0.85)
-            -- Groene stripe links
-            local abStripe = abf:CreateTexture(nil,"ARTWORK")
-            abStripe:SetSize(4,50); abStripe:SetPoint("LEFT",1,0)
-            abStripe:SetColorTexture(0.10,0.80,0.10,1)
-            -- Rij 1: cave naam links, timer rechts
-            abf.title = abf:CreateFontString(nil,"OVERLAY")
-            abf.title:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-            abf.title:SetPoint("TOPLEFT",10,-7)
-            abf.title:SetText("|cff44cc66* Abundance|r")
-            abf.timer = abf:CreateFontString(nil,"OVERLAY")
-            abf.timer:SetFont("Fonts\\2002.ttf",11,"OUTLINE")
-            abf.timer:SetPoint("TOPRIGHT",-8,-7)
-            abf.timer:SetText("")
-            -- Rij 2: shards links (prominent), info rechts
-            abf.shards = abf:CreateFontString(nil,"OVERLAY")
-            abf.shards:SetFont("Fonts\\2002.ttf",10,"")
-            abf.shards:SetPoint("BOTTOMLEFT",10,7)
-            abf.shards:SetText("")
-            abf.info = abf:CreateFontString(nil,"OVERLAY")
-            abf.info:SetFont("Fonts\\2002.ttf",10,"")
-            abf.info:SetPoint("BOTTOMRIGHT",-8,7)
-            abf.info:SetJustifyH("RIGHT")
-            abf.info:SetWidth(SCROLL_W * 0.65)
-            abf.info:SetText("|cff887799Laden...|r")
-            scN.abundanceFrame = abf
-        end
-        scN.abundanceFrame:SetPoint("TOPLEFT",0,-AB_Y)
-        -- Vul abundance data
-        local abData = DT_GetAbundanceData and DT_GetAbundanceData()
-        if abData and abData.active then
-            scN.abundanceFrame:SetBackdropBorderColor(0.20,0.85,0.20,1)
-            local ABCAVE_NAMES = {
-                [2393]="Watha'nan Crypts", [2395]="Watha'nan Crypts",
-                [2437]="Loaknit Den", [2413]="Floaret Grotto",
-                [2405]="Abundant Voidburrow",
-            }
-            local ABCAVE_ZONES = {
-                [2393]="Eversong", [2395]="Eversong",
-                [2437]="Zul'Aman", [2413]="Harandar", [2405]="Voidstorm",
-            }
-            local caveName = (abData.mapID and ABCAVE_NAMES[abData.mapID]) or abData.zone or "?"
-            local zoneShort = (abData.mapID and ABCAVE_ZONES[abData.mapID]) or ""
-            -- Rij 1: cave naam + zone (links), timer (rechts)
-            scN.abundanceFrame.title:SetText("|cff44cc66* |r|cffffffff"..caveName.."|r  |cff887799"..zoneShort.."|r")
-            local timeStr = ""
-            if abData.secondsLeft and abData.secondsLeft > 0 then
-                local h=math.floor(abData.secondsLeft/3600)
-                local m=math.floor((abData.secondsLeft%3600)/60)
-                timeStr = h>0 and string.format("|cff44cc66%dh %dm|r",h,m) or string.format("|cff44cc66%dm|r",m)
-            end
-            scN.abundanceFrame.timer:SetText(timeStr)
-            -- Rij 2: shards prominent links, status rechts
-            local shards = abData.shards or 0
-            local dundunCol = shards > 0 and "|cff44cc66" or "|cffff5555"
-            scN.abundanceFrame.shards:SetText("|cff887799Dundun: |r"..dundunCol..shards.." shards|r")
-            scN.abundanceFrame.info:SetText("|cff887799Harvest actief . roteert elke 8u|r")
-        else
-            scN.abundanceFrame:SetBackdropBorderColor(0.15,0.30,0.15,0.6)
-            scN.abundanceFrame.title:SetText("|cff556655* Abundance|r  |cff334433geen actieve harvest|r")
-            scN.abundanceFrame.timer:SetText("")
-            scN.abundanceFrame.shards:SetText("")
-            scN.abundanceFrame.info:SetText("|cff445544Eversong . Zul'Aman . Harandar . Voidstorm|r")
-        end
-        scN.abundanceFrame:Show()
-
-        scN:SetHeight(math.max(AB_Y + 62, 10))  -- S3-07: compacter blok
+        scN:SetHeight(math.max(ITEMS_Y + ITEM_H + 6, 10))
 
         -- ── TAB 2: BOUNTIFUL ───────────────────────────
         local iB = 0
