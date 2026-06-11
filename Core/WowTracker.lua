@@ -429,18 +429,18 @@ UI.charInfo:SetText(SA_GREY.."Laden...|r")
 -- Warband stats rechtsboven header: totaal karakters + totaal gold
 UI.warbandChars = UI:CreateFontString(nil,"OVERLAY")
 UI.warbandChars:SetFont(C_2002,11,"OUTLINE")
-UI.warbandChars:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-180,-(TICKER_H+10))
+UI.warbandChars:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-220,-(TICKER_H+10))
 UI.warbandChars:SetText(SA_GREY.."0 chars|r")
 
 UI.warbandGold = UI:CreateFontString(nil,"OVERLAY")
 UI.warbandGold:SetFont(C_2002,13,"OUTLINE")
-UI.warbandGold:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-180,-(TICKER_H+26))
+UI.warbandGold:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-220,-(TICKER_H+26))
 UI.warbandGold:SetText(SA_GOLD.."0g|r")
 
 -- Divider voor warband stats
 UI.warbandDiv = UI:CreateTexture(nil,"OVERLAY")
 UI.warbandDiv:SetSize(1,40)
-UI.warbandDiv:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-188,-(TICKER_H+8))
+UI.warbandDiv:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-228,-(TICKER_H+8))
 UI.warbandDiv:SetColorTexture(0.35,0.10,0.55,0.5)
 
 local function UpdateWarbandStats()
@@ -593,7 +593,7 @@ UI.langBtn:SetScript("OnLeave",function(s) ApplyBorder(s,"card") end)
 -- Vault knop in header (links van langBtn) - opent WeeklyRewardsFrame direct
 UI.vaultBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
 UI.vaultBtn:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
-UI.vaultBtn:SetPoint("TOPLEFT",UI,"TOPLEFT",4,HDR_BTN_Y)  -- Stap4: vault links in header
+UI.vaultBtn:SetPoint("RIGHT",UI.langBtn,"LEFT",-3,0)  -- vault rechts van langBtn, naast de andere knoppen
 UI.vaultBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.vaultBtn:SetBackdropColor(0.12,0.06,0.04,0.9)
 UI.vaultBtn:SetBackdropBorderColor(0.55,0.35,0.10,0.8)
@@ -932,8 +932,9 @@ Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
 Tab1.dieouwe:SetSize(80,138)
 Tab1.dieouwe:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMLEFT",GUILD_LEFT_W-4,8)
 Tab1.dieouwe:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Dieouwe.tga")
-Tab1.dieouwe:SetTexCoord(1,0,0,1)  -- gespiegeld naar binnen
-Tab1.dieouwe:SetAlpha(0.80)
+-- Gespiegeld horizontaal: kijkt naar rechts (naar binnen)
+Tab1.dieouwe:SetTexCoord(1,0,0,1)
+Tab1.dieouwe:SetAlpha(0.85)
 -- Horizontaal spiegelen (4-arg): left=1,right=0,top=0,bottom=1
 -- Origineel kijkt rechts -> gespiegeld kijkt naar links (naar binnen)
 -- Horizontaal spiegelen: UL=(1,0) UR=(0,0) LL=(1,1) LR=(0,1)
@@ -2434,12 +2435,17 @@ WT_UpdateCurrency = function()
     }
 
     -- Filter op naam als curFilter gevuld
+    -- Midnight currencies altijd tonen (ook met 0 waarde)
+    local ALWAYS_SHOW = {[3028]=true,[3310]=true,[3376]=true,[3378]=true,[3399]=true,[3403]=true,[3390]=true}
     local CUR_DEFS = {}
     local seenIDs = {}
     for _,def in ipairs(CUR_DEFS_ALL) do
         if not seenIDs[def.id] then
-            if curFilter == "" or def.label:lower():find(curFilter,1,true) or (def.expac and def.expac:lower():find(curFilter,1,true)) then
-                -- Check of karakter echt iets heeft
+            local matchFilter = curFilter == "" 
+                or def.label:lower():find(curFilter,1,true) 
+                or (def.expac and def.expac:lower():find(curFilter,1,true))
+            -- Toon altijd Midnight currencies, rest alleen bij filter match
+            if matchFilter or ALWAYS_SHOW[def.id] then
                 table.insert(CUR_DEFS, def)
                 seenIDs[def.id] = true
             end

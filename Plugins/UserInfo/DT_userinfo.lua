@@ -1051,9 +1051,9 @@ local modelBox = MakePanel(OV, 0, 0, LCOL, 248)
 local model    = CreateFrame("PlayerModel", nil, modelBox)
 model:SetPoint("TOPLEFT",     modelBox, "TOPLEFT",     2, -2)
 model:SetPoint("BOTTOMRIGHT", modelBox, "BOTTOMRIGHT", -2, 2)
--- Stap5: model op FrameLevel 2 zodat het zichtbaar is maar panels (level 8+) eroverheen
+-- Model FrameLevel: 2 = zichtbaar, panels (8+) liggen eroverheen
 model:SetFrameLevel(2)
-model:SetAlpha(0.92)  -- bijna ondoorzichtig
+model:SetAlpha(0.95)
 model:SetCamera(0); model:SetPortraitZoom(0)
 
 -- Spin model on hover
