@@ -813,15 +813,9 @@ local function BuildGrid(container)
         end
     end
 
-    tabNem:SetScript("OnClick",  function()
-            ActivateTab(1); sfN:SetVerticalScroll(0); RefreshDelves()
-        end)
-        tabBoun:SetScript("OnClick", function()
-            ActivateTab(2); sfB:SetVerticalScroll(0); RefreshDelves()
-        end)
-        tabNorm:SetScript("OnClick", function()
-            ActivateTab(3); sfNr:SetVerticalScroll(0); RefreshDelves()
-        end)
+    tabNem:SetScript("OnClick",  function() ActivateTab(1) end)
+    tabBoun:SetScript("OnClick", function() ActivateTab(2) end)
+    tabNorm:SetScript("OnClick", function() ActivateTab(3) end)
 
     -- Inactive tab hover: glow border + glow bar, no background tint
     local function AddTabHover(tb, idx)
@@ -1123,10 +1117,10 @@ local function BuildGrid(container)
                 s:SetBackdropBorderColor(0.65,0.10,0.85,0.9)
             end)
 
-            -- Boss Tactics Toast popup - persistent upvalue (niet lokaal in closure)
-            -- scN.bossToast zodat het overleeft tussen RefreshDelves calls
+            -- Boss Tactics Toast popup
+            local bossToast = nil
             local function BuildBossToast()
-                if scN.bossToast then return scN.bossToast end
+                if bossToast then return bossToast end
                 local bt = CreateFrame("Frame","DT_BossTacticsToast",UIParent,"BackdropTemplate")
                 bt:SetSize(520,340)
                 bt:SetPoint("CENTER",UIParent,"CENTER",0,50)
@@ -1182,47 +1176,96 @@ local function BuildGrid(container)
                 txt:SetJustifyH("LEFT")
                 txt:SetWordWrap(true)
 
-                local STRAT_T8 =
-                    "|cffff88ccNULLAEUS - TIER 8 STRAT|r" ..
-                    "\n\n|cffccaa00VALEERA ROL:|r Healer (dispelt DoT + Ravager bleeds)" ..
-                    "\n\n|cffff4444KRITIEK:|r |cffffffff[Emptiness of the Void]|r - ALTIJD interruppen!" ..
-                    "\nAoE one-shot als het doorgaat. Bouw je interrupt rotation hier omheen." ..
-                    "\n\n|cffbf00ffFASE 1 (100-75%):|r" ..
-                    "\n- Interrupt Emptiness of the Void (letale AoE)" ..
-                    "\n- Dispel/vermijd Devouring Essence DoT (shadow, 18 sec)" ..
-                    "\n- Valeera Healer dispelt automatisch" ..
-                    "\n\n|cffbf00ffINTERMISSION 75%:|r (~30 sec)" ..
-                    "\n- Nullaeus untargetable, kanalized Void Orb" ..
-                    "\n- Kill 2x Razorshell Ravager snel!" ..
-                    "\n- Spiny Leap = cirkel op verste speler - ga DICHTERBIJ staan" ..
-                    "\n- Spiny Thorns = bleed DoT, Valeera Healer cleant dit" ..
-                    "\n\n|cffbf00ffFASE 2 (75-50%):|r" ..
-                    "\n- Zelfde als Fase 1 + Void Zone (1/3 kamer) - roteer weg" ..
-                    "\n- Interrupt prio boven alles" ..
-                    "\n\n|cffbf00ffINTERMISSION 50%:|r" ..
-                    "\n- AoE + CC 7x Spitting Ticks DIRECT" ..
-                    "\n- Beweeg weg van Black Hole (trekt je in van alles)" ..
-                    "\n\n|cffbf00ffFASE 3 (50-0%):|r" ..
-                    "\n- Boss + Void Zone + Black Hole tegelijk" ..
-                    "\n- Interrupt blijft #1 prio, roteer constant" ..
-                    "\n- Cooldowns nu gebruiken - niet sparen"
+                local STRAT_T8 = "|cffff88ccNULLAEUS - TIER 8 STRAT|r
 
-                local STRAT_T11 =
-                    "|cffff88ccNULLAEUS - TIER 11 STRAT (??)|r" ..
-                    "\n\n|cffccaa00VEREIST:|r Tier 10 gecleared met 1+ leven over" ..
-                    "\n|cffccaa00SOLO KILL:|r = |cffccaa00Arcanovoid Construct mount|r" ..
-                    "\n\n|cffffffff[Let Me Solo Him: Nullaeus]|r vereist solo T11 kill." ..
-                    "\n\n|cffff4444KRITIEK (zwaarder dan T8):|r" ..
-                    "\n- Emptiness of the Void = instant wipe als gemist" ..
-                    "\n- Alle mechanics sneller/harder dan T8" ..
-                    "\n- Razorshell Ravagers doen meer schade" ..
-                    "\n\n|cffbf00ffSTRATEGIE:|r Zelfde fasestructuur als T8, maar:" ..
-                    "\n- Interrupt CD management = kritiek (gebruik alt interrupts)" ..
-                    "\n- Black Hole + Void Zone overlap = meest dodelijk moment" ..
-                    "\n- Als Healer: Valeera DPS voor interrupt hulp" ..
-                    "\n- Als DPS/Tank: Valeera Healer (dispelt DoT + bleeds)" ..
-                    "\n\n|cff44ff88iLvl aanbevolen:|r 274+" ..
-                    "\n|cff44ff88Valeera T11:|r DPS als healer/lange CD, anders Healer"
+"..
+                    "|cffccaa00VALEERA ROL:|r Healer (auto-dispelt DoT en Ravager bleeds)
+
+"..
+                    "|cffff4444KRITIEK:|r |cffffffff"Emptiness of the Void"|r - ALTIJD interruppen!
+"..
+                    "Dit is een AoE one-shot als het doorgaat. Bouw je hele rotation
+around dit interrupt.
+
+"..
+                    "|cffbf00ffFASE 1 (100-75%):|r
+"..
+                    "- Interrupt Emptiness of the Void (letale AoE)
+"..
+                    "- Dispel/vermijd Devouring Essence DoT (shadow, 18 sec)
+"..
+                    "- Valeera Healer dispelt automatisch
+
+"..
+                    "|cffbf00ffINTERMISSION 75%:|r (~30 sec)
+"..
+                    "- Nullaeus = untargetable, kanalized Void Orb
+"..
+                    "- Kill 2x Razorshell Ravager snel!
+"..
+                    "- Spiny Leap = cirkel op verste speler - ga DICHTERBIJ staan
+"..
+                    "- Spiny Thorns = bleed DoT, Valeera Healer cleant dit
+
+"..
+                    "|cffbf00ffFASE 2 (75-50%):|r
+"..
+                    "- Zelfde als Fase 1 + Void Zone (1/3 kamer) - roteer weg
+"..
+                    "- Interrupt prio boven alles
+
+"..
+                    "|cffbf00ffINTERMISSION 50%:|r
+"..
+                    "- AoE + CC 7x Spitting Ticks DIRECT
+"..
+                    "- Beweeg weg van Black Hole (trekt in alles)
+
+"..
+                    "|cffbf00ffFASE 3 (50-0%):|r
+"..
+                    "- Boss + Void Zone + Black Hole tegelijk
+"..
+                    "- Interrupt blijft #1 prio, roteer constant
+"..
+                    "- Cooldowns gebruiken - niet sparen"
+
+                local STRAT_T11 = "|cffff88ccNULLAEUS - TIER 11 STRAT (??)|r
+
+"..
+                    "|cffccaa00VEREIST:|r Tier 10 gecleared met 1+ leven over
+"..
+                    "|cffccaa00SOLO KILL:|r = |cffccaa00Arcanovoid Construct mount|r
+
+"..
+                    "|cffffffff"Let Me Solo Him: Nullaeus" achievement
+vereist solo Tier 11 kill.|r
+
+"..
+                    "|cffff4444KRITIEK (zwaarder dan T8):|r
+"..
+                    "- Emptiness of the Void = hard enrage als gemist
+"..
+                    "- Alle mechanics tegelijk sneller/harder
+"..
+                    "- Razorshell Ravagers doen meer schade
+
+"..
+                    "|cffbf00ffSTRATEGIE:|r Zelfde fasestructuur als T8 maar:
+"..
+                    "- Interrupt CD management = kritiek (alt interrupts gebruiken)
+"..
+                    "- Black Hole + Void Zone overlap = meest dодelijk moment
+"..
+                    "- Als Healer: Valeera DPS voor interrupt hulp
+"..
+                    "- Als DPS/Tank: Valeera Healer (dispelt DoT + bleeds)
+
+"..
+                    "|cff44ff88RECOMMENDED iLvl:|r 274+
+"..
+                    "|cff44ff88VALEERA ROL T11:|r DPS als je healer bent of
+lange interrupt CD hebt, anders Healer"
 
                 local currentTier = "T8"
                 local function ShowTier(tier)
@@ -1240,7 +1283,7 @@ local function BuildGrid(container)
                 tabT11:SetScript("OnClick",function() ShowTier("T11") end)
                 bt:SetScript("OnShow",function() ShowTier(currentTier) end)
 
-                scN.bossToast = bt
+                bossToast = bt
                 return bt
             end
 
@@ -1325,11 +1368,7 @@ local function BuildGrid(container)
             scN.abundanceFrame.title:SetText("|cff556655* Abundance|r  |cff334433geen actieve harvest|r")
             scN.abundanceFrame.timer:SetText("")
             scN.abundanceFrame.shards:SetText("")
-            scN.abundanceFrame.info:SetText("|cff445544Eversong - Zul'Aman - Harandar - Voidstorm|r")
-            -- Voeg placeholder tekst toe als er geen actieve nemesis is
-            if iN == 0 then
-                scN.abundanceFrame.timer:SetText("|cff666666Geen actieve Nemesis hunt|r")
-            end
+            scN.abundanceFrame.info:SetText("|cff445544Eversong . Zul'Aman . Harandar . Voidstorm|r")
         end
         scN.abundanceFrame:Show()
 
@@ -1387,9 +1426,8 @@ local function BuildGrid(container)
             t.badge:SetColorTexture(0, 0, 0, 0)
             t.icon:SetTexture(nil); t.iconRim:SetColorTexture(1, 1, 1, 0)
             t.glowBar:SetAlpha(0); t.glowLeft:SetAlpha(0)
-            t.nameTxt:SetText(CO.blue .. "Geen normale Delves actief")
-            t.storyTxt:SetText(CO.gray .. "Alle delves zijn Bountiful, of je bent buiten zone.")
-            t.typeTxt:SetText(""); t.badgeTxt:SetText("")
+            t.nameTxt:SetText(CO.gray .. "All Delves are Bountiful!")
+            t.storyTxt:SetText(""); t.typeTxt:SetText(""); t.badgeTxt:SetText("")
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
         end
