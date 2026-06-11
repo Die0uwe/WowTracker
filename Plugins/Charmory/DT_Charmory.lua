@@ -101,6 +101,8 @@ end
     Armory.statSecondary = CreateStatBox(55)
 
     Armory.header = Armory:CreateFontString(nil, "OVERLAY")
+    Armory.header:SetFont("Fonts\\2002.ttf", 16, "OUTLINE")
+    Armory.header:SetTextColor(0.85, 0.85, 0.85, 1)
     Armory.header:SetPoint("TOP", 0, -35); Armory.header:SetScale(1.1)
     Armory.guildStr = Armory:CreateFontString(nil, "OVERLAY")
     Armory.guildStr:SetFont("Fonts\\2002.ttf", 14, "OUTLINE")
@@ -113,7 +115,10 @@ end
     Armory.goldFrame:SetSize(335, 26); Armory.goldFrame:SetPoint("BOTTOMLEFT", 15, 15)
     Armory.goldFrame:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8", edgeFile="Interface\\Buttons\\WHITE8X8", edgeSize=1})
     Armory.goldFrame:SetBackdropColor(0, 0, 0, 0.9); Armory.goldFrame:SetBackdropBorderColor(1, 0.82, 0, 0.4)
-    Armory.goldText = Armory.goldFrame:CreateFontString(nil, "OVERLAY"); Armory.goldText:SetPoint("CENTER")
+    Armory.goldText = Armory.goldFrame:CreateFontString(nil, "OVERLAY")
+    Armory.goldText:SetFont("Fonts\\2002.ttf", 11, "")
+    Armory.goldText:SetTextColor(0.85, 0.85, 0.85, 1)
+    Armory.goldText:SetPoint("CENTER")
     
     local slotsPos = {
         {"HeadSlot", "LEFT", 12, 170}, {"NeckSlot", "LEFT", 12, 125}, {"ShoulderSlot", "LEFT", 12, 80},
@@ -129,7 +134,10 @@ end
         b:SetSize(42, 42); b:SetPoint(info[2], Armory, info[2], info[3], info[4])
         b.icon = b:CreateTexture(nil, "BACKGROUND"); b.icon:SetAllPoints(); b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         b:SetBackdrop({edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
-        b.ilvl = b:CreateFontString(nil, "OVERLAY"); b.ilvl:SetPoint("BOTTOMRIGHT", -1, 2)
+        b.ilvl = b:CreateFontString(nil, "OVERLAY")
+        b.ilvl:SetFont("Fonts\\2002.ttf", 9, "OUTLINE")
+        b.ilvl:SetTextColor(1, 1, 1, 1)
+        b.ilvl:SetPoint("BOTTOMRIGHT", -1, 2)
         b:SetScript("OnEnter", function(self) if self.link then GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:SetHyperlink(self.link); GameTooltip:Show() end end)
         b:SetScript("OnLeave", GameTooltip_Hide)
         Armory.buttons[info[1]] = b
@@ -295,12 +303,24 @@ end
             if not allLoaded then C_Timer.After(0.2, FillGear) end
         end
 
-        local clr = RAID_CLASS_COLORS[data.class] or {r=1, g=1, b=1}
-        Armory.header:SetText(string.format("|cff%02x%02x%02x%s|r", clr.r*255, clr.g*255, clr.b*255, data.name))
+        local _clr = (RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class]) or
+                    (C_ClassColor and C_ClassColor.GetClassColor(data.class or "")) or
+                    {r=0.8,g=0.8,b=0.8}
+        local clr = (type(_clr)=="table" and _clr.r) and _clr or {r=0.8,g=0.8,b=0.8}
+        Armory.header:SetText(string.format("|cff%02x%02x%02x%s|r",
+            math.floor((clr.r or 0.8)*255), math.floor((clr.g or 0.8)*255), math.floor((clr.b or 0.8)*255),
+            data.name or "?"))
         Armory.guildStr:SetText("|cff00ccff<"..(data.guild or "Geen Guild")..">|r")
         Armory.goldText:SetText(GetCoinTextureString(data.money or 0))
 
-        if data.name == UnitName("player") then Armory.model:SetUnit("player") else Armory.model:SetDisplayInfo(385) end
+        if data.name == UnitName("player") then
+            Armory.model:SetUnit("player")
+        elseif data.displayID and data.displayID > 0 then
+            Armory.model:SetDisplayInfo(data.displayID)
+        else
+            -- Fallback: probeer SetUnit met karakter naam (werkt alleen voor friends/party)
+            Armory.model:SetUnit("player")  -- altijd de huidige speler als fallback
+        end
         Armory.model:SetAnimation(4); FillGear()
     end
 
