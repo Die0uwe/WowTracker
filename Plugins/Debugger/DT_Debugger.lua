@@ -97,36 +97,69 @@ local function GetMemoryKB()
     return 0
 end
 
--- ─── Export helper: zet log naar clipboard via EditBox trick ─────────
+-- ─── Export popup: zichtbaar venster met selecteerbare tekst ─────────
+-- C_Clipboard.SetText bestaat NIET in 12.0.5
+-- Oplossing: zichtbare EditBox IN het scherm, speler kan Ctrl+A / Ctrl+C gebruiken
+local _exportPopup = nil
+
 local function ExportToClipboard(lines)
-    -- Maak een tijdelijke EditBox aan (BugSack methode)
-    local eb = CreateFrame("EditBox", "DT_ExportBox", UIParent)
-    eb:SetSize(1, 1)
-    eb:SetPoint("CENTER", UIParent, "CENTER", 0, -9999)
-    eb:SetMultiLine(true)
-    eb:SetFontObject(ChatFontNormal)
-    eb:SetAutoFocus(true)
-    eb:Show()
-    eb:SetText(table.concat(lines, "\n"))
-    eb:HighlightText()
-    eb:SetScript("OnEscapePressed", function(self)
-        self:ClearFocus(); self:Hide(); self:SetParent(nil)
-    end)
-    eb:SetScript("OnEnterPressed", function(self)
-        self:ClearFocus(); self:Hide(); self:SetParent(nil)
-    end)
-    -- Gebruik native clipboard als beschikbaar
-    if eb.SetText then
-        local txt = table.concat(lines, "\n")
-        -- Probeer C_Clipboard
-        if C_Clipboard and C_Clipboard.SetText then
-            C_Clipboard.SetText(txt)
-            DBG.Log("OK", "Export", "Log gekopieerd naar clipboard ("..#lines.." regels)")
-            eb:Hide()
-        else
-            DBG.Log("INFO", "Export", "Selecteer alle tekst (Ctrl+A) en kopieer (Ctrl+C)")
-        end
+    local txt = table.concat(lines, "\n")
+
+    -- Hergebruik popup als die al bestaat
+    if not _exportPopup then
+        local pop = CreateFrame("Frame","DT_ExportPopup",UIParent,"BackdropTemplate")
+        pop:SetSize(600, 380)
+        pop:SetPoint("CENTER")
+        pop:SetFrameStrata("TOOLTIP")
+        pop:SetFrameLevel(300)
+        pop:SetMovable(true)
+        pop:EnableMouse(true)
+        pop:RegisterForDrag("LeftButton")
+        pop:SetScript("OnDragStart", pop.StartMoving)
+        pop:SetScript("OnDragStop",  pop.StopMovingOrSizing)
+        pop:SetClampedToScreen(true)
+        pop:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",
+                         edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+        pop:SetBackdropColor(0.04,0.02,0.08,0.98)
+        pop:SetBackdropBorderColor(0.45,0.08,0.70,1)
+
+        -- Header
+        local hdr = pop:CreateFontString(nil,"OVERLAY")
+        hdr:SetFont(C_2002,11,"OUTLINE")
+        hdr:SetPoint("TOPLEFT",10,-10)
+        hdr:SetText(SA_GREEN.."Debug Export|r  "..SA_GREY.."Ctrl+A = alles selecteren  Ctrl+C = kopieren|r")
+
+        -- Sluit knop
+        local xb = CreateFrame("Button",nil,pop,"UIPanelCloseButton")
+        xb:SetPoint("TOPRIGHT",0,0)
+        xb:SetScript("OnClick",function() pop:Hide() end)
+
+        -- ScrollFrame + EditBox
+        local sf = CreateFrame("ScrollFrame","DT_ExportScroll",pop,"UIPanelScrollFrameTemplate")
+        sf:SetPoint("TOPLEFT",6,-32)
+        sf:SetPoint("BOTTOMRIGHT",-26,6)
+
+        local eb = CreateFrame("EditBox",nil,sf)
+        eb:SetMultiLine(true)
+        eb:SetFontObject(ChatFontNormal)
+        eb:SetWidth(556)
+        eb:SetAutoFocus(false)
+        eb:SetScript("OnEscapePressed",function() pop:Hide() end)
+        sf:SetScrollChild(eb)
+
+        pop.eb = eb
+        _exportPopup = pop
     end
+
+    _exportPopup.eb:SetText(txt)
+    _exportPopup:Show()
+    -- Focus + selecteer alles
+    C_Timer.After(0.05, function()
+        _exportPopup.eb:SetFocus()
+        _exportPopup.eb:HighlightText()
+    end)
+
+    DBG.Log("OK","Export",#lines.." regels klaar — Ctrl+A dan Ctrl+C om te kopieren")
 end
 
 -- ─── Panel constants ─────────────────────────────────────────────────
