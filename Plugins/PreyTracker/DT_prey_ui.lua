@@ -327,6 +327,38 @@ C_Timer.After(0.15, function()
     needlePath = ArrowTex:GetTexture() and "tga" or "fallback"
 end)
 
+-- CRYSTAL NAALD - tweede pijl voor kristals/doelen (lichtblauw)
+local CrystalArrow = PreyUI:CreateTexture(nil,"OVERLAY")
+CrystalArrow:SetSize(20,72)
+CrystalArrow:SetPoint("CENTER", RingCenter, "CENTER", 0, 0)
+do
+    local ok,_ = pcall(function()
+        CrystalArrow:SetTexture("Interface\\AddOns\\WowTracker\\Media\\NavigationRestedArrow")
+    end)
+    if not ok then CrystalArrow:SetColorTexture(0.20,0.85,1.0,0.90) end
+end
+CrystalArrow:SetVertexColor(0.20,0.85,1.0,0.90)  -- lichtblauw
+CrystalArrow:Hide()
+
+local CrystalPin = PreyUI:CreateTexture(nil,"OVERLAY")
+CrystalPin:SetSize(8,8)
+CrystalPin:SetPoint("CENTER", RingCenter, "CENTER", 0, 0)
+CrystalPin:SetColorTexture(0.20,0.85,1.0,0.95)
+CrystalPin:Hide()
+
+local function RotateCrystalNeedle(angle)
+    if needlePath == "tga" then
+        CrystalArrow:SetRotation(angle)
+    else
+        CrystalArrow:SetRotation(angle)
+    end
+end
+
+local function SetCrystalVisible(show)
+    CrystalArrow:SetShown(show)
+    CrystalPin:SetShown(show)
+end
+
 local CenterPin = PreyUI:CreateTexture(nil,"OVERLAY")
 CenterPin:SetSize(12, 12)
 CenterPin:SetPoint("CENTER", RingCenter, "CENTER", 0, 0)
@@ -910,11 +942,22 @@ local function RefreshPreyUI()
         UpdateTickerText("|cffaaaaaa-|r")
         TrapModeTxt:Hide(); NoAngleTxt:Hide()
         SetNeedleVisible(false)
+        SetCrystalVisible(false)
         for _, b in ipairs(BadgeFrames) do b:Hide() end
         return
     end
 
-    -- NEEDLE
+    -- CRYSTAL NAALD - toon altijd als crystals in de buurt zijn (blauw)
+    if prey.crystalMode and prey.crystalAngle then
+        SetCrystalVisible(true)
+        RotateCrystalNeedle(prey.crystalAngle)
+        TrapModeTxt:SetText("|cff22ccff[*] Crystal nearby|r"); TrapModeTxt:Show()
+    else
+        SetCrystalVisible(false)
+        if not prey.trapMode then TrapModeTxt:Hide() end
+    end
+
+    -- PRIMAIRE NAALD - trap (geel) of prey (wit)
     if prey.trapMode then
         SetNeedleVisible(true); NoAngleTxt:Hide()
         RotateNeedle(prey.trapAngle or 0)

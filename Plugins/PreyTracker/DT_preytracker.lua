@@ -78,6 +78,8 @@ local _GetPlayerFacing                 = GetPlayerFacing
 -- CONSTANTS
 -- ============================================================================
 local VIGNETTE_TRAP    = 7667   -- disarmable trap
+local VIGNETTE_CRYSTAL = 7668   -- prey crystal (te verifiëren in-game)
+local VIGNETTE_ANGUISH = 7669   -- anguish zone
 local VIGNETTE_ANGUISH = 7443   -- Coalesced Anguish mob
 
 -- Affix spell IDs (verified via wowhead.com, June 2026)
@@ -91,11 +93,15 @@ local AUTOTRACK_CD = 3.0
 -- 2393=Eversong Woods, 2394=Zul'Aman, 2395=Eversong sub, 2405=Voidstorm Bazaar
 -- 2413=Harandar, 2424=Voidstorm alt, 2437=Zul'Aman sub, 2444=Silvermoon City
 -- 2536=The Bazaar / Sunfury Spire area
-local MIDNIGHT_MAPS = { 2393, 2394, 2395, 2405, 2413, 2424, 2437, 2444, 2536 }
+local MIDNIGHT_MAPS = { 2393, 2394, 2395, 2405, 2413, 2424, 2437, 2444, 2536, 2671 }
 
 -- Silvermoon stad sub-zones (speler neemt contract hier aan bij Astalor's Table)
 -- Als player in Silvermoon is, wijst Tier 3 naar de POORT/PORTAAL naar de hunt-zone
-local SILVERMOON_MAPS = { [2444]=true, [2536]=true }
+local SILVERMOON_MAPS = {
+    [2444]=true,  -- Silvermoon City (speler inloggt hier)
+    [2536]=true,  -- Sunfury Spire / Bazaar area
+    [2671]=true,  -- Silvermoon City hoofdzone (mapID bij inloggen)
+}
 
 local DIFF_COLOR = {
     Normal    = "|cff44ff88",
@@ -265,8 +271,9 @@ addonTable.DT_preytracker = {
     enemyName="", zoneName="", difficulty="Normal", diffColor="|cff44ff88",
     distance=0, angle=0, angleReady=false, angleSource="none",
     needleOffset=0, progressState=0, progress=0.05, stage=1,
-    -- Trap/vignette
+    -- Trap/vignette + crystal
     trapMode=false, trapAngle=0, nearbyTraps=0, nearbyAnguish=0,
+    crystalMode=false, crystalAngle=0, nearbyCrystals=0,
     -- Affix detection (new in V3.5)
     affix_echo=false, affix_bloody=false, affix_torment=false, affix_gore=false,
     preyWidgetID=nil, lastAngleTime=0,
