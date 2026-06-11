@@ -42,6 +42,18 @@ local ITEM_LOOKUP = {}
 -- Original code registered f.id as tier=1 first, then the
 -- "first entry wins" guard blocked the correct tier=2 (Silver)
 -- overwrite -> Silver items were counted in total but never in t2.
+-- Pre-request item data voor alle cloth items bij addon load
+C_Timer.After(0.5, function()
+    for _,f in ipairs(CLOTH_DATA) do
+        if C_Item and C_Item.RequestLoadItemDataByID then
+            pcall(C_Item.RequestLoadItemDataByID, f.id)
+            for itemID in pairs(f.tiers or {}) do
+                pcall(C_Item.RequestLoadItemDataByID, itemID)
+            end
+        end
+    end
+end)
+
 for _,f in ipairs(CLOTH_DATA) do
     -- 1. Explicit tiers always take priority (no guard - overwrite allowed)
     if f.tiers then
@@ -126,9 +138,47 @@ local T_BOX_PAD  = 10
 local T_BOX_GAP  = 12
 
 -- -- Helpers --------------------------------------------------------------
+-- Icon cache: voorkomt herhaalde GetItemInfoInstant calls
+local _iconCache = {}
+
 local function GetSafeIcon(id)
-    local _,_,_,_,icon = GetItemInfoInstant(id); return icon or 134400
+    if _iconCache[id] then return _iconCache[id] end
+    -- Probeer C_Item.GetItemIconByID (direct, geen async - 12.0.x)
+    if C_Item and C_Item.GetItemIconByID then
+        local icon = C_Item.GetItemIconByID(id)
+        if icon and icon ~= 0 then
+            _iconCache[id] = icon; return icon
+        end
+    end
+    -- Fallback: GetItemInfoInstant
+    local _,_,_,_,icon = GetItemInfoInstant(id)
+    if icon then _iconCache[id]=icon; return icon end
+    -- Request async load en geef placeholder terug
+    if C_Item and C_Item.RequestLoadItemDataByID then
+        pcall(C_Item.RequestLoadItemDataByID, id)
+    end
+    return 134400  -- placeholder: INV_Misc_QuestionMark
 end
+
+-- Refresh icons zodra item data geladen is
+local _iconRefreshFrame = CreateFrame("Frame")
+_iconRefreshFrame:RegisterEvent("ITEM_DATA_LOAD_RESULT")
+_iconRefreshFrame:SetScript("OnEvent", function(_, _, itemID, success)
+    if not success then return end
+    if _iconCache[itemID] then return end  -- al gecached
+    -- Probeer opnieuw
+    local _,_,_,_,icon = GetItemInfoInstant(itemID)
+    if icon then
+        _iconCache[itemID] = icon
+        -- Update alle zichtbare rijen
+        if ClothWarbandFrame and ClothWarbandFrame:IsShown() then
+            -- Trigger een visuele refresh na 0.1s
+            C_Timer.After(0.1, function()
+                if RefreshRows then pcall(RefreshRows) end
+            end)
+        end
+    end
+end)
 local function FormatTime(s)
     if not s or s<=0 then return "|cff00ee88Ready|r" end
     local h=math.floor(s/3600); local m=math.floor((s%3600)/60); local ss=math.floor(s%60)
