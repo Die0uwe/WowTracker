@@ -1657,6 +1657,45 @@ WT_UpdateRoster = function()
                     end
                 end
             end
+            -- Currencies (Coffer Keys / Shards / Dundun)
+            local hasCur = (d.currencies and next(d.currencies))
+            if hasCur then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine(SA_GOLD.."Currencies:|r")
+                local CURRENCY_NAMES = {
+                    [3057]="|cff00ccffCoffer Keys|r",
+                    [2803]="|cff88aaffKey Shards|r",
+                    [3376]="|cffddaa55Shard of Dundun|r",
+                    [3378]="|cff8899ffDawnlight Manaflux|r",
+                }
+                for id, amt in pairs(d.currencies) do
+                    local lbl = CURRENCY_NAMES[tonumber(id)] or SA_GREY.."ID "..id.."|r"
+                    GameTooltip:AddLine("  "..lbl.."  "..SA_BLUE..tostring(amt).."|r")
+                end
+            end
+            -- Mythic+
+            if d.mythicPlus and (d.mythicPlus.keyLevel or d.mythicPlus.highest) then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine("|cffff8800Mythic+:|r")
+                if d.mythicPlus.keyLevel then
+                    GameTooltip:AddLine(SA_GREY.."Keystone: |r"..SA_BLUE.."+"..d.mythicPlus.keyLevel.."|r")
+                end
+                if d.mythicPlus.highest then
+                    GameTooltip:AddLine(SA_GREY.."Highest:  |r"..SA_GOLD..d.mythicPlus.highest.."|r")
+                end
+            end
+            -- Raid lockouts
+            if d.lockouts and #d.lockouts > 0 then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine(SA_RED.."Raid Lockouts:|r")
+                for _, lk in ipairs(d.lockouts) do
+                    if lk.name then
+                        GameTooltip:AddLine("  "..SA_GREY..lk.name.."|r  "..SA_GOLD..(lk.progress or "?").."|r")
+                    end
+                end
+            end
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(SA_GREY.."Klik voor Armory|r")
             GameTooltip:Show()
         end)
         card:SetScript("OnLeave",function(self)

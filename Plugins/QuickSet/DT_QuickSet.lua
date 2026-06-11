@@ -798,6 +798,10 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
     local function ActivateTab(n)
         activeTab = n
         sfN:SetShown(n == 1); sfB:SetShown(n == 2); sfNr:SetShown(n == 3)
+        -- Reset scroll positie bij tab wissel
+        if n == 1 then sfN:SetVerticalScroll(0)
+        elseif n == 2 then sfB:SetVerticalScroll(0)
+        elseif n == 3 then sfNr:SetVerticalScroll(0) end
 
         -- Reset all tabs to inactive
         tabNem:SetBackdropColor(0.04, 0.01, 0.07, 1)
@@ -1336,7 +1340,9 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
         end
         scN.abundanceFrame:Show()
 
-        scN:SetHeight(math.max(AB_Y + 62, 10))  -- S3-07: compacter blok
+        -- Zorg dat scN altijd minimale hoogte heeft voor scroll
+local scN_total = AB_Y + 62
+scN:SetHeight(math.max(scN_total, sfN:GetHeight() or 200))
 
         -- -- TAB 2: BOUNTIFUL ---------------------------
         local iB = 0
@@ -1344,15 +1350,15 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
             iB = 1
             local t = GetTile(poolB, scB, 1)
             t.artBg:SetColorTexture(0, 0, 0, 0)
-            t:SetBackdropColor(0.03, 0.05, 0.12, 0.94)
-            t:SetBackdropBorderColor(0.20, 0.50, 0.90, 0.5)
-            t.stripe:SetColorTexture(0.20, 0.55, 1.0, 0.5)
+            t:SetBackdropColor(0.02, 0.04, 0.10, 0.94)
+            t:SetBackdropBorderColor(0.15, 0.40, 0.80, 0.5)
+            t.stripe:SetColorTexture(0.20, 0.55, 1.0, 0.3)
             t.badge:SetColorTexture(0, 0, 0, 0)
-            t.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+            t.icon:SetTexture("Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider")
             t.iconRim:SetColorTexture(1, 1, 1, 0)
             t.glowBar:SetAlpha(0); t.glowLeft:SetAlpha(0)
-            t.nameTxt:SetText(CO.gray .. "No Bountiful Delves active")
-            t.storyTxt:SetText(CO.gray .. "Check back later")
+            t.nameTxt:SetText("|cff44aaff" .. "Geen actieve Bountiful Delves|r")
+            t.storyTxt:SetText("|cff667799" .. "Bezoek een Delve zone om live data te laden.|r")
             t.typeTxt:SetText(""); t.badgeTxt:SetText("")
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
@@ -1367,7 +1373,7 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
                 t:Show()
             end
         end
-        scB:SetHeight(math.max(iB * (TILE_H + TILE_G) - TILE_G, 10))
+        scB:SetHeight(math.max(iB * (TILE_H + TILE_G) - TILE_G, sfB:GetHeight() or 200))
 
         -- -- TAB 3: NORMAL (scrollbar visible) ----------
         local iNr = 0
@@ -1395,7 +1401,7 @@ hdr.xpTxt:SetTextColor(0.85,0.85,0.85,1)
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
         end
-        scNr:SetHeight(math.max(iNr * (TILE_H + TILE_G) - TILE_G, 10))
+        scNr:SetHeight(math.max(iNr * (TILE_H + TILE_G) - TILE_G, sfNr:GetHeight() or 200))
     end
 
     local function RefreshAll()
