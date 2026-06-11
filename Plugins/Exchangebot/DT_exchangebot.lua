@@ -755,7 +755,7 @@ local function Build()
         h.bg:SetColorTexture(0, 0, 0, 0.58)
         h.tline:SetColorTexture(sec.color.r, sec.color.g, sec.color.b, 0.70)
         h.bline:SetColorTexture(sec.color.r*0.35, sec.color.g*0.35, sec.color.b*0.35, 0.45)
-        h.arrow:SetText(sec.isOpen and "|cff888888v|r" or "|cff888888▸|r")
+        h.arrow:SetText(sec.isOpen and "|cff888888v|r" or "|cff888888>|r")
 
         local iconStr = sec.icon and string.format("|T%s:20:20:2:0|t ", sec.icon) or "  "
         h.label:SetText(string.format("%s|cff%02x%02x%02x%s|r",
@@ -799,7 +799,7 @@ local function Build()
                     sh.bg:SetColorTexture(0, 0, 0, 0.35)
                     sh.tline:SetColorTexture(sec.color.r*0.6, sec.color.g*0.6, sec.color.b*0.6, 0.65)
                     sh.bline:SetColorTexture(sec.color.r*0.25, sec.color.g*0.25, sec.color.b*0.25, 0.35)
-                    sh.arrow:SetText(sub.isOpen and "|cff666666v|r" or "|cff666666▸|r")
+                    sh.arrow:SetText(sub.isOpen and "|cff666666v|r" or "|cff666666>|r")
                     sh.label:SetText(string.format("|cff%02x%02x%02x%s|r",
                         sec.color.r*180, sec.color.g*180, sec.color.b*180, sub.name))
                     sh:SetScript("OnClick", function() sub.isOpen = not sub.isOpen; Build() end)
