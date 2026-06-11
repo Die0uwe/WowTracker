@@ -55,22 +55,9 @@ function DBG.Log(sev, src, msg)
     if DBG.frame and DBG.frame:IsShown() then DBG._RefreshLog() end
 end
 
--- ─── OnEvent hook ────────────────────────────────────────────────────
-do
-    local frame = _G["DelveTrackerFrame"]
-    if frame then
-        local existingScript = frame:GetScript("OnEvent")
-        if existingScript then
-            frame:SetScript("OnEvent", function(self, event, ...)
-                local ok, err = pcall(existingScript, self, event, ...)
-                if not ok then
-                    DBG.Log("ERR", "Core:OnEvent["..tostring(event).."]", tostring(err))
-                end
-            end)
-            DBG.Log("SYS", "Debugger", "OnEvent hook installed")
-        end
-    end
-end
+-- ─── Error listener (geen frame wrapping - veilig) ───────────────
+-- Geen OnEvent hook - veroorzaakt crashes als frame naam verandert
+DBG.Log("SYS", "Debugger", "DT_Debugger v2.0 actief")
 
 -- ─── DB + memory helpers ─────────────────────────────────────────────
 local function GetDBStats()
