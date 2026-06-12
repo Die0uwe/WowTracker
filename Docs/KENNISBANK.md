@@ -1096,3 +1096,11 @@ MIGRATIE: oude DB localized namen → echte clientFile + raceID aangevuld.
   Repareert ALLE karakters zonder her-inloggen. Draait op PLAYER_LOGIN
   vóór de eerste roster-render.
 ```
+
+## Brain-sync 2026-06-12
+Volledige analyses gepusht naar Die0uwe/project-brain:
+- docs/knowledge/midnight-security-model.md (secret values, pooling,
+  macrotext 255, forbidden widgets, C_RestrictedActions)
+- docs/knowledge/race-icons-definitief.md (geconsolideerd: Constants v3.5.x
+  + 2 gidsen; GetRaceAtlas keten; C_GameData bestaat NIET)
+Stappenplan: Fase 1+2 ✅ · Fase 4 (Midnight compliance) toegevoegd.
