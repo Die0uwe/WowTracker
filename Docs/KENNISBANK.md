@@ -960,3 +960,13 @@ PLUGINS: leest DelveTracker.Plugins (gesorteerd), toggle schrijft
 SCOPE LES: MBtn local op regel 2078 — panel MOET daarna staan om de
   murloc-slider closure te laten werken
 ```
+
+## Warband Stats Header — v3.1.1 (Fase 1.2, sessie 2026-06-12)
+```
+UI.warbandStats FontString rechtsboven (TOPRIGHT -14, onder knoppenrij)
+WT_FmtGold: 950→"950g" · 45600→"45.6K" · 1230000→"1.23M"
+WT_UpdateWarbandStats(): telt characters + sommeert money (copper/10000)
+UPDATE: na ScanDelves() in PLAYER_LOGIN/PLAYER_MONEY/PLAYER_ENTERING_WORLD/
+  WEEKLY_REWARDS_UPDATE — volgorde belangrijk: eerst scan, dan stats,
+  anders telt het huidige karakter de OUDE money waarde
+```

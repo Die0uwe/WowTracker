@@ -283,6 +283,39 @@ UI.charInfo:SetPoint("RIGHT",UI,"RIGHT",-120,0)
 UI.charInfo:SetJustifyH("LEFT")
 UI.charInfo:SetText(SA_GREY.."Laden...|r")
 
+-- ── WARBAND STATS (herbouw v3.0.7 — Fase 1.2) ────────────────────────────
+-- Totaal karakters + totaal goud (K/M suffix), rechts in de header
+UI.warbandStats = UI:CreateFontString(nil,"OVERLAY")
+UI.warbandStats:SetFont(C_2002,11,"OUTLINE")
+UI.warbandStats:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-14,-(TICKER_H+34))
+UI.warbandStats:SetJustifyH("RIGHT")
+UI.warbandStats:SetText("")
+
+-- Goud formatter: 950 → "950g" · 45600 → "45.6K" · 1230000 → "1.23M"
+local function WT_FmtGold(gold)
+    if gold >= 1000000 then
+        return string.format("%.2fM", gold/1000000)
+    elseif gold >= 1000 then
+        return string.format("%.1fK", gold/1000)
+    end
+    return tostring(gold).."g"
+end
+
+function WT_UpdateWarbandStats()
+    if not (DelveTrackerDB and DelveTrackerDB.characters) then return end
+    local chars, copper = 0, 0
+    for _,d in pairs(DelveTrackerDB.characters) do
+        if type(d)=="table" then
+            chars = chars + 1
+            copper = copper + (tonumber(d.money) or 0)
+        end
+    end
+    local gold = math.floor(copper/10000)
+    UI.warbandStats:SetText(
+        SA_BLUE..chars.."|r"..SA_GREY.." chars  ·  |r"
+        ..SA_GOLD..WT_FmtGold(gold).."|r"..SA_GREY.." warband gold|r")
+end
+
 -- Header knoppen: X · Tandwiel · [Theme] [Lang] — rechtsboven op één lijn
 local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 11)
 local HDR_BTN_SZ = 22
@@ -2546,6 +2579,7 @@ UI:SetScript("OnEvent",function(self,event)
     if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
     or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
         ScanDelves()
+        if WT_UpdateWarbandStats then WT_UpdateWarbandStats() end
         if Tab2:IsShown() then UpdateCharacterList() end
         tickerDirty=true
         if event=="PLAYER_LOGIN" and IsInGuild() then WT_RequestGuildRoster() end
