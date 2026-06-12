@@ -970,3 +970,15 @@ UPDATE: na ScanDelves() in PLAYER_LOGIN/PLAYER_MONEY/PLAYER_ENTERING_WORLD/
   WEEKLY_REWARDS_UPDATE — volgorde belangrijk: eerst scan, dan stats,
   anders telt het huidige karakter de OUDE money waarde
 ```
+
+## Plugin registratie compleet — v3.1.2 (Fase 2.1, sessie 2026-06-12)
+```
+7 plugins kregen noop-registratie (Lockout patroon, append aan file-einde):
+  Events · PreyTracker · ContentManager · CustomAFK · Overlay ·
+  WarbankBuddy · Theme
+PATROON: eventframe op PLAYER_LOGIN → UnregisterAllEvents →
+  guard (DelveTracker and DelveTracker.RegisterPlugin) →
+  DelveTracker:RegisterPlugin("Naam", function() end)
+ui-files (events_ui, prey_ui) liften mee onder de hoofdplugin.
+TOTAAL: 22 plugins zichtbaar in admin panel (was 15).
+```

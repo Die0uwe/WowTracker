@@ -872,3 +872,17 @@ addonTable.PreyDebugInfo = function()
     end
     print("|cff00dfff[PreyDebug]|r ─────────────────────────")
 end
+
+
+-- ════════════════════════════════════════════════════════════════════
+-- PLUGIN REGISTRATIE (wow-dt-integrator · Fase 2.1 · 2026-06-12)
+-- Noop-registratie: maakt de plugin zichtbaar in het admin panel
+-- (aan/uit toggle via PluginStates). Patroon identiek aan DT_Lockout.
+-- ════════════════════════════════════════════════════════════════════
+local _dtIntReg = CreateFrame("Frame")
+_dtIntReg:RegisterEvent("PLAYER_LOGIN")
+_dtIntReg:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    if not (DelveTracker and DelveTracker.RegisterPlugin) then return end
+    DelveTracker:RegisterPlugin("PreyTracker", function() end)
+end)
