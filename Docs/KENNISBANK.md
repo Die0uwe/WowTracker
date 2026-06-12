@@ -1208,3 +1208,17 @@ VERSIE (4.5): WT_VERSION = "3.2.5" bovenin Core — header, contextmenu
   en admin panel (2 plekken) lezen hem; TOC ## Version gelijkgetrokken.
   Release-procedure: ALLEEN WT_VERSION + TOC bijwerken.
 ```
+
+## charInfo + Vault knop — v3.2.6 (sessie 2026-06-13)
+```
+CHARINFO: stond sinds creatie permanent op "Laden..." — werd nooit
+  geüpdatet. WT_UpdateCharInfo(): naam in klassekleur (classFile key!) +
+  Lvl + spec (GetSpecialization/Info) + iLvl (GetAverageItemLevel,
+  pcall). Draait na ScanDelves in het event-blok.
+VAULT KNOP: footer, links van Warbank. Great Vault = LoD addon
+  Blizzard_WeeklyRewards → C_AddOns.LoadAddOn + WeeklyRewardsFrame
+  via ShowUIPanel/HideUIPanel. InCombatLockdown guard (panel-show
+  in combat = taint-risico).
+VERSIE-PROCEDURE WERKT: alleen WT_VERSION + TOC bump → 3.2.6.
+  (Screenshot "v2.7.0" was een oude build — header toont nu live versie.)
+```

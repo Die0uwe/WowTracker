@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.2.5"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.2.6"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -546,6 +546,33 @@ UI.charInfo:SetPoint("TOPLEFT",UI.versionTxt,"BOTTOMLEFT",0,-4)
 UI.charInfo:SetPoint("RIGHT",UI,"RIGHT",-120,0)
 UI.charInfo:SetJustifyH("LEFT")
 UI.charInfo:SetText(SA_GREY..WT_T("LOADING").."|r")
+
+-- v3.2.6: charInfo daadwerkelijk vullen (bleef altijd op "Laden..." staan)
+function WT_UpdateCharInfo()
+    if not UI.charInfo then return end
+    local name = UnitName("player") or "?"
+    local level = UnitLevel("player") or 0
+    local _, classFile = UnitClass("player")
+    local col = (classFile and RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFile])
+    local cname = col and string.format("|cff%02x%02x%02x%s|r",
+        col.r*255, col.g*255, col.b*255, name) or ("|cffffffff"..name.."|r")
+    local specName = ""
+    if GetSpecialization and GetSpecializationInfo then
+        local si = GetSpecialization()
+        if si then
+            local _, sn = GetSpecializationInfo(si)
+            if sn then specName = " · "..sn end
+        end
+    end
+    local ilvl = ""
+    if GetAverageItemLevel then
+        local ok, avg = pcall(GetAverageItemLevel)
+        if ok and avg and avg > 0 then
+            ilvl = "  "..SA_BLUE.."iLvl "..math.floor(avg).."|r"
+        end
+    end
+    UI.charInfo:SetText(cname..SA_GREY.." · "..WT_T("LVL").." "..level..specName.."|r"..ilvl)
+end
 
 -- ── WARBAND STATS (herbouw v3.0.7 — Fase 1.2) ────────────────────────────
 -- Totaal karakters + totaal goud (K/M suffix), rechts in de header
@@ -2258,6 +2285,30 @@ local function MakeDebugBtn()
     end)
     wb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.70,0.10,1) end)
     wb:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
+
+    -- v3.2.6: VAULT knop — opent de Great Vault (Blizzard_WeeklyRewards LoD)
+    local vb=CreateFrame("Button",nil,UI,"BackdropTemplate")
+    vb:SetSize(BTN_W,BTN_H)
+    vb:SetPoint("RIGHT",wb,"LEFT",-4,0)
+    vb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    vb:SetBackdropColor(0.06,0.03,0.10,0.95)
+    vb:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
+    local vt=vb:CreateFontString(nil,"OVERLAY")
+    vt:SetFont(C_2002,10,"OUTLINE")
+    vt:SetPoint("CENTER")
+    vt:SetText(SA_BLUE.."Vault|r")
+    vb:SetScript("OnClick",function()
+        if InCombatLockdown() then return end
+        if C_AddOns and C_AddOns.LoadAddOn then
+            pcall(C_AddOns.LoadAddOn, "Blizzard_WeeklyRewards")
+        end
+        local f = _G["WeeklyRewardsFrame"]
+        if f then
+            if f:IsShown() then HideUIPanel(f) else ShowUIPanel(f) end
+        end
+    end)
+    vb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.10,0.70,0.95,1) end)
+    vb:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
     b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
     b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
 end
@@ -3058,6 +3109,7 @@ UI:SetScript("OnEvent",function(self,event)
     or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
         ScanDelves()
         if WT_UpdateWarbandStats then WT_UpdateWarbandStats() end
+        if WT_UpdateCharInfo then WT_UpdateCharInfo() end
         if Tab2:IsShown() then UpdateCharacterList() end
         tickerDirty=true
         if event=="PLAYER_LOGIN" and IsInGuild() then WT_RequestGuildRoster() end
