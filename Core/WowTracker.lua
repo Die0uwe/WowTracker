@@ -1173,36 +1173,43 @@ WT_UpdateRoster = function()
         if data.faction=="Horde" then card.fac:SetColorTexture(0.8,0.1,0.1,1)
         else card.fac:SetColorTexture(0.1,0.4,0.9,1) end
 
-        -- ── Professions iconen onderaan ───────────────────────────────
-        if not card.profRow then card.profRow={} end
-        for _,p in ipairs(card.profRow) do if p and p.Hide then p:Hide() end end
-        card.profRow={}
-        if data.professions and #data.professions>0 then
-            for pi,prof in ipairs(data.professions) do
-                if pi>4 then break end
+        -- ── Professions iconen onderaan (v3.1.6: POOL-hergebruik) ─────
+        -- Voorheen: elke refresh nieuwe textures/buttons (alleen Hide op
+        -- de oude) → texture-leak. Nu: vaste pool van 4 per kaart.
+        if not card.profPool then
+            card.profPool = {}
+            for pi = 1, 4 do
                 local px = 4+(pi-1)*20
-                local pico=card:CreateTexture(nil,"OVERLAY")
+                local pico = card:CreateTexture(nil,"OVERLAY")
                 pico:SetSize(18,18)
                 pico:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,20)
-                if prof.icon then pico:SetTexture(prof.icon) end
                 pico:SetTexCoord(0.08,0.92,0.08,0.92)
-                pico:Show()
-                -- Profession tekst tooltip knopje
-                local pb=CreateFrame("Button",nil,card)
+                local pb = CreateFrame("Button",nil,card)
                 pb:SetSize(18,18)
                 pb:SetPoint("BOTTOMLEFT",card,"BOTTOMLEFT",px,20)
-                pb._prof=prof
-                pb._rank=prof.rank or 0
-                pb._max=prof.maxRank or 0
                 pb:SetScript("OnEnter",function(s)
+                    if not s._prof then return end
                     GameTooltip:SetOwner(s,"ANCHOR_RIGHT")
                     GameTooltip:SetText(SA_GOLD..(s._prof.name or "?"))
-                    GameTooltip:AddLine(SA_GREY..s._rank.."/"..s._max.."|r")
+                    GameTooltip:AddLine(SA_GREY..(s._rank or 0).."/"..(s._max or 0).."|r")
                     GameTooltip:Show()
                 end)
                 pb:SetScript("OnLeave",function() GameTooltip:Hide() end)
-                table.insert(card.profRow,pico)
-                table.insert(card.profRow,pb)
+                card.profPool[pi] = {ico=pico, btn=pb}
+            end
+        end
+        for pi = 1, 4 do
+            local slot = card.profPool[pi]
+            local prof = data.professions and data.professions[pi]
+            if prof then
+                if prof.icon then slot.ico:SetTexture(prof.icon) end
+                slot.btn._prof = prof
+                slot.btn._rank = prof.rank or 0
+                slot.btn._max  = prof.maxRank or 0
+                slot.ico:Show(); slot.btn:Show()
+            else
+                slot.btn._prof = nil
+                slot.ico:Hide(); slot.btn:Hide()
             end
         end
 
@@ -1969,7 +1976,9 @@ ScanDelves = function()
     -- Scan beroepen (professions) voor huidig karakter
     d.professions = {}
     local prof1, prof2, arch, fish, cook = GetProfessions()
-    for _,profIndex in ipairs({prof1, prof2, arch, fish, cook}) do
+    -- v3.1.6: GEEN ipairs over {prof1,...} — ipairs stopt bij de eerste
+    -- nil! Karakter zonder primary prof verloor zo cooking/fishing.
+    for _,profIndex in pairs({p1=prof1, p2=prof2, a=arch, f=fish, c=cook}) do
         if profIndex then
             local name, icon, rank, maxRank, numSpells, spelloffset, skillLine, rankMod, specializationIndex = GetProfessionInfo(profIndex)
             if name then

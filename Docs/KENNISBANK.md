@@ -1020,3 +1020,18 @@ TOOLTIP: Nemesis tooltip toont nu zone + resterende tijd
 DATA: DT_GetAbundanceData (DT_events.lua) → {active, zone, secondsLeft,
   shards} — globaal, guard met "and" check (plugin kan uit staan).
 ```
+
+## Roster professions — v3.1.6 (Fase 2.5, sessie 2026-06-12)
+```
+BESTOND AL maar met 2 bugs:
+BUG 1 — LUA VALKUIL: ipairs({prof1,prof2,arch,fish,cook}) stopt bij de
+  EERSTE nil. Karakter zonder primary profession verloor cooking/fishing
+  in de scan. FIX: pairs over een keyed table {p1=,p2=,a=,f=,c=}.
+BUG 2 — TEXTURE LEAK: elke roster-refresh maakte NIEUWE textures+buttons
+  (oude alleen Hide — textures zijn niet verwijderbaar in WoW). Bij 46
+  kaarten × refresh stapelden duizenden zombie-objecten op.
+  FIX: vaste profPool van 4 slots per kaart, eenmalig aangemaakt,
+  per refresh alleen SetTexture/Show/Hide. Tooltip via slot._prof.
+LES: ipairs over een array-literal met mogelijk-nil waarden is ALTIJD
+  fout — geldt overal in de codebase.
+```
