@@ -887,3 +887,47 @@ BUG:    Lange log regels wrapten over volgende regel heen → onleesbaar
 FIX:    SetWordWrap(false) + SetHeight(LOG_LINE_H) + SetNonSpaceWrap(false)
         op elke log FontString — 1 entry = exact 1 regel
 ```
+
+---
+
+## Race Atlas — DEFINITIEF (Constants.lua v3.5.1, TextureAtlasViewer-geverifieerd)
+```
+BRON: ProfessionBuddy Constants.lua + PBRoster.lua (geüpload 2026-06-12)
+LET OP — eerdere aannames GECORRIGEERD:
+  DarkIronDwarf = "darkirondwarf"  ✓ MET dwarf-suffix (NIET "darkiron")
+  MagharOrc     = "magharorc"      ✓ MET orc-suffix  (NIET "maghar")
+  LightforgedDraenei = "lightforged"  ✓ ZONDER draenei-suffix
+  → suffix-strip is GEEN betrouwbaar patroon; gebruik de expliciete tabel!
+MIDNIGHT: UnitRace 2e return = "Harronir" (DUBBELE r!) · raceID=86
+  raceicon128-harronir bestaat NIET → fallback AlliedRace-Crest-Haranir
+EARTHEN: "Earthen" én "EarthenDwarf" (DB dump variant) → beide "earthen"
+KETEN: raceicon128-* → raceicon-* → AlliedRace-Crest-* → SetTexture(134400)
+GENDER: (gender==3) and "female" or "male" — getal uit UnitSex()
+Dynamische fallback gsub: [%s'%-]+ (spaties, apostrofes, koppeltekens)
+WoW Lua heeft GEEN :trim() methode — crasht met attempt to call nil!
+```
+
+## DataStore_Agenda — bruikbare APIs (data-grinder analyse 2026-06-12)
+```
+KALENDER (voor DT_events guild events!):
+  C_DateAndTime.GetCurrentCalendarTime() → {month, year, monthDay, ...}
+  C_Calendar.SetAbsMonth(month, year)    → VERPLICHT vóór elke scan (op login!)
+  C_Calendar.GetMonthInfo(offset)        → {month, year, numDays}
+  C_Calendar.GetNumDayEvents(monthOffset, day)
+  C_Calendar.GetDayEvent(monthOffset, day, i) → info:
+    .calendarType  "GUILD_EVENT"/"GUILD_ANNOUNCEMENT"/"PLAYER"/"HOLIDAY"/
+                   "RAID_LOCKOUT"/"RAID_RESET" (kan nil zijn — filteren!)
+    .title .eventType .inviteStatus .startTime.hour/.minute
+VALKUILEN:
+  - Blizzard_Calendar is LoD — functies geven nil zonder geladen kalender
+  - CALENDAR_UPDATE_EVENT_LIST: tijdens eigen scan UNregisteren
+    (SetAbsMonth triggert het event → infinite loop)
+WEEKLY RESET (Cleanup.lua patroon — voor delves weekly!):
+  GetCVar("portal") → regio · EU=woensdag(3), US=dinsdag(2), CN/KR/TW=do(4)
+  Reset uur ~6:00 · datum-vergelijking via "%Y-%m-%d" strings
+LOCKOUTS (voor DT_Lockout):
+  GetNumSavedInstances() + GetSavedInstanceInfo(i) → reset>0 filteren
+  RAID_INSTANCE_WELCOME → RequestRaidInfo() · UPDATE_INSTANCE_INFO → scan
+SERVER TIJD: GetGameTime() per-seconde pollen tot minuut wisselt →
+  exacte client-server gap via difftime (ItemCooldowns.lua patroon)
+```

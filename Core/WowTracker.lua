@@ -891,90 +891,93 @@ local ROSTER_COLS   = 3  -- 3 cols past binnen 760px UI
 local ROSTER_GAP    = 8
 
 -- Race icon lookup (Achievement_Character_{race}_{faction})
--- ── RACE ATLAS SYSTEEM — herbouwd volgens Docs/KENNISBANK.md v3.0.8 ──────
--- UnitRace() geeft TWEE returns; raceTag (2e) is CamelCase zonder spaties.
--- Atlas naam: raceicon128-<tag>-<gender>. UITZONDERINGEN (kennisbank):
-local ATLAS_TAG_MAP = {
-    ["Scourge"]            = "scourge",       -- Undead/Forsaken (NIET "undead")
-    ["Undead"]             = "scourge",
-    ["Forsaken"]           = "scourge",
-    ["HighmountainTauren"] = "highmountain",  -- NIET "highmountaintauren"
-    ["ZandalariTroll"]     = "zandalari",     -- NIET "zandalaritroll"
-    ["LightforgedDraenei"] = "lightforged",   -- NIET "lightforgeddraenei"
-    ["DarkIronDwarf"]      = "darkiron",      -- NIET "darkirondwarf"
-    ["MagharOrc"]          = "maghar",        -- NIET "magharorc"
+-- ── RACE ATLAS SYSTEEM — EXACT overgenomen uit Constants.lua v3.5.1 ─────
+-- (referentie: ProfessionBuddy, alle namen BEVESTIGD via TextureAtlasViewer
+--  in WoW 12.0.5 Build 67314, tenzij anders aangegeven)
+local RaceIconShortName = {
+    -- ── Vanilla / TBC / Cata / MoP (basis rassen) ───────────
+    ["Human"]              = "human",
+    ["Orc"]                = "orc",
+    ["Dwarf"]              = "dwarf",
+    ["NightElf"]           = "nightelf",
+    ["Scourge"]            = "scourge",    -- UnitRace 2e return voor Undead/Forsaken
+    ["Undead"]             = "scourge",    -- defensieve alias
+    ["Tauren"]             = "tauren",
+    ["Gnome"]              = "gnome",
+    ["Troll"]              = "troll",
+    ["BloodElf"]           = "bloodelf",
+    ["Draenei"]            = "draenei",
+    ["Goblin"]             = "goblin",
+    ["Worgen"]             = "worgen",
+    ["Pandaren"]           = "pandaren",
+    -- ── BfA Allied Races (8.0) — ALLE BEVESTIGD ✓ ──────────
+    ["Nightborne"]         = "nightborne",
+    ["HighmountainTauren"] = "highmountain",
+    ["VoidElf"]            = "voidelf",
+    ["LightforgedDraenei"] = "lightforged",
+    ["ZandalariTroll"]     = "zandalari",
+    ["KulTiran"]           = "kultiran",
+    ["DarkIronDwarf"]      = "darkirondwarf",   -- ✓ WEL met dwarf-suffix!
+    ["MagharOrc"]          = "magharorc",       -- ✓ WEL met orc-suffix!
+    ["Mechagnome"]         = "mechagnome",
+    ["Vulpera"]            = "vulpera",
+    -- ── Dragonflight (10.0) ─────────────────────────────────
+    ["Dracthyr"]           = "dracthyr",
+    -- ── The War Within (11.0) ───────────────────────────────
+    ["Earthen"]            = "earthen",
+    ["EarthenDwarf"]       = "earthen",
+    -- ── Midnight (12.x) — UnitRace 2e return = "Harronir" (dubbele r!) ──
+    ["Harronir"]           = "haranir",
+    ["Haranir"]            = "haranir",
 }
 
--- Ras-suffixen die atlassen vaak weglaten bij allied races
-local RACE_SUFFIXES = { "draenei", "dwarf", "orc", "tauren", "troll" }
+local AlliedRaceCrestFallback = {
+    ["Harronir"] = "AlliedRace-Crest-Haranir",  -- raceID=86, Midnight allied race
+    ["Haranir"]  = "AlliedRace-Crest-Haranir",
+}
 
--- DT_SetRaceIcon(texture, raceTag, sexNum) — 3-staps (PBRoster patroon):
--- 1) tag bepalen  2) atlas naam bouwen  3) valideren met GetAtlasInfo
-local function DT_SetRaceIcon(tex, raceTag, sexNum)
-    raceTag = raceTag or ""
-    -- Haranir heeft geen raceicon128 in 12.0.5 — gebruik crest atlas
-    if raceTag == "Haranir" then
-        if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("AlliedRace-Crest-Haranir") then
-            tex:SetAtlas("AlliedRace-Crest-Haranir")
-            tex:SetTexCoord(0,1,0,1)
-            return true
-        end
-        return false
+-- DT_SetRaceIcon — fallback-keten (Constants.lua v3.5.1):
+--   1. raceicon128-{naam}-{gender}  → volledig portret (alle rassen)
+--   2. raceicon-{naam}-{gender}     → 64px portret (basis rassen)
+--   2.5 AlliedRace-Crest-*          → nieuwe rassen zonder raceicon128
+--   3. SetTexture(134400)           → vraagteken-icoon
+local function DT_SetRaceIcon(texture, raceName, gender)
+    if not texture then return false end
+
+    local rName = raceName or "Human"
+    local gStr  = (tonumber(gender) == 3) and "female" or "male"
+
+    local shortName = RaceIconShortName[rName]
+    if not shortName then
+        -- Dynamische fallback voor onbekende toekomstige rassen
+        shortName = rName:lower():gsub("[%s'%-]+", "")
     end
-    local gStr = (tonumber(sexNum)==3) and "female" or "male"
-    local raw  = raceTag:lower():gsub("%s+","")
-    -- Kandidaten: 1) expliciete map  2) raw lowercase  3) suffix gestript
-    local cands = {}
-    if ATLAS_TAG_MAP[raceTag] then cands[#cands+1] = ATLAS_TAG_MAP[raceTag] end
-    cands[#cands+1] = raw
-    for _, suf in ipairs(RACE_SUFFIXES) do
-        if raw:len() > suf:len() and raw:sub(-suf:len()) == suf then
-            cands[#cands+1] = raw:sub(1, raw:len()-suf:len())
-        end
+
+    local atlas128 = "raceicon128-" .. shortName .. "-" .. gStr
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas128) then
+        texture:SetAtlas(atlas128)
+        texture:SetTexCoord(0,1,0,1)
+        return true
     end
-    for _, tag in ipairs(cands) do
-        for _, prefix in ipairs({"raceicon128-", "raceicon-"}) do
-            local atlas = prefix..tag.."-"..gStr
-            if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
-                tex:SetAtlas(atlas)
-                tex:SetTexCoord(0,1,0,1)
-                return true
-            end
-        end
+
+    local atlas64 = "raceicon-" .. shortName .. "-" .. gStr
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas64) then
+        texture:SetAtlas(atlas64)
+        texture:SetTexCoord(0,1,0,1)
+        return true
     end
+
+    local crestAtlas = AlliedRaceCrestFallback[rName]
+    if crestAtlas and C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(crestAtlas) then
+        texture:SetAtlas(crestAtlas)
+        texture:SetTexCoord(0,1,0,1)
+        return true
+    end
+
+    texture:SetTexture(134400)   -- vraagteken (beter zichtbaar dan blanco)
+    texture:SetTexCoord(0.08,0.92,0.08,0.92)
     return false
 end
-
--- Fallback achievement-icon mapping (klassieke races)
-local RACE_ICON_MAP = {
-    ["Human"]       = "human",
-    ["Dwarf"]       = "dwarf",
-    ["NightElf"]    = "nightelf",
-    ["Gnome"]       = "gnome",
-    ["Draenei"]     = "draenei",
-    ["Worgen"]      = "worgen",
-    ["Pandaren"]    = "pandaren",
-    ["VoidElf"]     = "voidelf",
-    ["LightforgedDraenei"] = "lightforgeddraenei",
-    ["DarkIronDwarf"] = "darkirondwarf",
-    ["KulTiran"]    = "kultiran",
-    ["Mechagnome"]  = "mechagnome",
-    ["Orc"]         = "orc",
-    ["Undead"]      = "undead",
-    ["Scourge"]     = "undead",   -- UnitRace() raceTag voor Undead = "Scourge"!
-    ["Tauren"]      = "tauren",
-    ["Troll"]       = "troll",
-    ["BloodElf"]    = "bloodelf",
-    ["Goblin"]      = "goblin",
-    ["Nightborne"]  = "nightborne",
-    ["HighmountainTauren"] = "highmountaintauren",
-    ["Highmountain"]       = "highmountaintauren",  -- alias
-    ["MagharOrc"]   = "magharorc",
-    ["ZandalariTroll"] = "zandalaritroll",
-    ["Vulpera"]     = "vulpera",
-    ["Dracthyr"]    = "dracthyr",
-    ["Haranir"]     = "haranir",
-}
 
 WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
@@ -1036,16 +1039,10 @@ WT_UpdateRoster = function()
         end
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
 
-        -- ── RACE PORTRAIT — via DT_SetRaceIcon (kennisbank v3.0.8) ──
+        -- ── RACE PORTRAIT — via DT_SetRaceIcon (Constants.lua v3.5.1 patroon) ──
+        -- PBRoster aanroep: C:SetRaceIcon(card.raceIcon, data.race, data.gender)
         -- Ondersteunt zowel data.sex als data.gender (oudere scans)
-        local sexNum = data.sex or data.gender
-        if not DT_SetRaceIcon(card.rIcon, raceTag, sexNum) then
-            -- Fallback: oude achievement icon (klassieke races)
-            local atlasTag = raceTag:lower():gsub("%s+","")
-            local raceKey = RACE_ICON_MAP[raceTag] or atlasTag
-            card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey)
-            card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
-        end
+        DT_SetRaceIcon(card.rIcon, raceTag, data.gender or data.sex)
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
