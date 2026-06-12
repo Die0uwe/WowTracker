@@ -384,6 +384,17 @@ if WTTheme and WTTheme.Register then
             local h = WTTheme.bg.header
             if h then TickerBG:SetColorTexture(h.r, h.g, h.b, h.a or 1) end
         end
+        -- Tab knoppen meekleuren (live theme switch)
+        local cardBg  = WTTheme.bg.card
+        local cardBdr = WTTheme.border.main
+        if tabBtns and cardBg and cardBdr then
+            for _,b in ipairs(tabBtns) do
+                if b and b.SetBackdropColor then
+                    b:SetBackdropColor(cardBg.r, cardBg.g, cardBg.b, cardBg.a or 0.95)
+                    b:SetBackdropBorderColor(cardBdr.r, cardBdr.g, cardBdr.b, 0.8)
+                end
+            end
+        end
     end)
 end
 
@@ -392,11 +403,14 @@ UI.langBtn:SetScript("OnClick",function(self)
     local langs = {"Nederlands","English","Deutsch","Français","Español"}
     MenuUtil.CreateContextMenu(self,function(_,root)
         root:CreateTitle(SA_BLUE.."Taal / Language|r")
+        local active = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
         for _,lang in ipairs(langs) do
             local l=lang
-            root:CreateButton(l,function()
+            local mark = (l == active) and "|cff44ff44✓ |r" or "  "
+            root:CreateButton(mark..l,function()
                 DelveTrackerDB.language=l
-                print(SA_PURPLE.."[WowTracker] Taal: "..l.." (herlaad UI voor effect)|r")
+                if WT_ApplyLanguage then WT_ApplyLanguage(l) end   -- DIRECT toepassen
+                print(SA_PURPLE.."[WowTracker] Taal: "..l.."|r")
             end)
         end
     end)
@@ -1392,7 +1406,10 @@ WT_UpdateCurrency = function()
     local function getCurInfo(id)
         if C_CurrencyInfo and C_CurrencyInfo.GetCurrencyInfo then
             local ok,info = pcall(C_CurrencyInfo.GetCurrencyInfo,id)
-            if ok and info then return info.iconFileID, info.name end
+            -- Alleen geldig als er ECHT een naam en icoon is — anders blanco tegel
+            if ok and info and info.name and info.name ~= "" and info.iconFileID and info.iconFileID > 0 then
+                return info.iconFileID, info.name
+            end
         end
         return nil, tostring(id)
     end
@@ -1498,15 +1515,23 @@ WT_UpdateCurrency = function()
         end
     end
 
-    -- Haal live iconen op (eenmalig)
+    -- Haal live iconen op (eenmalig) en FILTER blanco currencies eruit:
+    -- als C_CurrencyInfo geen info/icoon geeft bestaat de currency niet
+    -- (meer) op deze client → niet tonen i.p.v. blanco tegel
+    local validDefs = {}
     for _,def in ipairs(CUR_DEFS) do
-        if not def.iconID then
+        if def.iconID == nil and def.checked ~= true then
             def.iconID, def.liveName = getCurInfo(def.id)
+            def.checked = true
             if def.liveName and def.liveName ~= tostring(def.id) then
                 def.label = def.liveName
             end
         end
+        if def.iconID then
+            table.insert(validDefs, def)
+        end
     end
+    CUR_DEFS = validDefs
 
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
@@ -1516,8 +1541,8 @@ WT_UpdateCurrency = function()
     end
     table.sort(sorted)
 
-    local TILE_W = 56  -- kleiner voor meer tiles zichtbaar
-    local TILE_H = 60
+    local TILE_W = 48  -- compacter: meer tiles zichtbaar
+    local TILE_H = 46  -- icoon 22px (2x kleiner dan voorheen) + waarde
     local TILE_G = 4
     local COLS   = math.floor((UI_W-46) / (TILE_W+TILE_G))
     local ROW_H  = 30  -- karakter naam rij
@@ -1616,9 +1641,10 @@ WT_UpdateCurrency = function()
 
             -- Icoon
             card.ico=card:CreateTexture(nil,"ARTWORK")
-            card.ico:SetSize(TILE_W-12, TILE_W-12)
+            card.ico:SetSize(22, 22)   -- 2x kleiner (was 44px)
             card.ico:SetPoint("TOP",card,"TOP",0,-3)
-            if def.iconID then card.ico:SetTexture(def.iconID) end
+            -- iconID is gegarandeerd aanwezig: blanco currencies zijn al gefilterd
+            card.ico:SetTexture(def.iconID or 134400)
             card.ico:SetTexCoord(0.08,0.92,0.08,0.92)
             card.ico:SetAlpha(val>0 and 1.0 or 0.3)
 
@@ -2237,6 +2263,22 @@ UI:SetScript("OnEvent",function(self,event)
         -- Herstel taalinstelling
         if DelveTrackerDB.language then
             WT_ApplyLanguage(DelveTrackerDB.language)
+        end
+        -- ── DB AUTO-MIGRATIE (herbouw v3.0.7) ──
+        -- Oude entries: gender als string → getal; race met spaties → zonder
+        -- ("Night Elf"→"NightElf", "Zandalari Troll"→"ZandalariTroll")
+        for _,cdata in pairs(DelveTrackerDB.characters or {}) do
+            if type(cdata)=="table" then
+                if type(cdata.gender)=="string" then
+                    cdata.gender = (cdata.gender=="female" or cdata.gender=="3") and 3 or 2
+                end
+                if type(cdata.sex)=="string" then
+                    cdata.sex = (cdata.sex=="female" or cdata.sex=="3") and 3 or 2
+                end
+                if type(cdata.race)=="string" and cdata.race:find("%s") then
+                    cdata.race = cdata.race:gsub("%s+","")
+                end
+            end
         end
         tickerLastT=GetTime(); tickerDirty=true
         TickerClock:SetText(string.format(SA_GOLD.."%s|r",date("%H:%M:%S")))

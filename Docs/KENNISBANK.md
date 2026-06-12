@@ -931,3 +931,15 @@ LOCKOUTS (voor DT_Lockout):
 SERVER TIJD: GetGameTime() per-seconde pollen tot minuut wisselt →
   exacte client-server gap via difftime (ItemCooldowns.lua patroon)
 ```
+
+## Currency tab v3.0.9d (sessie 2026-06-12)
+```
+ICONS: 22px (2x kleiner), tile 48x46
+BLANCO FIX: getCurInfo eist info.name~="" EN iconFileID>0, anders wordt
+  de currency volledig overgeslagen (bestaat niet op deze client).
+  Midnight IDs 3399/3403/3390 waren ongeverifieerd → filteren zichzelf nu.
+TAAL: langBtn past WT_ApplyLanguage DIRECT toe (geen reload) + ✓ markering
+THEME: Register callback kleurt nu ook tabBtns live mee
+DB-MIGRATIE HERBOUWD (was verloren): gender string→getal,
+  race spaties strippen op PLAYER_LOGIN
+```
