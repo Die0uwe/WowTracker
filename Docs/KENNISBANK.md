@@ -994,3 +994,17 @@ KLEUR: Bountiful tile gekalmeerd — backdrop neutraal donker
   (0.07,0.04,0.02), border/glow zachter oranje; stripe+badge dragen
   de herkenning. Intensiteit nu gelijk aan Nemesis/Normal.
 ```
+
+## Guild online lijst — v3.1.4 (Fase 2.3, sessie 2026-06-12)
+```
+BUG GEVONDEN: GetGuildRosterInfo 5e return = localized display naam
+  ("Warrior") — matcht NIET als RAID_CLASS_COLORS key! De 11e return
+  is de classFileName ("WARRIOR"). Namen vielen daardoor terug op grijs.
+NIEUW: 16px icoon per online lid vóór de naam —
+  · eigen warband char (match op "Naam-Realm" in characters DB):
+    race-portret via DT_SetRaceIcon (hergebruik!)
+  · anders: class-icoon via Icons-Classes + CLASS_ICON_TCOORDS[classFile]
+  · vangnet: 134400 vraagteken
+Naam schuift van x=12 naar x=30. DT_SetRaceIcon is file-level local
+vóór deze functie gedefinieerd → in scope.
+```

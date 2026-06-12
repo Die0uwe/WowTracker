@@ -1325,15 +1325,24 @@ WT_UpdateGuildOnline = function()
     if not IsInGuild() then return end
 
     -- Bouw lijst van online leden
+    -- v3.1.4: 11e return = classFileName ("WARRIOR") — VEREIST voor
+    -- RAID_CLASS_COLORS en class-iconen. 5e return is de localized
+    -- display naam ("Warrior") en matcht NIET als kleur-key!
     local online = {}
     local total  = GetNumGuildMembers()
+    local myRealm = GetRealmName and GetRealmName() or ""
     for i=1,total do
-        local name,rank,_,level,class,zone,_,_,connected = GetGuildRosterInfo(i)
+        local name,rank,_,level,_,zone,_,_,connected,_,classFile = GetGuildRosterInfo(i)
         if connected and name then
             local shortName = name:match("([^-]+)") or name
+            -- Warband match: staat dit lid in onze eigen DB? (race-portret!)
+            local dbKey = name:find("-") and name or (shortName.."-"..myRealm)
+            local own = DelveTrackerDB.characters and
+                (DelveTrackerDB.characters[dbKey] or DelveTrackerDB.characters[name])
             table.insert(online, {
                 name=shortName, rank=rank, level=level,
-                class=class or "WARRIOR", zone=zone or ""
+                class=classFile or "WARRIOR", zone=zone or "",
+                own=own
             })
         end
     end
@@ -1362,10 +1371,31 @@ WT_UpdateGuildOnline = function()
         r.dot:SetPoint("LEFT",2,0)
         r.dot:SetColorTexture(0.20,0.90,0.40,1)  -- groen = online
 
+        -- v3.1.4 (Fase 2.3): karakter-icoon — race-portret voor eigen
+        -- warband chars (DT_SetRaceIcon), anders class-icoon
+        r.pic = r.pic or r:CreateTexture(nil,"ARTWORK")
+        r.pic:SetSize(16,16)
+        r.pic:SetPoint("LEFT",11,0)
+        local own = member.own
+        local gotPortrait = false
+        if own and own.race then
+            gotPortrait = DT_SetRaceIcon(r.pic, own.race, own.gender or own.sex)
+        end
+        if not gotPortrait then
+            local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[member.class]
+            if coords then
+                r.pic:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                r.pic:SetTexCoord(unpack(coords))
+            else
+                r.pic:SetTexture(134400)
+                r.pic:SetTexCoord(0.08,0.92,0.08,0.92)
+            end
+        end
+
         -- Naam in klasse kleur
         r.nm = r.nm or r:CreateFontString(nil,"OVERLAY")
         r.nm:SetFont(C_2002,11,"")
-        r.nm:SetPoint("LEFT",12,0)
+        r.nm:SetPoint("LEFT",30,0)
         local cc = RAID_CLASS_COLORS[member.class] or {r=0.8,g=0.8,b=0.8}
         r.nm:SetText(string.format("|cff%02x%02x%02x%s|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
