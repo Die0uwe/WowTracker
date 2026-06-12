@@ -1075,3 +1075,24 @@ GIF-VALIDATIE: portretten, warband stats, Warbank knop, VALUTA taal — alle
   v3.1.7 fixes bevestigd werkend. "Tome"-icoon = 134400 vraagteken van
   v3.1.6; v3.1.7+ class-fallback vervangt dat.
 ```
+
+## SavedVariables init-timing valkuil — v3.1.9 (sessie 2026-06-12)
+```
+BUG: DelveTrackerDB.tickerShow defaults op FILE-LOAD niveau gezet
+  (regel 108). SavedVariables laden pas bij ADDON_LOADED — WoW vervangt
+  dan de hele global. Mist de saved DB die key → nil → crash bij gebruik
+  ("attempt to index upvalue 'ts'"). Zelfde patroon op regel 20-22
+  (characters/PluginStates).
+REGEL (herbevestigd): file-load DB-defaults zijn ALLEEN placeholder.
+  Init ALTIJD óók op PLAYER_LOGIN (of nil-safe op de use-site).
+FIX: ticker OnClick init nil-safe op use-site + PLAYER_LOGIN init voor
+  characters / PluginStates / tickerShow.
+
+## Race reverse-lookup migratie — v3.1.9 (gids DieOuwe §3/§4)
+WT_BuildRaceData(): C_CreatureInfo.GetRaceInfo over de 25 raceIDs →
+  byLocalized["NightElf"]="NightElf", byLocalized["Undead"]="Scourge",
+  clientFileString uit info (Enum.Race reverse als vangnet).
+MIGRATIE: oude DB localized namen → echte clientFile + raceID aangevuld.
+  Repareert ALLE karakters zonder her-inloggen. Draait op PLAYER_LOGIN
+  vóór de eerste roster-render.
+```

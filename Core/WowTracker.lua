@@ -111,6 +111,13 @@ DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
 -- Klik op ticker opent selectiemenu
 TickerClip:SetScript("OnClick", function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+    -- v3.1.9 FIX: defaults van file-load overleven het laden van de échte
+    -- SavedVariables niet (WoW vervangt de global bij ADDON_LOADED).
+    -- Dus HIER nil-safe initialiseren, op het moment van gebruik.
+    DelveTrackerDB = DelveTrackerDB or {}
+    DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
+        events=true, guild=true, prey=true, time=true,
+    }
     local ts = DelveTrackerDB.tickerShow
     MenuUtil.CreateContextMenu(self, function(_, root)
         root:CreateTitle(SA_PURPLE.."Ticker inhoud|r")
@@ -939,6 +946,35 @@ local ROSTER_COLS   = 3  -- 3 cols past binnen 760px UI
 local ROSTER_GAP    = 8
 
 -- Race icon lookup (Achievement_Character_{race}_{faction})
+-- ── DYNAMISCHE RACE DATA (gids DieOuwe §3/§4, v3.1.9) ───────────────────
+-- C_CreatureInfo.GetRaceInfo(id) → {raceName (localized), clientFileString}
+-- Hiermee bouwen we een reverse-lookup: localized naam → clientFile.
+-- Repareert OUDE DB-entries ("Undead"→"Scourge") zonder her-inloggen!
+local WT_RACE_IDS = {1,2,3,4,5,6,7,8,9,10,11,22,24,25,26,27,28,29,30,31,32,34,35,36,37}
+local WT_RaceData = nil
+
+local function WT_BuildRaceData()
+    if WT_RaceData then return end
+    WT_RaceData = { byLocalized = {}, byID = {} }
+    if not (C_CreatureInfo and C_CreatureInfo.GetRaceInfo) then return end
+    for _, id in ipairs(WT_RACE_IDS) do
+        local ok, info = pcall(C_CreatureInfo.GetRaceInfo, id)
+        if ok and info and info.raceName then
+            local clientFile = info.clientFileString
+            if not clientFile and Enum and Enum.Race then
+                for k, v in pairs(Enum.Race) do
+                    if v == id then clientFile = k; break end
+                end
+            end
+            if clientFile then
+                WT_RaceData.byID[id] = clientFile
+                -- localized naam zonder spaties als sleutel ("Night Elf"→"NightElf")
+                WT_RaceData.byLocalized[info.raceName:gsub("%s+","")] = clientFile
+            end
+        end
+    end
+end
+
 -- ── RACE ATLAS SYSTEEM — EXACT overgenomen uit Constants.lua v3.5.1 ─────
 -- (referentie: ProfessionBuddy, alle namen BEVESTIGD via TextureAtlasViewer
 --  in WoW 12.0.5 Build 67314, tenzij anders aangegeven)
@@ -2652,13 +2688,22 @@ UI:SetScript("OnEvent",function(self,event)
             if t.bg then UI:SetBackdropColor(t.bg[1],t.bg[2],t.bg[3],t.bg[4] or 0.97) end
             if t.border then UI:SetBackdropBorderColor(t.border[1],t.border[2],t.border[3],1) end
         end
+        -- Nil-safe veld-init (kennisbank: nieuwe velden op PLAYER_LOGIN —
+        -- file-load defaults overleven het laden van SavedVariables NIET)
+        DelveTrackerDB.characters   = DelveTrackerDB.characters or {}
+        DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
+        DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
+            events=true, guild=true, prey=true, time=true,
+        }
         -- Herstel taalinstelling
         if DelveTrackerDB.language then
             WT_ApplyLanguage(DelveTrackerDB.language)
         end
-        -- ── DB AUTO-MIGRATIE (herbouw v3.0.7) ──
-        -- Oude entries: gender als string → getal; race met spaties → zonder
-        -- ("Night Elf"→"NightElf", "Zandalari Troll"→"ZandalariTroll")
+        -- ── DB AUTO-MIGRATIE (herbouw v3.0.7 + v3.1.9 gids-upgrade) ──
+        -- Oude entries: gender als string → getal; race met spaties → zonder;
+        -- localized rasnaam → clientFileString via C_CreatureInfo reverse-lookup
+        -- ("Undead"→"Scourge") — repareert ALLE chars zonder her-inloggen
+        WT_BuildRaceData()
         for _,cdata in pairs(DelveTrackerDB.characters or {}) do
             if type(cdata)=="table" then
                 if type(cdata.gender)=="string" then
@@ -2669,6 +2714,17 @@ UI:SetScript("OnEvent",function(self,event)
                 end
                 if type(cdata.race)=="string" and cdata.race:find("%s") then
                     cdata.race = cdata.race:gsub("%s+","")
+                end
+                -- v3.1.9: localized naam → echte clientFile (gids reverse-lookup)
+                if type(cdata.race)=="string" and WT_RaceData then
+                    local cf = WT_RaceData.byLocalized[cdata.race]
+                    if cf and cf ~= cdata.race then cdata.race = cf end
+                end
+                -- raceID aanvullen als we hem via clientFile kunnen vinden
+                if not cdata.raceID and cdata.race and WT_RaceData then
+                    for id, cf in pairs(WT_RaceData.byID) do
+                        if cf == cdata.race then cdata.raceID = id; break end
+                    end
                 end
             end
         end
