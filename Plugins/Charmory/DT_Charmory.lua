@@ -6,6 +6,12 @@ if DelveTracker then
     DelveTracker:RegisterPlugin("Charmory", function() end)
 
     local Armory = CreateFrame("Frame", "DT_ArmoryFrame", UIParent, "BackdropTemplate")
+-- v3.2.2 (i18n): vertaal-helper — WT_T uit de core (laadt eerder)
+local function T(key)
+    if WT_T then return WT_T(key) end
+    return key
+end
+
     Armory:SetSize(420, 550)
     Armory:SetFrameStrata("DIALOG")
     Armory:SetToplevel(true)
@@ -129,20 +135,25 @@ if DelveTracker then
 
     -- Sectie header helper
     local C_2002 = "Fonts\\2002.ttf"
-    local function SecHdr(txt, yOff)
+    -- v3.2.2: label-registry — frame bouwt op file-load (vóór taal-restore),
+    -- dus labels worden in Fill() ververst in de actuele taal
+    local I18N_LABELS = {}
+    local function SecHdr(key, yOff)
         local f = StatsPanel:CreateFontString(nil,"OVERLAY")
         f:SetFont(C_2002, 10, "OUTLINE")
         f:SetPoint("TOPLEFT", 10, yOff)
         f:SetTextColor(0.60, 0.40, 1.0, 1)
-        f:SetText(txt)
+        f:SetText("── "..T(key).." ──")
+        table.insert(I18N_LABELS, {fs=f, key=key, hdr=true})
         return f
     end
-    local function StatRow(lbl, yOff)
+    local function StatRow(key, yOff)
         local l = StatsPanel:CreateFontString(nil,"OVERLAY")
         l:SetFont(C_2002, 11, "")
         l:SetPoint("TOPLEFT", 10, yOff)
         l:SetTextColor(0.70, 0.70, 0.80, 1)
-        l:SetText(lbl)
+        l:SetText(T(key))
+        table.insert(I18N_LABELS, {fs=l, key=key})
         local v = StatsPanel:CreateFontString(nil,"OVERLAY")
         v:SetFont(C_2002, 11, "OUTLINE")
         v:SetPoint("TOPRIGHT", -10, yOff)
@@ -151,37 +162,41 @@ if DelveTracker then
     end
 
     -- Bouw stat rijen
-    SecHdr("── KARAKTER ──", -12)
-    local _,  vClass  = StatRow("Klasse",  -26)
-    local _,  vSpec   = StatRow("Spec",    -42)
-    local _,  vLevel  = StatRow("Level",   -58)
-    local _,  vIlvl   = StatRow("iLvl",    -74)
-    local _,  vGuild  = StatRow("Guild",   -90)
+    SecHdr("CM_CHARACTER", -12)
+    local _,  vClass  = StatRow("CM_CLASS",  -26)
+    local _,  vSpec   = StatRow("CM_SPEC",    -42)
+    local _,  vLevel  = StatRow("CM_LEVEL",   -58)
+    local _,  vIlvl   = StatRow("CM_ILVL",    -74)
+    local _,  vGuild  = StatRow("CM_GUILD",   -90)
 
-    SecHdr("── STATS ──", -114)
-    local _,  vStam   = StatRow("Stamina",  -128)
-    local _,  vStr    = StatRow("Strength", -144)
-    local _,  vAgi    = StatRow("Agility",  -160)
-    local _,  vInt    = StatRow("Intellect",-176)
-    local _,  vArmor  = StatRow("Armor",    -192)
+    SecHdr("CM_STATS", -114)
+    local _,  vStam   = StatRow("CM_STAMINA",  -128)
+    local _,  vStr    = StatRow("CM_STRENGTH", -144)
+    local _,  vAgi    = StatRow("CM_AGILITY",  -160)
+    local _,  vInt    = StatRow("CM_INTELLECT",-176)
+    local _,  vArmor  = StatRow("CM_ARMOR",    -192)
 
-    SecHdr("── CURRENCIES ──", -216)
+    SecHdr("CM_CURRENCIES", -216)
     local _,  vKeys   = StatRow("Coffer Keys",   -230)
     local _,  vShards = StatRow("Key Shards",    -246)
     local _,  vDundun = StatRow("Shard of Dundun",-262)
     local _,  vMana   = StatRow("Dawnlight Manaflux",-278)
 
-    SecHdr("── DELVES DEZE WEEK ──", -302)
+    SecHdr("CM_DELVES_WEEK", -302)
     local _,  vD4     = StatRow("Threshold 4",  -316)
     local _,  vD8     = StatRow("Threshold 8",  -332)
     local _,  vD12    = StatRow("Threshold 12", -348)
 
-    SecHdr("── GOUD ──", -372)
-    local _,  vGold   = StatRow("Totaal",  -386)
+    SecHdr("CM_GOLD", -372)
+    local _,  vGold   = StatRow("CM_TOTAL",  -386)
 
     StatsPanel.Fill = function(data)
         if not data then StatsPanel:Hide(); return end
         StatsPanel:Show()
+        -- v3.2.2: labels in actuele taal (frame is op file-load gebouwd)
+        for _, e in ipairs(I18N_LABELS) do
+            e.fs:SetText(e.hdr and ("── "..T(e.key).." ──") or T(e.key))
+        end
 
         -- Karakter
         local clr = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class] or {r=1,g=1,b=1}

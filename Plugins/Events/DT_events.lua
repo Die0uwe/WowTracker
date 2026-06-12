@@ -285,6 +285,97 @@ C_Timer.After(4.0, ScanAllMidnightMaps)
 
 
 -- ════════════════════════════════════════════════════════════════════
+-- GUILD CALENDAR EVENTS (Fase 3.3 · v3.2.2 · DataStore_Agenda patroon)
+-- Kennisbank-regels:
+--   · Blizzard_Calendar is LoD — eerst laden, anders geeft alles nil
+--   · C_Calendar.SetAbsMonth(month, year) VERPLICHT vóór elke scan
+--   · CALENDAR_UPDATE_EVENT_LIST tijdens eigen scan UITZETTEN
+--     (SetAbsMonth triggert het event → infinite loop)
+-- API: DT_GetGuildEvents() → array van {date="YYYY-MM-DD", time="HH:MM",
+--   title, eventType, inviteStatus} — gesorteerd, alleen toekomstig.
+-- ════════════════════════════════════════════════════════════════════
+local guildEvents = {}
+local calFrame = CreateFrame("Frame")
+local scanning = false
+
+local function ScanGuildCalendar()
+    if scanning then return end
+    if not (C_Calendar and C_Calendar.GetMonthInfo) then return end
+    scanning = true
+    calFrame:UnregisterEvent("CALENDAR_UPDATE_EVENT_LIST")
+
+    local ok = pcall(function()
+        local dateInfo = C_DateAndTime.GetCurrentCalendarTime()
+        C_Calendar.SetAbsMonth(dateInfo.month, dateInfo.year)
+
+        wipe(guildEvents)
+        local today = date("%Y-%m-%d")
+        local now   = date("%H:%M")
+
+        -- Deze maand + volgende maand (offset 0 en 1)
+        for monthOffset = 0, 1 do
+            local mi = C_Calendar.GetMonthInfo(monthOffset)
+            if mi and mi.numDays then
+                local startDay = (monthOffset == 0) and dateInfo.monthDay or 1
+                for day = startDay, mi.numDays do
+                    local n = C_Calendar.GetNumDayEvents(monthOffset, day) or 0
+                    for i = 1, n do
+                        local info = C_Calendar.GetDayEvent(monthOffset, day, i)
+                        local ct = info and info.calendarType
+                        if ct == "GUILD_EVENT" or ct == "GUILD_ANNOUNCEMENT" then
+                            local d = string.format("%04d-%02d-%02d", mi.year, mi.month, day)
+                            local t = string.format("%02d:%02d",
+                                info.startTime and info.startTime.hour or 0,
+                                info.startTime and info.startTime.minute or 0)
+                            -- alleen toekomstige events
+                            if d > today or (d == today and t >= now) then
+                                table.insert(guildEvents, {
+                                    date = d, time = t,
+                                    title = info.title or "?",
+                                    eventType = info.eventType,
+                                    inviteStatus = info.inviteStatus,
+                                })
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        table.sort(guildEvents, function(a, b)
+            if a.date == b.date then return a.time < b.time end
+            return a.date < b.date
+        end)
+    end)
+
+    calFrame:RegisterEvent("CALENDAR_UPDATE_EVENT_LIST")
+    scanning = false
+    if not ok then wipe(guildEvents) end
+end
+
+-- Publieke API voor Events tab / ticker / andere plugins
+function DT_GetGuildEvents()
+    return guildEvents
+end
+
+calFrame:RegisterEvent("PLAYER_LOGIN")
+calFrame:SetScript("OnEvent", function(self, event)
+    if event == "PLAYER_LOGIN" then
+        -- Kalender LoD laden, dan vertraagd scannen (kalender moet init'en)
+        if C_AddOns and C_AddOns.LoadAddOn then
+            pcall(C_AddOns.LoadAddOn, "Blizzard_Calendar")
+        end
+        if C_Timer and C_Timer.After then
+            C_Timer.After(8, ScanGuildCalendar)
+        end
+    elseif event == "CALENDAR_UPDATE_EVENT_LIST" then
+        -- Her-scan bij kalenderwijzigingen (gedebounced)
+        if C_Timer and C_Timer.After and not scanning then
+            C_Timer.After(2, ScanGuildCalendar)
+        end
+    end
+end)
+
+-- ════════════════════════════════════════════════════════════════════
 -- PLUGIN REGISTRATIE (wow-dt-integrator · Fase 2.1 · 2026-06-12)
 -- Noop-registratie: maakt de plugin zichtbaar in het admin panel
 -- (aan/uit toggle via PluginStates). Patroon identiek aan DT_Lockout.

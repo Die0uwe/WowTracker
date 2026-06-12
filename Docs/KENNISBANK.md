@@ -1145,3 +1145,21 @@ QUICKSET: 37 strings omgezet (tile types, delve tooltips, abundance blok,
 VOLGENDE PLUGINS (zelfde patroon): Registry, Lockout, HelpGuide,
   ClothCounter, ExchangeBot, SkinNRare, MailAttach, Debugger.
 ```
+
+## Armory i18n + Guild Calendar — v3.2.2 (sessie 2026-06-12)
+```
+ARMORY (Charmory): frame bouwt op FILE-LOAD (vóór taal-restore op login)
+  → labels via I18N_LABELS registry + refresh in StatsPanel.Fill()
+  (elke open = actuele taal). SecHdr/StatRow nemen nu SLEUTELS;
+  onbekende sleutels ("Coffer Keys", "Threshold 4") vallen via WT_T
+  transparant terug op de key zelf — eigennamen blijven ongemoeid.
+GUILD CALENDAR SCANNER (Fase 3.3, DataStore_Agenda patroon):
+  · C_AddOns.LoadAddOn("Blizzard_Calendar") op PLAYER_LOGIN (LoD!)
+  · C_Timer.After(8) eerste scan — kalender moet initialiseren
+  · SetAbsMonth vóór scan · event UNregistered tijdens scan (loop!)
+  · Scant maand 0+1, filtert GUILD_EVENT/GUILD_ANNOUNCEMENT,
+    alleen toekomstig, gesorteerd
+  · API: DT_GetGuildEvents() → {date,time,title,eventType,inviteStatus}
+  · Re-scan gedebounced (2s) op CALENDAR_UPDATE_EVENT_LIST
+  VOLGENDE STAP: weergave in Events tab + ticker (UI-integratie).
+```
