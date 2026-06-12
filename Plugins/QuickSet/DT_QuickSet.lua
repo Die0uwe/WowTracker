@@ -415,10 +415,18 @@ local function StyleTile(t, d, isBountiful, isNemesis)
         t:SetBackdropColor(0.08, 0.00, 0.12, 0.95)
         t:SetBackdropBorderColor(1.0, 0.20, 0.90, 0.85)
         t.stripe:SetColorTexture(1.0, 0.20, 0.90, 1)
-        t.badge:SetColorTexture(0, 0, 0, 0)
+        -- v3.1.5 (Fase 2.4): Abundance CHIP badge op de Nemesis tile —
+        -- groene badge met shard-count als Abundant Harvest actief is
+        local abData = DT_GetAbundanceData and DT_GetAbundanceData()
+        if abData and abData.active then
+            t.badge:SetColorTexture(0.10, 0.45, 0.18, 0.92)
+            t.badgeTxt:SetText("|cffccffccCHIP "..(abData.shards or 0).."|r")
+        else
+            t.badge:SetColorTexture(0, 0, 0, 0)
+            t.badgeTxt:SetText("")
+        end
         t.glowBar:SetColorTexture(1.0, 0.30, 1.0, 1)
         t.glowLeft:SetColorTexture(1.0, 0.30, 1.0, 1)
-        t.badgeTxt:SetText("")
         t.typeTxt:SetText(CO.magenta .. "Nemesis Delve")
         t._gr, t._gg, t._gb = 1.0, 0.30, 1.0
         t._br, t._bg, t._bb, t._ba = 1.0, 0.20, 0.90, 0.85
@@ -458,6 +466,20 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             GameTooltip:AddLine(CO.orange .. "Bountiful Delve|r")
         elseif isNemesis then
             GameTooltip:AddLine(CO.magenta .. "Nemesis Delve|r")
+            -- v3.1.5 (Fase 2.4): Abundance vendor + farm route hint
+            local abData = DT_GetAbundanceData and DT_GetAbundanceData()
+            if abData and abData.active then
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine(CO.green .. "Abundant Harvest actief: " .. CO.white .. (abData.zone or "?") .. "|r")
+                if abData.secondsLeft and abData.secondsLeft > 0 and DT_FormatAbundanceTime then
+                    GameTooltip:AddLine(CO.gray .. "Resterend: " .. CO.orange .. DT_FormatAbundanceTime(abData.secondsLeft) .. "|r")
+                end
+                GameTooltip:AddLine(CO.gray .. "Shard of Dundun: " .. CO.white .. (abData.shards or 0) .. "|r")
+                GameTooltip:AddLine(CO.gray .. "Chip vendor: " .. CO.blue .. "Chel the Chip|r")
+                GameTooltip:AddLine(CO.gray .. "Farm route: doe de Nemesis delve in de actieve zone|r")
+            else
+                GameTooltip:AddLine(CO.gray .. "Chip vendor: " .. CO.blue .. "Chel the Chip|r" .. CO.gray .. " (Abundance niet actief)|r")
+            end
         else
             GameTooltip:AddLine(CO.gray .. "Delve|r")
         end

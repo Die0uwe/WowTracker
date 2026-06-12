@@ -1008,3 +1008,15 @@ NIEUW: 16px icoon per online lid vóór de naam —
 Naam schuift van x=12 naar x=30. DT_SetRaceIcon is file-level local
 vóór deze functie gedefinieerd → in scope.
 ```
+
+## Abundance chip op Nemesis tile — v3.1.5 (Fase 2.4, sessie 2026-06-12)
+```
+BADGE: t.badge (rechts op tile, bij Nemesis voorheen transparant) wordt
+  groen "CHIP <shards>" als DT_GetAbundanceData().active — hergebruik
+  van bestaande badge-elementen, nul nieuwe frames.
+TOOLTIP: Nemesis tooltip toont nu zone + resterende tijd
+  (DT_FormatAbundanceTime) + Shard of Dundun count + vendor
+  "Chel the Chip" + farm route hint. Inactief: vendor-regel met notitie.
+DATA: DT_GetAbundanceData (DT_events.lua) → {active, zone, secondsLeft,
+  shards} — globaal, guard met "and" check (plugin kan uit staan).
+```
