@@ -1054,3 +1054,24 @@ ROSTER LEGE VAKJES: race nil/"" (char niet ingelogd sinds scan-fix)
 WARBANK KNOP: footer, links van Debug, toggle via SlashCmdList
   ["WARBANKBUDDY"] — frame-onafhankelijk, werkt ook als plugin laat laadt.
 ```
+
+## Dynamische race/class atlassen — v3.1.8 (gids DieOuwe, sessie 2026-06-12)
+```
+NIEUWE OFFICIËLE APIs (gids "Karaktericonen WoW 12.0.5"):
+  GetRaceAtlas(clientFileString, gender, isFullBody)
+    → genereert atlas naam dynamisch ("raceicon-human-male")
+    → clientFileString = raceTag (2e return UnitRace), gender = "male"/"female"
+    → NU STAP 0 in DT_SetRaceIcon (pcall + GetAtlasInfo validatie),
+      geverifieerde tabel blijft als fallback-keten
+  GetClassAtlas(classFile) → "classicon-warrior" — moderne class iconen,
+    nu eerste keuze in roster class-fallback (legacy Icons-Classes erna)
+  C_CreatureInfo.GetRaceInfo(raceID) / GetFactionInfo(raceID)
+  UnitRace("player") → 3 RETURNS: localizedName, raceTag, raceID
+    → raceID wordt nu OOK opgeslagen in de scan (d.raceID)
+  C_GameData.GetPlayableRaces() BESTAAT NIET (publieke API) — niet gebruiken
+  DisplayID's: ALLEEN voor DressUpModel:SetDisplayInfo, NOOIT SetTexture
+RACE IDs 12.0.5: 1-11,22,24,25,26-32,34,35,36(Dracthyr),37(Haranir)
+GIF-VALIDATIE: portretten, warband stats, Warbank knop, VALUTA taal — alle
+  v3.1.7 fixes bevestigd werkend. "Tome"-icoon = 134400 vraagteken van
+  v3.1.6; v3.1.7+ class-fallback vervangt dat.
+```

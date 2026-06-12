@@ -995,6 +995,20 @@ local function DT_SetRaceIcon(texture, raceName, gender)
     local rName = raceName or "Human"
     local gStr  = (tonumber(gender) == 3) and "female" or "male"
 
+    -- ── STAP 0 (v3.1.8, gids DieOuwe): officiële GetRaceAtlas API ──
+    -- GetRaceAtlas(clientFileString, gender, isFullBody) genereert de
+    -- atlas naam dynamisch — toekomstbestendig voor nieuwe rassen.
+    -- Altijd valideren met GetAtlasInfo vóór gebruik.
+    if GetRaceAtlas then
+        local okA, dynAtlas = pcall(GetRaceAtlas, rName, gStr, true)
+        if okA and dynAtlas and C_Texture and C_Texture.GetAtlasInfo
+           and C_Texture.GetAtlasInfo(dynAtlas) then
+            texture:SetAtlas(dynAtlas)
+            texture:SetTexCoord(0,1,0,1)
+            return true
+        end
+    end
+
     local shortName = RaceIconShortName[rName]
     if not shortName then
         -- Dynamische fallback voor onbekende toekomstige rassen
@@ -1095,13 +1109,21 @@ WT_UpdateRoster = function()
             gotIcon = DT_SetRaceIcon(card.rIcon, raceTag, data.gender or data.sex)
         end
         if not gotIcon then
-            local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
-            if coords then
-                card.rIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
-                card.rIcon:SetTexCoord(unpack(coords))
+            -- v3.1.8: moderne GetClassAtlas eerst (gids DieOuwe), dan legacy
+            local clsAtlas = GetClassAtlas and data.class and GetClassAtlas(data.class)
+            if clsAtlas and C_Texture and C_Texture.GetAtlasInfo
+               and C_Texture.GetAtlasInfo(clsAtlas) then
+                card.rIcon:SetAtlas(clsAtlas)
+                card.rIcon:SetTexCoord(0,1,0,1)
             else
-                card.rIcon:SetTexture(134400)
-                card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+                local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+                if coords then
+                    card.rIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                    card.rIcon:SetTexCoord(unpack(coords))
+                else
+                    card.rIcon:SetTexture(134400)
+                    card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+                end
             end
         end
         card.rIcon:SetAlpha(1.0)
@@ -2034,8 +2056,9 @@ ScanDelves = function()
     end
     -- KENNISBANK REGEL: UnitRace() geeft TWEE waarden — gebruik ALTIJD de
     -- tweede (CamelCase raceTag: "Scourge", "BloodElf", "NightElf", ...)
-    local _, raceTag = UnitRace("player")
+    local _, raceTag, raceID = UnitRace("player")
     d.race = raceTag or d.race
+    d.raceID = raceID or d.raceID   -- v3.1.8: voor C_CreatureInfo routes
     -- UnitSex() geeft getal: 2=male, 3=female — opslaan als GETAL
     d.sex = UnitSex("player") or d.sex
     d.gender = d.sex   -- alias conform kennisbank veldnaam
