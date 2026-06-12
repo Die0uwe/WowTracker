@@ -1104,3 +1104,27 @@ Volledige analyses gepusht naar Die0uwe/project-brain:
 - docs/knowledge/race-icons-definitief.md (geconsolideerd: Constants v3.5.x
   + 2 gidsen; GetRaceAtlas keten; C_GameData bestaat NIET)
 Stappenplan: Fase 1+2 ✅ · Fase 4 (Midnight compliance) toegevoegd.
+
+## Volledige i18n Core — v3.2.0 (Fase 3.1, sessie 2026-06-12)
+```
+ARCHITECTUUR: WT_LANG (5 talen × ~35 sleutels) + WT_T() + WT_SetLangTable
+  staan nu BOVENAAN de file (na C_2002) zodat WT_T() overal bruikbaar is.
+  WT_ApplyLanguage blijft ná tabBtns (heeft die upvalues nodig).
+PATROON: statische labels → ververst door WT_ApplyLanguage;
+  dynamische teksten (tooltips, menu's, status) → WT_T() op bouw-moment
+  (menu's en tooltips bouwen bij elke open → automatisch juiste taal).
+33 STRINGS omgezet: tabs, MOTD, guild teksten, roster/currency headers,
+  ticker menu (titel+4 items+alles aan/uit), thema/taal menu titels,
+  filter placeholder, Lvl, armory, tooltip "geen op dit karakter",
+  schaal, warband stats, admin panel (titel/labels/sliders/AAN-UIT).
+SCOPE LESSEN:
+  · Lua functies zien alleen locals die VÓÓR de definitie staan —
+    scaleLbl (footer, regel ~2050) onbereikbaar voor ApplyLanguage
+    (regel ~750) → opgelost via UI.scaleLbl referentie.
+  · Filter placeholder: tekstvergelijking vervangt door _isPlaceholder
+    flag — taalwissel-proof (oude tekst matcht anders nooit meer).
+  · Admin panel labels: refresh bij ToggleAdminPanel (elegant — panel
+    is gesloten tijdens taalwissel).
+RONDE 2 (open): plugin-strings (QuickSet tooltips, Registry, Lockout
+  etc.) — zelfde patroon, per plugin.
+```

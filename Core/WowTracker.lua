@@ -34,6 +34,132 @@ local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
 
+-- ════════════════════════════════════════════════════════════════════
+-- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
+-- Bovenaan zodat WT_T() overal beschikbaar is. Statische labels worden
+-- ververst door WT_ApplyLanguage; dynamische teksten (tooltips, status)
+-- roepen WT_T() aan op bouw-moment → automatisch juiste taal.
+-- ════════════════════════════════════════════════════════════════════
+local WT_LANG = {
+["Nederlands"] = {
+    TAB_GUILD="GUILD", TAB_DELVES="DELVES", TAB_BOUNTY="BOUNTY",
+    TAB_ROSTER="ROSTER", TAB_ARMORY="ARMORY", TAB_CURRENCY="VALUTA",
+    MOTD_LABEL="─── Bericht van de dag ───", NO_GUILD="Geen guild",
+    NO_GUILD_MEMBER="Geen guild lid.", NO_MOTD="Geen MOTD ingesteld.",
+    LOADING="Laden...", ONLINE_HDR="Online leden",
+    TICKER_TITLE="Ticker inhoud", TICK_EVENTS="World Events (actief + aankomend)",
+    TICK_PREY="Prey Hunt status", TICK_GUILD="Guild online teller",
+    TICK_TIME="Server tijd", ALL_ON="Alles aan", ALL_OFF="Alles uit",
+    THEME_TITLE="Thema kiezen", LANG_TITLE="Taal / Language",
+    THEME_SET="Thema", LANG_SET="Taal",
+    ROSTER_HDR="Karakter Index", ROSTER_HINT="(klik = Armory)",
+    CUR_HDR="Warband Currencies", CUR_HINT="(alle karakters)",
+    CUR_FILTER="Filter currency naam...", NONE_ON_CHAR="Geen op dit karakter",
+    ARMORY_LOADING="Armory laadt... gebruik /charmory eenmalig",
+    SCALE="Schaal", ADMIN_TITLE="WowTracker Admin",
+    UI_SCALE="UI schaal", MURLOC_SCALE="Murloc schaal",
+    COMBAT_ALERT="Combat alert", ON="AAN", OFF="UIT",
+    PLUGINS="Plugins", PLUGINS_HINT="(uit = verborgen na /reload)",
+    CHARS="chars", WARBAND_GOLD="warband gold", LVL="Lvl",
+},
+["English"] = {
+    TAB_GUILD="GUILD", TAB_DELVES="DELVES", TAB_BOUNTY="BOUNTY",
+    TAB_ROSTER="ROSTER", TAB_ARMORY="ARMORY", TAB_CURRENCY="CURRENCY",
+    MOTD_LABEL="─── Message of the Day ───", NO_GUILD="Not in a guild",
+    NO_GUILD_MEMBER="Not a guild member.", NO_MOTD="No MOTD set.",
+    LOADING="Loading...", ONLINE_HDR="Online members",
+    TICKER_TITLE="Ticker content", TICK_EVENTS="World Events (active + upcoming)",
+    TICK_PREY="Prey Hunt status", TICK_GUILD="Guild online counter",
+    TICK_TIME="Server time", ALL_ON="All on", ALL_OFF="All off",
+    THEME_TITLE="Choose theme", LANG_TITLE="Taal / Language",
+    THEME_SET="Theme", LANG_SET="Language",
+    ROSTER_HDR="Character Index", ROSTER_HINT="(click = Armory)",
+    CUR_HDR="Warband Currencies", CUR_HINT="(all characters)",
+    CUR_FILTER="Filter currency name...", NONE_ON_CHAR="None on this character",
+    ARMORY_LOADING="Armory loading... use /charmory once",
+    SCALE="Scale", ADMIN_TITLE="WowTracker Admin",
+    UI_SCALE="UI scale", MURLOC_SCALE="Murloc scale",
+    COMBAT_ALERT="Combat alert", ON="ON", OFF="OFF",
+    PLUGINS="Plugins", PLUGINS_HINT="(off = hidden after /reload)",
+    CHARS="chars", WARBAND_GOLD="warband gold", LVL="Lvl",
+},
+["Deutsch"] = {
+    TAB_GUILD="GILDE", TAB_DELVES="TIEFEN", TAB_BOUNTY="KOPFGELD",
+    TAB_ROSTER="KADER", TAB_ARMORY="KAMMER", TAB_CURRENCY="WÄHRUNG",
+    MOTD_LABEL="─── Nachricht des Tages ───", NO_GUILD="Keine Gilde",
+    NO_GUILD_MEMBER="Kein Gildenmitglied.", NO_MOTD="Keine MOTD gesetzt.",
+    LOADING="Laden...", ONLINE_HDR="Online Mitglieder",
+    TICKER_TITLE="Ticker Inhalt", TICK_EVENTS="Weltereignisse (aktiv + kommend)",
+    TICK_PREY="Prey Hunt Status", TICK_GUILD="Gilde online Zähler",
+    TICK_TIME="Serverzeit", ALL_ON="Alles an", ALL_OFF="Alles aus",
+    THEME_TITLE="Thema wählen", LANG_TITLE="Taal / Language",
+    THEME_SET="Thema", LANG_SET="Sprache",
+    ROSTER_HDR="Charakter-Index", ROSTER_HINT="(Klick = Kammer)",
+    CUR_HDR="Kriegsmeute Währungen", CUR_HINT="(alle Charaktere)",
+    CUR_FILTER="Währungsname filtern...", NONE_ON_CHAR="Keine auf diesem Charakter",
+    ARMORY_LOADING="Kammer lädt... nutze /charmory einmal",
+    SCALE="Skalierung", ADMIN_TITLE="WowTracker Admin",
+    UI_SCALE="UI Skalierung", MURLOC_SCALE="Murloc Skalierung",
+    COMBAT_ALERT="Kampf-Alarm", ON="AN", OFF="AUS",
+    PLUGINS="Plugins", PLUGINS_HINT="(aus = versteckt nach /reload)",
+    CHARS="Chars", WARBAND_GOLD="Kriegsmeute Gold", LVL="Stufe",
+},
+["Français"] = {
+    TAB_GUILD="GUILDE", TAB_DELVES="GOUFFRES", TAB_BOUNTY="PRIME",
+    TAB_ROSTER="EFFECTIF", TAB_ARMORY="ARSENAL", TAB_CURRENCY="MONNAIE",
+    MOTD_LABEL="─── Message du Jour ───", NO_GUILD="Sans guilde",
+    NO_GUILD_MEMBER="Pas membre de guilde.", NO_MOTD="Aucun MOTD défini.",
+    LOADING="Chargement...", ONLINE_HDR="Membres en ligne",
+    TICKER_TITLE="Contenu du ticker", TICK_EVENTS="Événements (actifs + à venir)",
+    TICK_PREY="Statut Prey Hunt", TICK_GUILD="Compteur guilde en ligne",
+    TICK_TIME="Heure serveur", ALL_ON="Tout activer", ALL_OFF="Tout désactiver",
+    THEME_TITLE="Choisir un thème", LANG_TITLE="Taal / Language",
+    THEME_SET="Thème", LANG_SET="Langue",
+    ROSTER_HDR="Index des personnages", ROSTER_HINT="(clic = Arsenal)",
+    CUR_HDR="Monnaies du Bataillon", CUR_HINT="(tous les personnages)",
+    CUR_FILTER="Filtrer le nom...", NONE_ON_CHAR="Aucune sur ce personnage",
+    ARMORY_LOADING="Arsenal en chargement... utilisez /charmory une fois",
+    SCALE="Échelle", ADMIN_TITLE="WowTracker Admin",
+    UI_SCALE="Échelle UI", MURLOC_SCALE="Échelle Murloc",
+    COMBAT_ALERT="Alerte combat", ON="OUI", OFF="NON",
+    PLUGINS="Plugins", PLUGINS_HINT="(off = caché après /reload)",
+    CHARS="persos", WARBAND_GOLD="or du bataillon", LVL="Niv",
+},
+["Español"] = {
+    TAB_GUILD="HERMANDAD", TAB_DELVES="SIMAS", TAB_BOUNTY="RECOMPENSA",
+    TAB_ROSTER="PLANTILLA", TAB_ARMORY="ARMERÍA", TAB_CURRENCY="MONEDA",
+    MOTD_LABEL="─── Mensaje del Día ───", NO_GUILD="Sin hermandad",
+    NO_GUILD_MEMBER="No es miembro.", NO_MOTD="Sin MOTD.",
+    LOADING="Cargando...", ONLINE_HDR="Miembros en línea",
+    TICKER_TITLE="Contenido del ticker", TICK_EVENTS="Eventos (activos + próximos)",
+    TICK_PREY="Estado Prey Hunt", TICK_GUILD="Contador hermandad",
+    TICK_TIME="Hora del servidor", ALL_ON="Todo sí", ALL_OFF="Todo no",
+    THEME_TITLE="Elegir tema", LANG_TITLE="Taal / Language",
+    THEME_SET="Tema", LANG_SET="Idioma",
+    ROSTER_HDR="Índice de personajes", ROSTER_HINT="(clic = Armería)",
+    CUR_HDR="Monedas de la Banda", CUR_HINT="(todos los personajes)",
+    CUR_FILTER="Filtrar nombre...", NONE_ON_CHAR="Ninguna en este personaje",
+    ARMORY_LOADING="Armería cargando... usa /charmory una vez",
+    SCALE="Escala", ADMIN_TITLE="WowTracker Admin",
+    UI_SCALE="Escala UI", MURLOC_SCALE="Escala Murloc",
+    COMBAT_ALERT="Alerta de combate", ON="SÍ", OFF="NO",
+    PLUGINS="Plugins", PLUGINS_HINT="(off = oculto tras /reload)",
+    CHARS="pjs", WARBAND_GOLD="oro de banda", LVL="Nv",
+},
+}
+local _WT_T = WT_LANG["Nederlands"]
+
+-- Vertaling ophalen (fallback NL → key zelf)
+function WT_T(key)
+    return (_WT_T and _WT_T[key]) or WT_LANG["Nederlands"][key] or key
+end
+
+-- Interne setter — WT_ApplyLanguage (verderop) gebruikt deze
+function WT_SetLangTable(lang)
+    _WT_T = WT_LANG[lang] or WT_LANG["Nederlands"]
+    return _WT_T
+end
+
 -- Layout
 local UI_W       = 760
 local UI_H       = 580
@@ -120,21 +246,21 @@ TickerClip:SetScript("OnClick", function(self)
     }
     local ts = DelveTrackerDB.tickerShow
     MenuUtil.CreateContextMenu(self, function(_, root)
-        root:CreateTitle(SA_PURPLE.."Ticker inhoud|r")
+        root:CreateTitle(SA_PURPLE..WT_T("TICKER_TITLE").."|r")
         local function ToggleItem(key, label)
             local checked = ts[key] ~= false
             root:CreateCheckbox(label, function() return ts[key]~=false end,
                 function() ts[key] = not (ts[key]~=false); tickerDirty=true end)
         end
-        ToggleItem("events",  "World Events (actief + aankomend)")
-        ToggleItem("prey",    "Prey Hunt status")
-        ToggleItem("guild",   "Guild online teller")
-        ToggleItem("time",    "Server tijd")
+        ToggleItem("events",  WT_T("TICK_EVENTS"))
+        ToggleItem("prey",    WT_T("TICK_PREY"))
+        ToggleItem("guild",   WT_T("TICK_GUILD"))
+        ToggleItem("time",    WT_T("TICK_TIME"))
         root:CreateDivider()
-        root:CreateButton("Alles aan", function()
+        root:CreateButton(WT_T("ALL_ON"), function()
             for k in pairs(ts) do ts[k]=true end; tickerDirty=true
         end)
-        root:CreateButton("Alles uit", function()
+        root:CreateButton(WT_T("ALL_OFF"), function()
             for k in pairs(ts) do ts[k]=false end; tickerDirty=true
         end)
     end)
@@ -288,7 +414,7 @@ UI.charInfo:SetFont(C_2002,11,"OUTLINE")
 UI.charInfo:SetPoint("TOPLEFT",UI.versionTxt,"BOTTOMLEFT",0,-4)
 UI.charInfo:SetPoint("RIGHT",UI,"RIGHT",-120,0)
 UI.charInfo:SetJustifyH("LEFT")
-UI.charInfo:SetText(SA_GREY.."Laden...|r")
+UI.charInfo:SetText(SA_GREY..WT_T("LOADING").."|r")
 
 -- ── WARBAND STATS (herbouw v3.0.7 — Fase 1.2) ────────────────────────────
 -- Totaal karakters + totaal goud (K/M suffix), rechts in de header
@@ -320,8 +446,8 @@ function WT_UpdateWarbandStats()
     end
     local gold = math.floor(copper/10000)
     UI.warbandStats:SetText(
-        SA_BLUE..chars.."|r"..SA_GREY.." chars  ·  |r"
-        ..SA_GOLD..WT_FmtGold(gold).."|r"..SA_GREY.." warband gold|r")
+        SA_BLUE..chars.."|r"..SA_GREY.." "..WT_T("CHARS").."  ·  |r"
+        ..SA_GOLD..WT_FmtGold(gold).."|r"..SA_GREY.." "..WT_T("WARBAND_GOLD").."|r")
 end
 
 -- Header knoppen: X · Tandwiel · [Theme] [Lang] — rechtsboven op één lijn
@@ -361,7 +487,7 @@ UI.themeBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0
 UI.themeBtn:SetScript("OnClick",function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
     MenuUtil.CreateContextMenu(self,function(_,root)
-        root:CreateTitle(SA_PURPLE.."Thema kiezen|r")
+        root:CreateTitle(SA_PURPLE..WT_T("THEME_TITLE").."|r")
         -- Gebruik WTTheme themes als die beschikbaar is
         if WTTheme and WTTheme.GetThemeNames then
             local names = WTTheme.GetThemeNames()
@@ -443,7 +569,7 @@ UI.langBtn:SetScript("OnClick",function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
     local langs = {"Nederlands","English","Deutsch","Français","Español"}
     MenuUtil.CreateContextMenu(self,function(_,root)
-        root:CreateTitle(SA_BLUE.."Taal / Language|r")
+        root:CreateTitle(SA_BLUE..WT_T("LANG_TITLE").."|r")
         local active = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
         for _,lang in ipairs(langs) do
             local l=lang
@@ -528,10 +654,10 @@ local function ShowTab(id)
             local gName = GetGuildInfo("player")
             Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r")
             local motd = WT_GetMOTD()
-            Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY.."Laden...|r")
+            Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY..WT_T("LOADING").."|r")
         else
-            Tab1.guildName:SetText(SA_GREY.."Geen guild|r")
-            Tab1.motdText:SetText(SA_GREY.."Geen guild lid.|r")
+            Tab1.guildName:SetText(SA_GREY..WT_T("NO_GUILD").."|r")
+            Tab1.motdText:SetText(SA_GREY..WT_T("NO_GUILD_MEMBER").."|r")
         end
         WT_UpdateGuildOnline()
 
@@ -598,76 +724,39 @@ for i,def in ipairs(tabDefs) do
     tabBtns[i]=b
 end
 
--- ── TAAL / LANGUAGE SYSTEEM ───────────────────────────────────────────────
--- Vertaaltabel per taal. Voeg hier strings toe naarmate de addon groeit.
--- Sleutel = interne ID, waarde = vertaalde string
-local WT_LANG = {
-    ["Nederlands"] = {
-        TAB_GUILD    = "GUILD",    TAB_DELVES   = "DELVES",
-        TAB_BOUNTY   = "BOUNTY",   TAB_ROSTER   = "ROSTER",
-        TAB_ARMORY   = "ARMORY",   TAB_CURRENCY = "VALUTA",
-        MOTD_LABEL   = "─── Bericht van de dag ───",
-        NO_GUILD     = "Geen guild",
-        LOADING      = "Laden...",
-    },
-    ["English"] = {
-        TAB_GUILD    = "GUILD",    TAB_DELVES   = "DELVES",
-        TAB_BOUNTY   = "BOUNTY",   TAB_ROSTER   = "ROSTER",
-        TAB_ARMORY   = "ARMORY",   TAB_CURRENCY = "CURRENCY",
-        MOTD_LABEL   = "─── Message of the Day ───",
-        NO_GUILD     = "Not in a guild",
-        LOADING      = "Loading...",
-    },
-    ["Deutsch"] = {
-        TAB_GUILD    = "GILDE",    TAB_DELVES   = "TAUCHEN",
-        TAB_BOUNTY   = "KOPFGELD", TAB_ROSTER   = "KADER",
-        TAB_ARMORY   = "KAMMER",   TAB_CURRENCY = "WÄHRUNG",
-        MOTD_LABEL   = "─── Nachricht des Tages ───",
-        NO_GUILD     = "Keine Gilde",
-        LOADING      = "Laden...",
-    },
-    ["Français"] = {
-        TAB_GUILD    = "GUILDE",   TAB_DELVES   = "PLONGÉES",
-        TAB_BOUNTY   = "PRIME",    TAB_ROSTER   = "EFFECTIF",
-        TAB_ARMORY   = "ARSENAL",  TAB_CURRENCY = "MONNAIE",
-        MOTD_LABEL   = "─── Message du Jour ───",
-        NO_GUILD     = "Sans guilde",
-        LOADING      = "Chargement...",
-    },
-    ["Español"] = {
-        TAB_GUILD    = "HERMANDAD",TAB_DELVES   = "BUCEOS",
-        TAB_BOUNTY   = "RECOMPENSA",TAB_ROSTER  = "PLANTILLA",
-        TAB_ARMORY   = "ARMERÍA",  TAB_CURRENCY = "MONEDA",
-        MOTD_LABEL   = "─── Mensaje del Día ───",
-        NO_GUILD     = "Sin hermandad",
-        LOADING      = "Cargando...",
-    },
-}
--- Actieve vertaaltabel (default Nederlands)
-local _WT_T = WT_LANG["Nederlands"]
-
--- Hulpfunctie: vertaling ophalen (fallback naar Nederlands)
-function WT_T(key)
-    return (_WT_T and _WT_T[key]) or (WT_LANG["Nederlands"][key]) or key
-end
-
--- Pas alle UI teksten aan aan de opgeslagen taalinstelling
+-- (taalsysteem verplaatst naar boven — v3.2.0)
 function WT_ApplyLanguage(lang)
     lang = lang or (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
-    _WT_T = WT_LANG[lang] or WT_LANG["Nederlands"]
-    -- Tab labels bijwerken
+    -- v3.2.0: tabel staat bovenaan — via setter (upvalue daar)
+    WT_SetLangTable(lang)
+    -- Tab labels
     local tabKeys = {"TAB_GUILD","TAB_DELVES","TAB_BOUNTY","TAB_ROSTER","TAB_ARMORY","TAB_CURRENCY"}
     for i, b in ipairs(tabBtns) do
         if b and b.lbl and tabKeys[i] then
             local def = tabDefs[i]
             local col = def and def.col or "|cffffffff"
-            b.lbl:SetText(col .. (_WT_T[tabKeys[i]] or def.label) .. "|r")
+            b.lbl:SetText(col .. WT_T(tabKeys[i]) .. "|r")
         end
     end
-    -- MOTD label bijwerken als Tab1 al bestaat
+    -- Statische labels (v3.2.0 — VOLLEDIG)
     if Tab1 and Tab1.motdLabel then
-        Tab1.motdLabel:SetText(SA_PURPLE..(_WT_T.MOTD_LABEL or "─── Bericht van de dag ───").."|r")
+        Tab1.motdLabel:SetText(SA_PURPLE..WT_T("MOTD_LABEL").."|r")
     end
+    if Tab4 and Tab4.hdr then
+        Tab4.hdr:SetText(SA_PURPLE..WT_T("ROSTER_HDR").."|r  "..SA_GREY..WT_T("ROSTER_HINT").."|r")
+    end
+    if Tab6 and Tab6.hdr then
+        Tab6.hdr:SetText(SA_GOLD..WT_T("CUR_HDR").."|r  "..SA_GREY..WT_T("CUR_HINT").."|r")
+    end
+    -- Filter placeholder alleen vervangen als hij placeholder toont
+    if Tab6 and Tab6.searchBox and Tab6.searchBox._isPlaceholder then
+        Tab6.searchBox:SetText(WT_T("CUR_FILTER"))
+    end
+    if UI.scaleLbl then
+        UI.scaleLbl:SetText(SA_GREY..WT_T("SCALE").."|r")
+    end
+    -- Warband stats hertekenen in nieuwe taal
+    if WT_UpdateWarbandStats then WT_UpdateWarbandStats() end
 end
 
 local TabLine=UI:CreateTexture(nil,"OVERLAY")
@@ -705,7 +794,7 @@ Tab1.motdText:SetWidth(GUILD_LEFT_W-60)
 Tab1.motdText:SetJustifyH("CENTER")
 Tab1.motdText:SetWordWrap(true)
 Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
-Tab1.motdText:SetText(SA_GREY.."Laden...|r")
+Tab1.motdText:SetText(SA_GREY..WT_T("LOADING").."|r")
 -- MOTD hoogte begrenzen — max tot halverwege de tab (Kelsey staat onderin)
 Tab1.motdText:SetMaxLines(4)
 
@@ -880,7 +969,7 @@ Tab4.PluginArea:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",0,0)
 Tab4.hdr=Tab4:CreateFontString(nil,"OVERLAY")
 Tab4.hdr:SetFont(C_2002,13,"OUTLINE")
 Tab4.hdr:SetPoint("TOPLEFT",Tab4,"TOPLEFT",12,-10)
-Tab4.hdr:SetText(SA_PURPLE.."Karakter Index|r  "..SA_GREY.."(klik = Armory)|r")
+Tab4.hdr:SetText(SA_PURPLE..WT_T("ROSTER_HDR").."|r  "..SA_GREY..WT_T("ROSTER_HINT").."|r")
 -- Scroll voor roster
 Tab4.scroll=CreateFrame("ScrollFrame",nil,Tab4,"UIPanelScrollFrameTemplate")
 Tab4.scroll:SetPoint("TOPLEFT",Tab4,"TOPLEFT",1,-32)
@@ -903,7 +992,7 @@ Tab6.PluginArea:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",0,0)
 Tab6.hdr=Tab6:CreateFontString(nil,"OVERLAY")
 Tab6.hdr:SetFont(C_2002,12,"OUTLINE")
 Tab6.hdr:SetPoint("TOPLEFT",Tab6,"TOPLEFT",8,-8)
-Tab6.hdr:SetText(SA_GOLD.."Warband Currencies|r  "..SA_GREY.."(alle karakters)|r")
+Tab6.hdr:SetText(SA_GOLD..WT_T("CUR_HDR").."|r  "..SA_GREY..WT_T("CUR_HINT").."|r")
 
 -- Zoekbalk / filter
 Tab6.searchBox=CreateFrame("EditBox",nil,Tab6,"BackdropTemplate")
@@ -913,13 +1002,13 @@ Tab6.searchBox:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Inte
 Tab6.searchBox:SetBackdropColor(0.04,0.02,0.08,0.95)
 Tab6.searchBox:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
 Tab6.searchBox:SetFontObject("ChatFontNormal")
-Tab6.searchBox:SetText("Filter currency naam...")
+Tab6.searchBox:SetText(WT_T("CUR_FILTER")); Tab6.searchBox._isPlaceholder=true
 Tab6.searchBox:SetAutoFocus(false)
 Tab6.searchBox:SetScript("OnEditFocusGained",function(s)
-    if s:GetText()=="Filter currency naam..." then s:SetText("") end
+    if s._isPlaceholder then s:SetText(""); s._isPlaceholder=false end
 end)
 Tab6.searchBox:SetScript("OnEditFocusLost",function(s)
-    if s:GetText()=="" then s:SetText("Filter currency naam...") end
+    if s:GetText()=="" then s:SetText(WT_T("CUR_FILTER")); s._isPlaceholder=true end
 end)
 Tab6.searchBox:SetScript("OnTextChanged",function()
     if WT_UpdateCurrency then WT_UpdateCurrency() end
@@ -1210,7 +1299,7 @@ WT_UpdateRoster = function()
         card.sp = card.sp or card:CreateFontString(nil,"OVERLAY")
         card.sp:SetFont(C_2002,9,"")
         card.sp:SetPoint("TOPLEFT",card.nm,"BOTTOMLEFT",0,-1)
-        card.sp:SetText(SA_GREY.."Lvl "..(data.level or "?").." · "..(data.spec or "??").."|r")
+        card.sp:SetText(SA_GREY..WT_T("LVL").." "..(data.level or "?").." · "..(data.spec or "??").."|r")
 
         -- ── iLvl groot rechtsboven kaartje ────────────────────────────
         card.ilvlTxt = card.ilvlTxt or card:CreateFontString(nil,"OVERLAY")
@@ -1324,7 +1413,7 @@ WT_ShowArmory = function()
             Tab5.loadTxt=Tab5:CreateFontString(nil,"OVERLAY")
             Tab5.loadTxt:SetFont(C_2002,12,"")
             Tab5.loadTxt:SetPoint("CENTER")
-            Tab5.loadTxt:SetText(SA_GREY.."Armory laadt... gebruik /charmory eenmalig|r")
+            Tab5.loadTxt:SetText(SA_GREY..WT_T("ARMORY_LOADING").."|r")
         end
         return
     end
@@ -1805,7 +1894,7 @@ WT_UpdateCurrency = function()
                 GameTooltip:AddLine(def.col..lbl.."|r")
                 GameTooltip:AddLine(SA_GREY..sn..": |cffffffff"..vl.."|r")
                 if def.expac then GameTooltip:AddLine(SA_GREY..def.expac.."|r") end
-                if vl==0 then GameTooltip:AddLine("|cffff5555Geen op dit karakter|r") end
+                if vl==0 then GameTooltip:AddLine("|cffff5555"..WT_T("NONE_ON_CHAR").."|r") end
                 GameTooltip:Show()
             end)
             card:SetScript("OnLeave",function(self)
@@ -1842,7 +1931,7 @@ guildEventFrame:SetScript("OnEvent", function(_, event, arg1)
     -- MOTD via cache (nooit protected call)
     local motd = WT_GetMOTD()
     if Tab1.motdText then
-        Tab1.motdText:SetText(motd ~= "" and (SA_GREY..motd.."|r") or SA_GREY.."Geen MOTD ingesteld.|r")
+        Tab1.motdText:SetText(motd ~= "" and (SA_GREY..motd.."|r") or SA_GREY..WT_T("NO_MOTD").."|r")
     end
     WT_UpdateGuildOnline()
 end)
@@ -1886,9 +1975,10 @@ scaleValTxt:SetText("1.00")
 scaleValTxt:SetTextColor(0.75,0.55,1,1)
 
 local scaleLbl=UI:CreateFontString(nil,"OVERLAY")
+UI.scaleLbl=scaleLbl   -- v3.2.0: bereikbaar voor WT_ApplyLanguage
 scaleLbl:SetFont(C_2002,9,"")
 scaleLbl:SetPoint("BOTTOM",scaleValTxt,"TOP",0,2)
-scaleLbl:SetText(SA_GREY.."Schaal|r")
+scaleLbl:SetText(SA_GREY..WT_T("SCALE").."|r")
 
 local function MakeScaleBtn(lbl,xOff,fn)
     local b=CreateFrame("Button",nil,UI,"BackdropTemplate")
@@ -2466,11 +2556,11 @@ local function MakeSlider(parent, y, label, minV, maxV, getV, setV)
 end
 
 -- ── Sectie: sliders ─────────────────────────────────────────────────────
-local refreshUIScale = MakeSlider(AP, -42, "UI schaal", 0.5, 2.0,
+local refreshUIScale = MakeSlider(AP, -42, WT_T("UI_SCALE"), 0.5, 2.0,
     function() return DelveTrackerDB.mainScale or 1.0 end,
     function(v) DelveTrackerDB.mainScale = v; UI:SetScale(v) end)
 
-local refreshMScale = MakeSlider(AP, -86, "Murloc schaal", 0.5, 2.0,
+local refreshMScale = MakeSlider(AP, -86, WT_T("MURLOC_SCALE"), 0.5, 2.0,
     function() return DelveTrackerDB.mScale or 1.0 end,
     function(v) DelveTrackerDB.mScale = v; if MBtn then MBtn:SetScale(v) end end)
 
@@ -2478,7 +2568,7 @@ local refreshMScale = MakeSlider(AP, -86, "Murloc schaal", 0.5, 2.0,
 local thLbl = AP:CreateFontString(nil, "OVERLAY")
 thLbl:SetFont(C_2002, 11, "OUTLINE")
 thLbl:SetPoint("TOPLEFT", 16, -132)
-thLbl:SetText(SA_BLUE.."Thema|r")
+thLbl:SetText(SA_BLUE..WT_T("THEME_SET").."|r")
 
 local apThemeBtns = {}
 local function RefreshThemeBtns()
@@ -2522,7 +2612,7 @@ end
 local taLbl = AP:CreateFontString(nil, "OVERLAY")
 taLbl:SetFont(C_2002, 11, "OUTLINE")
 taLbl:SetPoint("TOPLEFT", 16, -208)
-taLbl:SetText(SA_BLUE.."Taal / Language|r")
+taLbl:SetText(SA_BLUE..WT_T("LANG_TITLE").."|r")
 
 local apLangBtns = {}
 local function RefreshLangBtns()
@@ -2570,7 +2660,7 @@ caBtn:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
 local caTxt = caBtn:CreateFontString(nil, "OVERLAY")
 caTxt:SetFont(C_2002, 10, "OUTLINE"); caTxt:SetPoint("CENTER")
 local function RefreshCA()
-    caTxt:SetText("Combat alert: "..(DelveTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))
+    caTxt:SetText(WT_T("COMBAT_ALERT")..": "..(DelveTrackerDB.enableCombatAlert and "|cff44cc66"..WT_T("ON").."|r" or "|cffcc4444"..WT_T("OFF").."|r"))
 end
 caBtn:SetScript("OnClick", function()
     DelveTrackerDB.enableCombatAlert = not DelveTrackerDB.enableCombatAlert
@@ -2581,7 +2671,7 @@ end)
 local plLbl = AP:CreateFontString(nil, "OVERLAY")
 plLbl:SetFont(C_2002, 11, "OUTLINE")
 plLbl:SetPoint("TOPLEFT", 16, -296)
-plLbl:SetText(SA_BLUE.."Plugins|r  "..SA_GREY.."(uit = verborgen na /reload)|r")
+plLbl:SetText(SA_BLUE..WT_T("PLUGINS").."|r  "..SA_GREY..WT_T("PLUGINS_HINT").."|r")
 
 local plugScroll = CreateFrame("ScrollFrame", nil, AP, "UIPanelScrollFrameTemplate")
 plugScroll:SetPoint("TOPLEFT", 16, -312)
@@ -2615,7 +2705,7 @@ local function RefreshPluginList()
         row:SetBackdropColor(0.07, 0.03, 0.12, 0.9)
         row:SetBackdropBorderColor(enabled and 0.30 or 0.15, 0.08, enabled and 0.50 or 0.20, 0.8)
         row.txt:SetText((enabled and "|cffffffff" or SA_GREY)..n.."|r")
-        row.st:SetText(enabled and "|cff44cc66AAN|r" or "|cffcc4444UIT|r")
+        row.st:SetText(enabled and "|cff44cc66"..WT_T("ON").."|r" or "|cffcc4444"..WT_T("OFF").."|r")
         row:SetScript("OnClick", function()
             DelveTrackerDB.PluginStates[n] = not (DelveTrackerDB.PluginStates[n] ~= false)
             RefreshPluginList()
@@ -2628,6 +2718,11 @@ end
 -- ── Open/close koppeling ────────────────────────────────────────────────
 local function ToggleAdminPanel()
     if AP:IsShown() then AP:Hide() return end
+    -- v3.2.0: labels in actuele taal bij elk openen
+    thLbl:SetText(SA_BLUE..WT_T("THEME_SET").."|r")
+    taLbl:SetText(SA_BLUE..WT_T("LANG_TITLE").."|r")
+    plLbl:SetText(SA_BLUE..WT_T("PLUGINS").."|r  "..SA_GREY..WT_T("PLUGINS_HINT").."|r")
+    apTitle:SetText(SA_PURPLE..WT_T("ADMIN_TITLE").."|r  "..SA_GREY.."v3.2.0|r")
     refreshUIScale(); refreshMScale()
     RefreshThemeBtns(); RefreshLangBtns(); RefreshCA(); RefreshPluginList()
     AP:Show()
