@@ -48,6 +48,24 @@ if DelveTracker then
     })
     Registry:SetBackdropColor(0, 0, 0, 0.96); Registry:SetBackdropBorderColor(0.3, 0.1, 0.5, 0.5)
 
+    -- ── WTTHEME KOPPELING (Fase 3.2 · v3.2.7) ────────────────────────────
+    -- Register-callback werkt ALLEEN kleuren bij — bovenstaande hardcoded
+    -- waarden blijven de startwaarde, dus zonder WTTheme verandert niets.
+    if WTTheme and WTTheme.Register then
+        local function ApplyRegistryTheme()
+            local bg  = WTTheme.bg and WTTheme.bg.main
+            local bdr = WTTheme.border and WTTheme.border.main
+            if bg then
+                Registry:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.96, 0.94))
+            end
+            if bdr then
+                Registry:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, 0.7)
+            end
+        end
+        WTTheme.Register(ApplyRegistryTheme)
+        ApplyRegistryTheme()   -- direct toepassen op huidig actief thema
+    end
+
     -- Media & Decoratie
     Registry.iconDecor = Registry:CreateTexture(nil, "ARTWORK", nil, 0)
     Registry.iconDecor:SetSize(350, 350); Registry.iconDecor:SetPoint("CENTER", 0, -40)

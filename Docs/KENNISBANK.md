@@ -1222,3 +1222,24 @@ VAULT KNOP: footer, links van Warbank. Great Vault = LoD addon
 VERSIE-PROCEDURE WERKT: alleen WT_VERSION + TOC bump → 3.2.6.
   (Screenshot "v2.7.0" was een oude build — header toont nu live versie.)
 ```
+
+## WTTheme uitrol start — v3.2.7 (Fase 3.2, sessie 2026-06-13)
+```
+PATROON (template voor alle plugins met eigen frame):
+  if WTTheme and WTTheme.Register then
+      local function ApplyXTheme()
+          local bg  = WTTheme.bg and WTTheme.bg.main
+          local bdr = WTTheme.border and WTTheme.border.main
+          if bg then frame:SetBackdropColor(bg.r,bg.g,bg.b, max(bg.a,0.9)) end
+          if bdr then frame:SetBackdropBorderColor(bdr.r,bdr.g,bdr.b, 0.7) end
+      end
+      WTTheme.Register(ApplyXTheme)   -- live bij themawissel
+      ApplyXTheme()                   -- direct op actief thema
+  end
+  Hardcoded kleuren erboven BLIJVEN als startwaarde — zonder WTTheme
+  verandert niets (veilig degraderen).
+GEKOPPELD: Registry (DT_RegistryFrame), Charmory (DT_ArmoryFrame).
+GEEN EIGEN FRAME (kleuren al mee via core PluginArea): Lockout, QuickSet.
+NOG TE KOPPELEN: ClothCounter (F), Debugger, SkinNRare, ExchangeBot,
+  MailAttach, HelpGuide — zelfde template, volgende ronde.
+```

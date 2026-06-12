@@ -69,6 +69,18 @@ end
     Armory:SetBackdrop({bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1})
     Armory:SetBackdropColor(0, 0, 0, 0.9); Armory:SetBackdropBorderColor(0, 0, 0, 1)
 
+    -- ── WTTHEME KOPPELING (Fase 3.2 · v3.2.7) — kleuren-only callback ──
+    if WTTheme and WTTheme.Register then
+        local function ApplyArmoryTheme()
+            local bg  = WTTheme.bg and WTTheme.bg.main
+            local bdr = WTTheme.border and WTTheme.border.main
+            if bg then Armory:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.9, 0.9)) end
+            if bdr then Armory:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, 1) end
+        end
+        WTTheme.Register(ApplyArmoryTheme)
+        ApplyArmoryTheme()
+    end
+
     -- Shield: BACKGROUND laag -2, tot aan gold bar, achter gear+model+tekst
     Armory.bgShield = Armory:CreateTexture(nil, "BACKGROUND", nil, -2)
     Armory.bgShield:SetTexture("Interface\\AddOns\\WowTracker\\Media\\Shield.tga")
