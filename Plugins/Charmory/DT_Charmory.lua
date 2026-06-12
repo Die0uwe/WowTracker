@@ -190,13 +190,19 @@ end
     SecHdr("CM_GOLD", -372)
     local _,  vGold   = StatRow("CM_TOTAL",  -386)
 
+    local function RefreshI18NLabels()
+        for _, e in ipairs(I18N_LABELS) do
+            e.fs:SetText(e.hdr and ("── "..T(e.key).." ──") or T(e.key))
+        end
+    end
+    -- v3.2.4: óók bij elk openen van het Armory venster (niet alleen Fill)
+    Armory:HookScript("OnShow", RefreshI18NLabels)
+
     StatsPanel.Fill = function(data)
         if not data then StatsPanel:Hide(); return end
         StatsPanel:Show()
         -- v3.2.2: labels in actuele taal (frame is op file-load gebouwd)
-        for _, e in ipairs(I18N_LABELS) do
-            e.fs:SetText(e.hdr and ("── "..T(e.key).." ──") or T(e.key))
-        end
+        RefreshI18NLabels()
 
         -- Karakter
         local clr = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class] or {r=1,g=1,b=1}

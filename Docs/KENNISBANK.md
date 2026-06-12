@@ -1176,3 +1176,22 @@ KETEN: PLAYER_LOGIN → LoadAddOn(Blizzard_Calendar) → 8s delay →
   ScanGuildCalendar → WT_UpdateGuildEventsList → ticker pakt het mee
   bij eerstvolgende rebuild. GE_* sleutels in alle 5 talen.
 ```
+
+## Secret values IN HET WILD — v3.2.4 (sessie 2026-06-13)
+```
+EERSTE ECHTE secret-value crash gevangen (3x):
+  "attempt to index local 'msg' (a secret string value, while
+   execution tainted by 'WowTracker')" — CHAT_MSG_LOOT payload!
+BEVESTIGT het Midnight-model uit de analyse-PDF: CHAT_MSG_* payloads
+  zijn secret strings op tainted paths — msg:match/gmatch crasht.
+STANDAARD GUARD (verplicht in ELKE chat-event handler):
+  if issecretvalue and (issecretvalue(msg) or issecretvalue(sender))
+      then return end
+  if type(msg) ~= "string" then return end
+GEFIXT: ContentManager (loot+guild chat), ClothCounter (loot gmatch).
+AUDIT-REGEL: elke nieuwe CHAT_MSG/COMBAT_LOG handler krijgt deze guard.
+ARMORY i18n NALEVERING: labels verversen nu óók op Armory OnShow
+  (HookScript) — Fill alleen was niet genoeg als het paneel al open
+  stond of zonder her-selectie getest werd. Na taalwissel: venster
+  her-openen of karakter aanklikken.
+```

@@ -1218,7 +1218,12 @@ evtFrame:SetScript("OnEvent",function(self,event,...)
         else session.currentZone=nz end
         if F:IsShown() then F:UpdateUI() end
     elseif event=="CHAT_MSG_LOOT" then
-        local msg=...; local changed=false
+        local msg=...
+        -- SECRET-AWARE GUARD (Midnight 12.x): loot-berichten kunnen
+        -- secret strings zijn op tainted paths — gmatch crasht dan
+        if issecretvalue and issecretvalue(msg) then return end
+        if type(msg) ~= "string" then return end
+        local changed=false
         for link in msg:gmatch("|Hitem:(%d+):.-|h") do
             local id=tonumber(link)
             if id then

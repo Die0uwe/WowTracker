@@ -33,6 +33,11 @@ monitor:RegisterEvent("CHAT_MSG_LOOT")
 monitor:RegisterEvent("CHAT_MSG_GUILD")
 
 monitor:SetScript("OnEvent", function(_, event, msg, sender)
+    -- ── SECRET-AWARE GUARD (Midnight 12.x · kennisbank security model) ──
+    -- CHAT_MSG_* payloads kunnen SECRET strings zijn op tainted paths:
+    -- indexeren (msg:match) crasht dan. issecretvalue is de officiële check.
+    if issecretvalue and (issecretvalue(msg) or issecretvalue(sender)) then return end
+    if type(msg) ~= "string" then return end
     local timestamp = "|cff888888["..date("%H:%M").."]|r "
     if event == "CHAT_MSG_LOOT" then
         local itemLink = msg:match("(|Hitem.-|h%[.-%]|h)")
