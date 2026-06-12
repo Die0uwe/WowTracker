@@ -1035,3 +1035,22 @@ BUG 2 — TEXTURE LEAK: elke roster-refresh maakte NIEUWE textures+buttons
 LES: ipairs over een array-literal met mogelijk-nil waarden is ALTIJD
   fout — geldt overal in de codebase.
 ```
+
+## UI/persistentie fixes — v3.1.7 (sessie 2026-06-12)
+```
+MURLOC RESET ROOT CAUSE: save via GetPoint() (anchor-afhankelijke x,y)
+  maar restore via CENTER/UIParent → ANDER referentiekader → verspringen.
+  FIX: save in center-relatieve UIParent-coördinaten met scale-correctie:
+  x = GetCenter()*effScaleRatio - UIParent:GetCenter()
+THEME RELOAD: login-restore roept nu WTTheme.SetActiveTheme(GetActive())
+  aan → triggert ALLE Register-callbacks (tabs/plugins), niet alleen
+  de main frame kleuren. WTTheme.bg/border zijn metatable-dynamisch ✓
+HEADER: close-knop stond op +2 (BUITEN de rand) → -5 (5px marge),
+  hele knoppenrij hangt aan close en schuift mee.
+WARBANDSTATS: stond op knoppenrij-hoogte ACHTER de B/theme/lang knoppen
+  → verplaatst naar TOPRIGHT -(TICKER_H+58), onder de knoppen.
+ROSTER LEGE VAKJES: race nil/"" (char niet ingelogd sinds scan-fix)
+  → CLASS-icoon fallback i.p.v. leeg/vraagteken.
+WARBANK KNOP: footer, links van Debug, toggle via SlashCmdList
+  ["WARBANKBUDDY"] — frame-onafhankelijk, werkt ook als plugin laat laadt.
+```

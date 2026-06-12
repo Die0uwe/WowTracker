@@ -287,7 +287,8 @@ UI.charInfo:SetText(SA_GREY.."Laden...|r")
 -- Totaal karakters + totaal goud (K/M suffix), rechts in de header
 UI.warbandStats = UI:CreateFontString(nil,"OVERLAY")
 UI.warbandStats:SetFont(C_2002,11,"OUTLINE")
-UI.warbandStats:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-14,-(TICKER_H+34))
+-- v3.1.7: onder de knoppenrij — stond achter de header-knoppen (onleesbaar)
+UI.warbandStats:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-10,-(TICKER_H+58))
 UI.warbandStats:SetJustifyH("RIGHT")
 UI.warbandStats:SetText("")
 
@@ -323,7 +324,7 @@ local HDR_BTN_SZ = 22
 -- X Sluiten
 UI.close = CreateFrame("Button",nil,UI,"UIPanelCloseButton")
 UI.close:SetSize(HDR_BTN_SZ,HDR_BTN_SZ)
-UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",2,HDR_BTN_Y)
+UI.close:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-5,HDR_BTN_Y)   -- v3.1.7: 5px van rand
 
 -- Tandwiel (Settings)
 UI.settingsBtn = CreateFrame("Button",nil,UI,"BackdropTemplate")
@@ -1087,9 +1088,22 @@ WT_UpdateRoster = function()
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
 
         -- ── RACE PORTRAIT — via DT_SetRaceIcon (Constants.lua v3.5.1 patroon) ──
-        -- PBRoster aanroep: C:SetRaceIcon(card.raceIcon, data.race, data.gender)
-        -- Ondersteunt zowel data.sex als data.gender (oudere scans)
-        DT_SetRaceIcon(card.rIcon, raceTag, data.gender or data.sex)
+        -- v3.1.7: race onbekend (char nog niet ingelogd sinds scan-fix)
+        -- → CLASS-icoon als nette fallback i.p.v. leeg vakje
+        local gotIcon = false
+        if raceTag ~= "" then
+            gotIcon = DT_SetRaceIcon(card.rIcon, raceTag, data.gender or data.sex)
+        end
+        if not gotIcon then
+            local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[data.class or ""]
+            if coords then
+                card.rIcon:SetTexture("Interface\\WorldStateFrame\\Icons-Classes")
+                card.rIcon:SetTexCoord(unpack(coords))
+            else
+                card.rIcon:SetTexture(134400)
+                card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+            end
+        end
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
@@ -1903,6 +1917,26 @@ local function MakeDebugBtn()
         if f then if f:IsShown() then f:Hide() else f:Show() end
         elseif SlashCmdList["DTDEBUG"] then SlashCmdList["DTDEBUG"]("") end
     end)
+
+    -- v3.1.7: WARBANK knop links van Debug (Fase 2.x verzoek DieOuwe)
+    local wb=CreateFrame("Button",nil,UI,"BackdropTemplate")
+    wb:SetSize(BTN_W,BTN_H)
+    wb:SetPoint("RIGHT",b,"LEFT",-4,0)
+    wb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    wb:SetBackdropColor(0.06,0.03,0.10,0.95)
+    wb:SetBackdropBorderColor(0.28,0.08,0.45,0.9)
+    local wt=wb:CreateFontString(nil,"OVERLAY")
+    wt:SetFont(C_2002,10,"OUTLINE")
+    wt:SetPoint("CENTER")
+    wt:SetText(SA_GOLD.."Warbank|r")
+    wb:SetScript("OnClick",function()
+        local f=_G["ClothWidgetFrame"] and _G["DT_WarbankFrame"] or nil
+        -- WarbankBuddy frame heet WBB intern; toggle via slash (altijd aanwezig)
+        if SlashCmdList["WARBANKBUDDY"] then SlashCmdList["WARBANKBUDDY"]("")
+        else print(SA_PURPLE.."[WowTracker]|r WarbankBuddy plugin niet geladen") end
+    end)
+    wb:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.70,0.10,1) end)
+    wb:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
     b:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
     b:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.28,0.08,0.45,0.9) end)
 end
@@ -2231,9 +2265,16 @@ end)
 MBtn:SetScript("OnDragStart", MBtn.StartMoving)
 MBtn:SetScript("OnDragStop",  function(self)
     self:StopMovingOrSizing()
-    local _,_,_,x,y = self:GetPoint()
+    -- v3.1.7: save in CENTER-relatieve UIParent coördinaten — restore
+    -- gebruikt CENTER/UIParent, dus save MOET hetzelfde referentiekader
+    -- hebben (GetPoint gaf anchor-afhankelijke x,y → versprong na reload)
     if DelveTrackerDB then
-        DelveTrackerDB.murlocPos = {x=x, y=y}
+        local s  = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        local cx, cy = self:GetCenter()
+        local px, py = UIParent:GetCenter()
+        if cx and px then
+            DelveTrackerDB.murlocPos = {x = cx*s - px, y = cy*s - py}
+        end
     end
 end)
 
@@ -2572,6 +2613,11 @@ UI:SetScript("OnEvent",function(self,event)
             UI:SetPoint(p.pt or "CENTER",UIParent,p.rpt or "CENTER",p.x or 0,p.y or 0)
         end
         -- Herstel thema via WTTheme (primair systeem)
+        -- v3.1.7: SetActiveTheme her-aanroepen triggert óók alle
+        -- Register-callbacks (tab buttons, plugins) — consistent herstel
+        if WTTheme and WTTheme.SetActiveTheme and WTTheme.GetActive then
+            WTTheme.SetActiveTheme(WTTheme.GetActive())
+        end
         if WTTheme and WTTheme.bg then
             local bg  = WTTheme.bg.main
             local bdr = WTTheme.border.main
