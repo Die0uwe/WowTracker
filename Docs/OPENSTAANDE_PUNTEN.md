@@ -10,7 +10,13 @@
 - GuildRoster/MOTD taint-vrij · Debugger v3.0 BugSack-capture
 - ADDON_NAME fixes (ClothCounter/userinfo/Debugger)
 
-## 🔴 FASE 1 — Verloren bij regressie, herbouwen (besloten in v3.0.7 sessie)
+## Status update 2026-06-12 (avond): FASE 1 + FASE 2 VOLLEDIG AFGEROND
+v3.1.0 admin panel · v3.1.1 warband stats · v3.1.2 plugins (22) ·
+v3.1.3 bounty subtabs · v3.1.4 guild images · v3.1.5 abundance chip ·
+v3.1.6 professions · v3.1.7 zes UI-fixes · v3.1.8/9 race definitief +
+reverse-lookup migratie + tickerShow init-fix
+
+## [AFGEROND] FASE 1 — Verloren bij regressie, herbouwen (besloten in v3.0.7 sessie)
 | # | Taak | Skill | Notitie |
 |---|---|---|---|
 | 1 | Admin panel herstel (v2.8.9 basis) + theme/taal selectors | wow-addon-architect | Zat in v3.0.7, NIET in huidige core |
@@ -37,5 +43,25 @@
 | 14 | SavedVariables rename DelveTrackerDB→WowTrackerDB | wow-db-migrator (v4.0) |
 
 ## Werkwijze
-E�n fase-item per sessie · analyse eerst · in-game test vóór volgende item ·
+E�n fase-item per sessie · analyse eerst · in-game test vóór volgende item ·
 elke sessie eindigt met kennisbank-update + push.
+
+
+---
+
+# FASE 4 — NIEUW (Midnight Security Compliance, bron: 12.0.5 analyse-PDF)
+Toegevoegd 2026-06-12 · zie project-brain: midnight-security-model.md
+
+| # | Taak | Skill | Prio |
+|---|---|---|---|
+| 4.1 | CreateFramePool refactor: roster cards + currency tiles | wow-addon-architect | MIDDEL |
+| 4.2 | Secret-aware audit (issecretvalue) bij combat-data weergave | wow-poi-auditor | MIDDEL |
+| 4.3 | C_RestrictedActions diagnostiek in Debugger | wow-addon-architect | LAAG |
+| 4.4 | Mixin/template refactor grote frames | code-architect | LAAG |
+| 4.5 | versionTxt hardcoded "v2.7.0" naar centrale versie-constante | wow-ui-polish | LAAG |
+
+# ADVIES VOLGENDE STAPPEN (BigBoss, 2026-06-12)
+1. Fase 3.1 Locales/ — grootste gebruikerswaarde
+2. Fase 3.3 Guild events C_Calendar — kennis ligt klaar in kennisbank
+3. Fase 4.1 pooling — meenemen tijdens 3.x werk
+4. Fase 3.4 weekly reset + rest 4.x daarna
