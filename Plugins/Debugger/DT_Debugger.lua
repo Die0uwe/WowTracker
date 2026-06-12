@@ -273,7 +273,10 @@ for i = 1, 30 do   -- pre-alloceer eerste 30 voor snelle start
     local fs = logContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     fs:SetPoint("TOPLEFT", 4, -(i-1) * LOG_LINE_H)
     fs:SetWidth(PANEL_W - 50)
+    fs:SetHeight(LOG_LINE_H)
     fs:SetJustifyH("LEFT")
+    fs:SetWordWrap(false)        -- 1 log entry = exact 1 regel (geen overlap)
+    fs:SetNonSpaceWrap(false)
     fs:SetFont("Fonts\\2002.ttf", 10)
     LOG_LINES[i] = fs
 end
@@ -285,7 +288,10 @@ function DBG._RefreshLog()
         local fs = logContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         fs:SetPoint("TOPLEFT", 4, -(i-1) * LOG_LINE_H)
         fs:SetWidth(PANEL_W - 50)
+        fs:SetHeight(LOG_LINE_H)
         fs:SetJustifyH("LEFT")
+        fs:SetWordWrap(false)    -- 1 log entry = exact 1 regel (geen overlap)
+        fs:SetNonSpaceWrap(false)
         fs:SetFont("Fonts\\2002.ttf", 10)
         LOG_LINES[i] = fs
     end

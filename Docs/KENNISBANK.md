@@ -857,3 +857,33 @@ NIEUW:  seterrorhandler chain vangt ALLE Lua errors: msg + debugstack(4) +
         debuglocals(4) + dedup teller. Export = error rapport + debug log.
         Chained met bestaande handler (!BugGrabber blijft werken).
 ```
+
+## Currency IDs — DataStore geverifieerd (sessie 2026-06-12)
+```
+BRON:   DataStore_Currencies Enum.lua (changelog t/m 12.0)
+FOUT WAS: 2803 stond als Resonance Crystals → is Undercoin
+          2815 stond als Valorstones → is Resonance Crystals (Valorstones=3008)
+          Harbinger Crests 2778-2781 → correct: 2914-2917
+          Dragon Isles Supplies 2245 → correct: 2003 (2245=Flightstones)
+KEY IDS:  Valorstones=3008 · Undercoin=2803 · ResonanceCrystals=2815
+          Harbinger Crests W/C/R/G = 2914/2915/2916/2917
+          Undermine Crests = 3107-3110 · Ethereal Crests = 3284/3286/3288/3290
+          Flightstones=2245 · Honor=1792 · Conquest=1602 · TimewarpedBadge=1166
+```
+
+## Race Atlas — extra uitzonderingen (sessie 2026-06-12)
+```
+LightforgedDraenei → "lightforged"  (NIET lightforgeddraenei)
+DarkIronDwarf      → "darkiron"     (NIET darkirondwarf)
+MagharOrc          → "maghar"       (NIET magharorc)
+PATROON: allied races strippen vaak het basis-ras suffix uit de atlas naam.
+DT_SetRaceIcon probeert nu kandidaten: map → raw lowercase → suffix-gestript,
+elk gevalideerd met C_Texture.GetAtlasInfo, voor raceicon128- én raceicon-.
+```
+
+## Debugger log overlap (OPGELOST v3.0.1)
+```
+BUG:    Lange log regels wrapten over volgende regel heen → onleesbaar
+FIX:    SetWordWrap(false) + SetHeight(LOG_LINE_H) + SetNonSpaceWrap(false)
+        op elke log FontString — 1 entry = exact 1 regel
+```

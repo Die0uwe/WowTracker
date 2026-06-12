@@ -900,7 +900,13 @@ local ATLAS_TAG_MAP = {
     ["Forsaken"]           = "scourge",
     ["HighmountainTauren"] = "highmountain",  -- NIET "highmountaintauren"
     ["ZandalariTroll"]     = "zandalari",     -- NIET "zandalaritroll"
+    ["LightforgedDraenei"] = "lightforged",   -- NIET "lightforgeddraenei"
+    ["DarkIronDwarf"]      = "darkiron",      -- NIET "darkirondwarf"
+    ["MagharOrc"]          = "maghar",        -- NIET "magharorc"
 }
+
+-- Ras-suffixen die atlassen vaak weglaten bij allied races
+local RACE_SUFFIXES = { "draenei", "dwarf", "orc", "tauren", "troll" }
 
 -- DT_SetRaceIcon(texture, raceTag, sexNum) — 3-staps (PBRoster patroon):
 -- 1) tag bepalen  2) atlas naam bouwen  3) valideren met GetAtlasInfo
@@ -915,20 +921,26 @@ local function DT_SetRaceIcon(tex, raceTag, sexNum)
         end
         return false
     end
-    local tag  = ATLAS_TAG_MAP[raceTag] or raceTag:lower():gsub("%s+","")
     local gStr = (tonumber(sexNum)==3) and "female" or "male"
-    local atlas = "raceicon128-"..tag.."-"..gStr
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
-        tex:SetAtlas(atlas)
-        tex:SetTexCoord(0,1,0,1)
-        return true
+    local raw  = raceTag:lower():gsub("%s+","")
+    -- Kandidaten: 1) expliciete map  2) raw lowercase  3) suffix gestript
+    local cands = {}
+    if ATLAS_TAG_MAP[raceTag] then cands[#cands+1] = ATLAS_TAG_MAP[raceTag] end
+    cands[#cands+1] = raw
+    for _, suf in ipairs(RACE_SUFFIXES) do
+        if raw:len() > suf:len() and raw:sub(-suf:len()) == suf then
+            cands[#cands+1] = raw:sub(1, raw:len()-suf:len())
+        end
     end
-    -- Tweede poging: kleinere atlas variant
-    atlas = "raceicon-"..tag.."-"..gStr
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
-        tex:SetAtlas(atlas)
-        tex:SetTexCoord(0,1,0,1)
-        return true
+    for _, tag in ipairs(cands) do
+        for _, prefix in ipairs({"raceicon128-", "raceicon-"}) do
+            local atlas = prefix..tag.."-"..gStr
+            if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
+                tex:SetAtlas(atlas)
+                tex:SetTexCoord(0,1,0,1)
+                return true
+            end
+        end
     end
     return false
 end
@@ -1389,40 +1401,91 @@ WT_UpdateCurrency = function()
     end
 
     -- Volledige lijst alle currencies — gesorteerd op relevantie
+    -- Volledige lijst alle currencies — IDs geverifieerd via DataStore Enum
+    -- (sessie 2026-06-12) · gesorteerd nieuw → oud per expansie
     local CUR_DEFS_ALL = {
-        -- ── MIDNIGHT (12.x) ──────────────────────────────────────────
-        {id=3028, label="Restored Coffer Keys",       col="|cff00ccff", expac="Midnight"},
+        -- ── MIDNIGHT (12.x) — kennisbank geverifieerd ───────────────
+        {id=3028, label="Restored Coffer Key",         col="|cff00ccff", expac="Midnight"},
         {id=3310, label="Coffer Key Shards",           col="|cffffee00", expac="Midnight"},
         {id=3376, label="Shard of Dundun",             col="|cff44cc66", expac="Midnight"},
         {id=3378, label="Dawnlight Manaflux",          col="|cffa335ee", expac="Midnight"},
         {id=3399, label="Unalloyed Abundance",         col="|cff55ff55", expac="Midnight"},
         {id=3403, label="Midnight Reputation Token",   col="|cff00aaff", expac="Midnight"},
         {id=3390, label="Amani Favor",                 col="|cffff8800", expac="Midnight"},
-        -- ── THE WAR WITHIN (11.x) ────────────────────────────────────
-        {id=2803, label="Resonance Crystals",          col="|cff88ddff", expac="War Within"},
-        {id=2778, label="Weathered Harbinger Crest",   col="|cff99aa77", expac="War Within"},
-        {id=2779, label="Carved Harbinger Crest",      col="|cff88bb55", expac="War Within"},
-        {id=2780, label="Runed Harbinger Crest",       col="|cff77cc44", expac="War Within"},
-        {id=2781, label="Gilded Harbinger Crest",      col="|cffccaa00", expac="War Within"},
-        {id=2815, label="Valorstones",                 col="|cff4488cc", expac="War Within"},
-        {id=2778, label="Undercoin",                   col="|cff665588", expac="War Within"},
-        -- ── DRAGONFLIGHT (10.x) ──────────────────────────────────────
-        {id=2245, label="Dragon Isles Supplies",       col="|cff55aa88", expac="Dragonflight"},
-        {id=2123, label="Valor",                       col="|cff4488dd", expac="Dragonflight"},
-        {id=2119, label="Conquest",                    col="|cffdd4444", expac="Dragonflight"},
-        {id=2032, label="Primal Chaos",                col="|cffff6600", expac="Dragonflight"},
-        {id=2003, label="Dragon Isles Renown",         col="|cff55cc88", expac="Dragonflight"},
-        -- ── SHADOWLANDS ──────────────────────────────────────────────
-        {id=1885, label="Anima",                       col="|cff8855ff", expac="Shadowlands"},
+        -- ── THE WAR WITHIN 11.2 (DataStore) ─────────────────────────
+        {id=3284, label="Weathered Ethereal Crest",    col="|cff99aa77", expac="War Within"},
+        {id=3286, label="Carved Ethereal Crest",       col="|cff88bb55", expac="War Within"},
+        {id=3288, label="Runed Ethereal Crest",        col="|cff77cc44", expac="War Within"},
+        {id=3290, label="Gilded Ethereal Crest",       col="|cffccaa00", expac="War Within"},
+        -- ── THE WAR WITHIN 11.1 (DataStore) ─────────────────────────
+        {id=3107, label="Weathered Undermine Crest",   col="|cff99aa77", expac="War Within"},
+        {id=3108, label="Carved Undermine Crest",      col="|cff88bb55", expac="War Within"},
+        {id=3109, label="Runed Undermine Crest",       col="|cff77cc44", expac="War Within"},
+        {id=3110, label="Gilded Undermine Crest",      col="|cffccaa00", expac="War Within"},
+        -- ── THE WAR WITHIN 11.0 (DataStore) ─────────────────────────
+        {id=3008, label="Valorstones",                 col="|cff4488cc", expac="War Within"},
+        {id=2803, label="Undercoin",                   col="|cff665588", expac="War Within"},
+        {id=2815, label="Resonance Crystals",          col="|cff88ddff", expac="War Within"},
+        {id=2914, label="Weathered Harbinger Crest",   col="|cff99aa77", expac="War Within"},
+        {id=2915, label="Carved Harbinger Crest",      col="|cff88bb55", expac="War Within"},
+        {id=2916, label="Runed Harbinger Crest",       col="|cff77cc44", expac="War Within"},
+        {id=2917, label="Gilded Harbinger Crest",      col="|cffccaa00", expac="War Within"},
+        {id=3055, label="Mereldar Derby Mark",         col="|cffdd88dd", expac="War Within"},
+        {id=3056, label="Kej",                         col="|cff88dd88", expac="War Within"},
+        {id=3089, label="Residual Memories",           col="|cffaa99ff", expac="War Within"},
+        {id=3093, label="Nerub-ar Finery",             col="|cff8888dd", expac="War Within"},
+        {id=3100, label="Bronze Celebration Token",    col="|cffcc8844", expac="War Within"},
+        -- ── DRAGONFLIGHT (DataStore) ─────────────────────────────────
+        {id=2245, label="Flightstones",                col="|cff55aa88", expac="Dragonflight"},
+        {id=2003, label="Dragon Isles Supplies",       col="|cff44aa99", expac="Dragonflight"},
+        {id=2118, label="Elemental Overflow",          col="|cffff7733", expac="Dragonflight"},
+        {id=2122, label="Storm Sigil",                 col="|cff66aaff", expac="Dragonflight"},
+        {id=2594, label="Paracausal Flakes",           col="|cffccbb66", expac="Dragonflight"},
+        {id=2588, label="Riders of Azeroth Badge",     col="|cff77cc99", expac="Dragonflight"},
+        {id=2706, label="Whelpling's Dreaming Crest",  col="|cff99aa77", expac="Dragonflight"},
+        {id=2707, label="Drake's Dreaming Crest",      col="|cff88bb55", expac="Dragonflight"},
+        {id=2708, label="Wyrm's Dreaming Crest",       col="|cff77cc44", expac="Dragonflight"},
+        {id=2709, label="Aspect's Dreaming Crest",     col="|cffccaa00", expac="Dragonflight"},
+        {id=2650, label="Emerald Dewdrop",             col="|cff55dd88", expac="Dragonflight"},
+        {id=2777, label="Dream Infusion",              col="|cffaaffcc", expac="Dragonflight"},
+        {id=2657, label="Mysterious Fragment",         col="|cff9988bb", expac="Dragonflight"},
+        -- ── SHADOWLANDS (DataStore) ──────────────────────────────────
+        {id=1813, label="Reservoir Anima",             col="|cff66ccff", expac="Shadowlands"},
+        {id=1810, label="Redeemed Soul",               col="|cffaaddff", expac="Shadowlands"},
+        {id=1828, label="Soul Ash",                    col="|cff7788cc", expac="Shadowlands"},
         {id=1906, label="Soul Cinders",                col="|cff4455dd", expac="Shadowlands"},
         {id=1767, label="Stygia",                      col="|cff2244aa", expac="Shadowlands"},
-        {id=1828, label="Grateful Offering",           col="|cffddaa22", expac="Shadowlands"},
-        -- ── BATTLE FOR AZEROTH ───────────────────────────────────────
+        {id=1977, label="Stygian Ember",               col="|cff5566bb", expac="Shadowlands"},
+        {id=1904, label="Tower Knowledge",             col="|cff8899dd", expac="Shadowlands"},
+        {id=1931, label="Cataloged Research",          col="|cff77aacc", expac="Shadowlands"},
+        {id=1979, label="Cyphers of the First Ones",   col="|cffbbaa88", expac="Shadowlands"},
+        {id=2009, label="Cosmic Flux",                 col="|cffcc99ee", expac="Shadowlands"},
+        -- ── BATTLE FOR AZEROTH (DataStore) ───────────────────────────
         {id=1560, label="War Resources",               col="|cffcc4400", expac="BfA"},
-        {id=1159, label="Azerite",                     col="|cffff8800", expac="BfA"},
-        -- ── PvP ──────────────────────────────────────────────────────
+        {id=1580, label="Seals of Wartorn Fate",       col="|cffddbb44", expac="BfA"},
+        {id=1710, label="Seafarer's Dubloon",          col="|cff77bbcc", expac="BfA"},
+        {id=1565, label="Rich Azerite Fragment",       col="|cffff8800", expac="BfA"},
+        {id=1755, label="Coalescing Visions",          col="|cff8866bb", expac="BfA"},
+        {id=1718, label="Titan Residuum",              col="|cffaaaacc", expac="BfA"},
+        -- ── LEGION (DataStore) ───────────────────────────────────────
+        {id=1220, label="Order Resources",             col="|cff88aa66", expac="Legion"},
+        {id=1342, label="Legionfall War Supplies",     col="|cff99cc55", expac="Legion"},
+        {id=1226, label="Nethershard",                 col="|cffbb66dd", expac="Legion"},
+        {id=1273, label="Seal of Broken Fate",         col="|cffddbb44", expac="Legion"},
+        {id=1155, label="Ancient Mana",                col="|cff66ccee", expac="Legion"},
+        {id=1508, label="Veiled Argunite",             col="|cffcc88ff", expac="Legion"},
+        -- ── WARLORDS OF DRAENOR (DataStore) ──────────────────────────
+        {id=824,  label="Garrison Resources",          col="|cffaa8855", expac="WoD"},
+        {id=823,  label="Apexis Crystal",              col="|cffeebb44", expac="WoD"},
+        {id=1101, label="Oil",                         col="|cff445566", expac="WoD"},
+        -- ── MISTS OF PANDARIA (DataStore) ────────────────────────────
+        {id=777,  label="Timeless Coin",               col="|cffddcc77", expac="MoP"},
+        {id=402,  label="Ironpaw Token",               col="|cffcc9955", expac="MoP"},
+        -- ── PvP & MISC (DataStore) ───────────────────────────────────
         {id=1792, label="Honor",                       col="|cffaaffaa", expac="PvP"},
         {id=1602, label="Conquest",                    col="|cffff4444", expac="PvP"},
+        {id=1166, label="Timewarped Badge",            col="|cff77aadd", expac="Misc"},
+        {id=515,  label="Darkmoon Prize Ticket",       col="|cffcc77cc", expac="Misc"},
     }
 
     -- Filter op naam als curFilter gevuld
