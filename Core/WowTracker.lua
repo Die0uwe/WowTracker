@@ -319,22 +319,37 @@ UI.themeBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1
 UI.themeBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
 UI.themeBtn:SetScript("OnClick",function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
-    local themes = {
-        {name="SA Dark (standaard)", r=0.04,g=0.02,b=0.08, border={0.25,0.07,0.40}},
-        {name="ProfBuddy Paars",     r=0.06,g=0.02,b=0.12, border={0.45,0.10,0.70}},
-        {name="MailVault Blauw",     r=0.02,g=0.04,b=0.12, border={0.10,0.25,0.60}},
-        {name="Nacht Zwart",         r=0.02,g=0.02,b=0.04, border={0.20,0.20,0.20}},
-    }
     MenuUtil.CreateContextMenu(self,function(_,root)
         root:CreateTitle(SA_PURPLE.."Thema kiezen|r")
-        for _,t in ipairs(themes) do
-            local th=t
-            root:CreateButton(th.name,function()
-                DelveTrackerDB.theme={bg={th.r,th.g,th.b}, border=th.border, name=th.name}
-                UI:SetBackdropColor(th.r,th.g,th.b,0.97)
-                UI:SetBackdropBorderColor(th.border[1],th.border[2],th.border[3],1)
-                print(SA_PURPLE.."[WowTracker] Thema: "..th.name.."|r")
-            end)
+        -- Gebruik WTTheme themes als die beschikbaar is
+        if WTTheme and WTTheme.GetThemeNames then
+            local names = WTTheme.GetThemeNames()
+            local active = WTTheme.GetActive and WTTheme.GetActive() or ""
+            for _,name in ipairs(names) do
+                local n = name
+                local mark = (n == active) and "|cff44ff44✓ |r" or "  "
+                root:CreateButton(mark..n, function()
+                    WTTheme.SetActiveTheme(n)  -- triggert Register callback + slaat op
+                    print(SA_PURPLE.."[WowTracker] Thema: "..n.."|r")
+                end)
+            end
+        else
+            -- Fallback: oud inline systeem als WTTheme niet laadt
+            local themes = {
+                {name="SA Dark (standaard)", r=0.04,g=0.02,b=0.08, border={0.25,0.07,0.40}},
+                {name="ProfBuddy Paars",     r=0.06,g=0.02,b=0.12, border={0.45,0.10,0.70}},
+                {name="MailVault Blauw",     r=0.02,g=0.04,b=0.12, border={0.10,0.25,0.60}},
+                {name="Nacht Zwart",         r=0.02,g=0.02,b=0.04, border={0.20,0.20,0.20}},
+            }
+            for _,t in ipairs(themes) do
+                local th=t
+                root:CreateButton(th.name,function()
+                    DelveTrackerDB.theme={bg={th.r,th.g,th.b}, border=th.border, name=th.name}
+                    UI:SetBackdropColor(th.r,th.g,th.b,0.97)
+                    UI:SetBackdropBorderColor(th.border[1],th.border[2],th.border[3],1)
+                    print(SA_PURPLE.."[WowTracker] Thema: "..th.name.."|r")
+                end)
+            end
         end
     end)
 end)
@@ -354,6 +369,23 @@ UI.langBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.
 -- Expose als global referentie voor andere plugins (Registry B knop)
 DelveTrackerFrame.langBtn  = UI.langBtn
 DelveTrackerFrame.themeBtn = UI.themeBtn
+
+-- ── WTTHEME LIVE RELOAD ────────────────────────────────────────────────────
+-- Registreer callback zodat WTTheme.SetActiveTheme() automatisch het
+-- hoofdframe bijwerkt. Werkt ook bij reload via admin panel later.
+if WTTheme and WTTheme.Register then
+    WTTheme.Register(function()
+        local bg  = WTTheme.bg.main
+        local bdr = WTTheme.border.main
+        if bg  then UI:SetBackdropColor(bg.r,  bg.g,  bg.b,  bg.a  or 0.97) end
+        if bdr then UI:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, bdr.a or 1) end
+        -- Ticker achtergrond meeschaalt met theme
+        if TickerBG then
+            local h = WTTheme.bg.header
+            if h then TickerBG:SetColorTexture(h.r, h.g, h.b, h.a or 1) end
+        end
+    end)
+end
 
 UI.langBtn:SetScript("OnClick",function(self)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
@@ -404,6 +436,29 @@ local WT_UpdateCurrency
 local WT_UpdateGuildOnline
 local ScanDelves
 
+-- Safe wrapper: guild roster request API verschilt per build.
+-- GUILD_ROSTER_UPDATE vuurt sowieso periodiek — request is best-effort.
+local function WT_RequestGuildRoster()
+    if C_GuildInfo and type(C_GuildInfo.GuildRoster)=="function" then
+        C_GuildInfo.GuildRoster()
+    elseif type(GuildRoster)=="function" then
+        GuildRoster()
+    end
+end
+
+-- ── GUILD MOTD — TAINT-VRIJ ───────────────────────────────────────────────
+-- GetGuildRosterMOTD() is PROTECTED in Midnight 12.0.5 (ADDON_ACTION_BLOCKED).
+-- Taint-vrije route: GUILD_MOTD event levert de tekst als payload (cache).
+local _cachedMOTD = ""
+local function WT_SetCachedMOTD(m) _cachedMOTD = m or "" end
+local function WT_GetMOTD()
+    if C_GuildInfo and type(C_GuildInfo.GetGuildRosterMOTD)=="function" then
+        local m = C_GuildInfo.GetGuildRosterMOTD()
+        if m and m ~= "" then _cachedMOTD = m end
+    end
+    return _cachedMOTD
+end
+
 local function ShowTab(id)
     UI:Show(); activeTabID=id
     Tab1:Hide(); Tab2:Hide(); Tab3:Hide(); Tab4:Hide(); Tab5:Hide(); Tab6:Hide()
@@ -414,10 +469,10 @@ local function ShowTab(id)
     if id==1 then
         Tab1:Show()
         if IsInGuild() then
-            GuildRoster()
+            WT_RequestGuildRoster()
             local gName = GetGuildInfo("player")
             Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r")
-            local motd = GetGuildRosterMOTD() or ""
+            local motd = WT_GetMOTD()
             Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY.."Laden...|r")
         else
             Tab1.guildName:SetText(SA_GREY.."Geen guild|r")
@@ -486,6 +541,78 @@ for i,def in ipairs(tabDefs) do
     b:SetScript("OnEnter",function(self) if self._id~=activeTabID then self:SetBackdropBorderColor(0.50,0.15,0.75,1) end end)
     b:SetScript("OnLeave",function(self) StyleTabBtn(self,self._id==activeTabID) end)
     tabBtns[i]=b
+end
+
+-- ── TAAL / LANGUAGE SYSTEEM ───────────────────────────────────────────────
+-- Vertaaltabel per taal. Voeg hier strings toe naarmate de addon groeit.
+-- Sleutel = interne ID, waarde = vertaalde string
+local WT_LANG = {
+    ["Nederlands"] = {
+        TAB_GUILD    = "GUILD",    TAB_DELVES   = "DELVES",
+        TAB_BOUNTY   = "BOUNTY",   TAB_ROSTER   = "ROSTER",
+        TAB_ARMORY   = "ARMORY",   TAB_CURRENCY = "VALUTA",
+        MOTD_LABEL   = "─── Bericht van de dag ───",
+        NO_GUILD     = "Geen guild",
+        LOADING      = "Laden...",
+    },
+    ["English"] = {
+        TAB_GUILD    = "GUILD",    TAB_DELVES   = "DELVES",
+        TAB_BOUNTY   = "BOUNTY",   TAB_ROSTER   = "ROSTER",
+        TAB_ARMORY   = "ARMORY",   TAB_CURRENCY = "CURRENCY",
+        MOTD_LABEL   = "─── Message of the Day ───",
+        NO_GUILD     = "Not in a guild",
+        LOADING      = "Loading...",
+    },
+    ["Deutsch"] = {
+        TAB_GUILD    = "GILDE",    TAB_DELVES   = "TAUCHEN",
+        TAB_BOUNTY   = "KOPFGELD", TAB_ROSTER   = "KADER",
+        TAB_ARMORY   = "KAMMER",   TAB_CURRENCY = "WÄHRUNG",
+        MOTD_LABEL   = "─── Nachricht des Tages ───",
+        NO_GUILD     = "Keine Gilde",
+        LOADING      = "Laden...",
+    },
+    ["Français"] = {
+        TAB_GUILD    = "GUILDE",   TAB_DELVES   = "PLONGÉES",
+        TAB_BOUNTY   = "PRIME",    TAB_ROSTER   = "EFFECTIF",
+        TAB_ARMORY   = "ARSENAL",  TAB_CURRENCY = "MONNAIE",
+        MOTD_LABEL   = "─── Message du Jour ───",
+        NO_GUILD     = "Sans guilde",
+        LOADING      = "Chargement...",
+    },
+    ["Español"] = {
+        TAB_GUILD    = "HERMANDAD",TAB_DELVES   = "BUCEOS",
+        TAB_BOUNTY   = "RECOMPENSA",TAB_ROSTER  = "PLANTILLA",
+        TAB_ARMORY   = "ARMERÍA",  TAB_CURRENCY = "MONEDA",
+        MOTD_LABEL   = "─── Mensaje del Día ───",
+        NO_GUILD     = "Sin hermandad",
+        LOADING      = "Cargando...",
+    },
+}
+-- Actieve vertaaltabel (default Nederlands)
+local _WT_T = WT_LANG["Nederlands"]
+
+-- Hulpfunctie: vertaling ophalen (fallback naar Nederlands)
+function WT_T(key)
+    return (_WT_T and _WT_T[key]) or (WT_LANG["Nederlands"][key]) or key
+end
+
+-- Pas alle UI teksten aan aan de opgeslagen taalinstelling
+function WT_ApplyLanguage(lang)
+    lang = lang or (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
+    _WT_T = WT_LANG[lang] or WT_LANG["Nederlands"]
+    -- Tab labels bijwerken
+    local tabKeys = {"TAB_GUILD","TAB_DELVES","TAB_BOUNTY","TAB_ROSTER","TAB_ARMORY","TAB_CURRENCY"}
+    for i, b in ipairs(tabBtns) do
+        if b and b.lbl and tabKeys[i] then
+            local def = tabDefs[i]
+            local col = def and def.col or "|cffffffff"
+            b.lbl:SetText(col .. (_WT_T[tabKeys[i]] or def.label) .. "|r")
+        end
+    end
+    -- MOTD label bijwerken als Tab1 al bestaat
+    if Tab1 and Tab1.motdLabel then
+        Tab1.motdLabel:SetText(SA_PURPLE..(_WT_T.MOTD_LABEL or "─── Bericht van de dag ───").."|r")
+    end
 end
 
 local TabLine=UI:CreateTexture(nil,"OVERLAY")
@@ -764,6 +891,49 @@ local ROSTER_COLS   = 3  -- 3 cols past binnen 760px UI
 local ROSTER_GAP    = 8
 
 -- Race icon lookup (Achievement_Character_{race}_{faction})
+-- ── RACE ATLAS SYSTEEM — herbouwd volgens Docs/KENNISBANK.md v3.0.8 ──────
+-- UnitRace() geeft TWEE returns; raceTag (2e) is CamelCase zonder spaties.
+-- Atlas naam: raceicon128-<tag>-<gender>. UITZONDERINGEN (kennisbank):
+local ATLAS_TAG_MAP = {
+    ["Scourge"]            = "scourge",       -- Undead/Forsaken (NIET "undead")
+    ["Undead"]             = "scourge",
+    ["Forsaken"]           = "scourge",
+    ["HighmountainTauren"] = "highmountain",  -- NIET "highmountaintauren"
+    ["ZandalariTroll"]     = "zandalari",     -- NIET "zandalaritroll"
+}
+
+-- DT_SetRaceIcon(texture, raceTag, sexNum) — 3-staps (PBRoster patroon):
+-- 1) tag bepalen  2) atlas naam bouwen  3) valideren met GetAtlasInfo
+local function DT_SetRaceIcon(tex, raceTag, sexNum)
+    raceTag = raceTag or ""
+    -- Haranir heeft geen raceicon128 in 12.0.5 — gebruik crest atlas
+    if raceTag == "Haranir" then
+        if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("AlliedRace-Crest-Haranir") then
+            tex:SetAtlas("AlliedRace-Crest-Haranir")
+            tex:SetTexCoord(0,1,0,1)
+            return true
+        end
+        return false
+    end
+    local tag  = ATLAS_TAG_MAP[raceTag] or raceTag:lower():gsub("%s+","")
+    local gStr = (tonumber(sexNum)==3) and "female" or "male"
+    local atlas = "raceicon128-"..tag.."-"..gStr
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
+        tex:SetAtlas(atlas)
+        tex:SetTexCoord(0,1,0,1)
+        return true
+    end
+    -- Tweede poging: kleinere atlas variant
+    atlas = "raceicon-"..tag.."-"..gStr
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(atlas) then
+        tex:SetAtlas(atlas)
+        tex:SetTexCoord(0,1,0,1)
+        return true
+    end
+    return false
+end
+
+-- Fallback achievement-icon mapping (klassieke races)
 local RACE_ICON_MAP = {
     ["Human"]       = "human",
     ["Dwarf"]       = "dwarf",
@@ -779,12 +949,14 @@ local RACE_ICON_MAP = {
     ["Mechagnome"]  = "mechagnome",
     ["Orc"]         = "orc",
     ["Undead"]      = "undead",
+    ["Scourge"]     = "undead",   -- UnitRace() raceTag voor Undead = "Scourge"!
     ["Tauren"]      = "tauren",
     ["Troll"]       = "troll",
     ["BloodElf"]    = "bloodelf",
     ["Goblin"]      = "goblin",
     ["Nightborne"]  = "nightborne",
     ["HighmountainTauren"] = "highmountaintauren",
+    ["Highmountain"]       = "highmountaintauren",  -- alias
     ["MagharOrc"]   = "magharorc",
     ["ZandalariTroll"] = "zandalaritroll",
     ["Vulpera"]     = "vulpera",
@@ -796,9 +968,16 @@ WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
 
     -- Verberg oude kaartjes
+    -- LET OP: frames zijn óók Lua tables — check .Hide EERST, anders
+    -- itereert pairs() door frame-internals (functions) heen → crash
     for _,row in pairs(Tab4.scroll.content.rows or {}) do
-        if type(row)=="table" then for _,c in pairs(row) do if c and c.Hide then c:Hide() end end
-        elseif row and row.Hide then row:Hide() end
+        if row and type(row.Hide)=="function" then
+            row:Hide()
+        elseif type(row)=="table" then
+            for _,c in pairs(row) do
+                if type(c)=="table" and type(c.Hide)=="function" then c:Hide() end
+            end
+        end
     end
     Tab4.scroll.content.rows = {}
 
@@ -835,7 +1014,7 @@ WT_UpdateRoster = function()
         card.rIcon = card.rIcon or card:CreateTexture(nil,"ARTWORK")
         card.rIcon:SetSize(52,52)
         card.rIcon:SetPoint("TOPLEFT",4,-4)
-        local raceKey = RACE_ICON_MAP[data.race or ""] or (data.race or ""):lower():gsub("%s+","")
+        local raceTag = data.race or ""
         local facKey  = (data.faction=="Horde") and "horde" or "alliance"
         -- Klasse kleur achtergrond (altijd zichtbaar)
         if not card.rIconBg then
@@ -844,10 +1023,17 @@ WT_UpdateRoster = function()
             card.rIconBg:SetPoint("TOPLEFT",4,-4)
         end
         card.rIconBg:SetColorTexture(cc.r*0.25,cc.g*0.25,cc.b*0.25,0.95)
-        -- Race icoon (achievement texture)
-        local racePath="Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey
-        card.rIcon:SetTexture(racePath)
-        card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+
+        -- ── RACE PORTRAIT — via DT_SetRaceIcon (kennisbank v3.0.8) ──
+        -- Ondersteunt zowel data.sex als data.gender (oudere scans)
+        local sexNum = data.sex or data.gender
+        if not DT_SetRaceIcon(card.rIcon, raceTag, sexNum) then
+            -- Fallback: oude achievement icon (klassieke races)
+            local atlasTag = raceTag:lower():gsub("%s+","")
+            local raceKey = RACE_ICON_MAP[raceTag] or atlasTag
+            card.rIcon:SetTexture("Interface\\Icons\\Achievement_Character_"..raceKey.."_"..facKey)
+            card.rIcon:SetTexCoord(0.08,0.92,0.08,0.92)
+        end
         card.rIcon:SetAlpha(1.0)
 
         -- ── Spec icoon klein in rechtsonder hoek van race portrait (18x18) ──
@@ -1416,12 +1602,17 @@ end
 
 -- ── GUILD ROSTER UPDATE EVENT ─────────────────────────────────────────────
 -- GUILD_ROSTER_UPDATE vuurt nadat GuildRoster() data opgehaald heeft
+-- GUILD_MOTD vuurt met de motd-tekst als argument (taint-vrij)
 local guildEventFrame = CreateFrame("Frame")
 guildEventFrame:RegisterEvent("GUILD_ROSTER_UPDATE")
-guildEventFrame:SetScript("OnEvent", function()
+guildEventFrame:RegisterEvent("GUILD_MOTD")
+guildEventFrame:SetScript("OnEvent", function(_, event, arg1)
+    if event == "GUILD_MOTD" then
+        WT_SetCachedMOTD(arg1)
+    end
     if not Tab1:IsShown() then return end
-    -- MOTD nu beschikbaar
-    local motd = GetGuildRosterMOTD() or ""
+    -- MOTD via cache (nooit protected call)
+    local motd = WT_GetMOTD()
     if Tab1.motdText then
         Tab1.motdText:SetText(motd ~= "" and (SA_GREY..motd.."|r") or SA_GREY.."Geen MOTD ingesteld.|r")
     end
@@ -1649,7 +1840,13 @@ ScanDelves = function()
         local specID = GetSpecializationInfo(specIndex)
         d.specID = specID
     end
-    d.race = UnitRace("player") or d.race
+    -- KENNISBANK REGEL: UnitRace() geeft TWEE waarden — gebruik ALTIJD de
+    -- tweede (CamelCase raceTag: "Scourge", "BloodElf", "NightElf", ...)
+    local _, raceTag = UnitRace("player")
+    d.race = raceTag or d.race
+    -- UnitSex() geeft getal: 2=male, 3=female — opslaan als GETAL
+    d.sex = UnitSex("player") or d.sex
+    d.gender = d.sex   -- alias conform kennisbank veldnaam
     d.faction = UnitFactionGroup("player") or d.faction
 end
 
@@ -1965,16 +2162,26 @@ UI:SetScript("OnEvent",function(self,event)
             UI:ClearAllPoints()
             UI:SetPoint(p.pt or "CENTER",UIParent,p.rpt or "CENTER",p.x or 0,p.y or 0)
         end
-        -- Herstel thema
-        if DelveTrackerDB.theme then
+        -- Herstel thema via WTTheme (primair systeem)
+        if WTTheme and WTTheme.bg then
+            local bg  = WTTheme.bg.main
+            local bdr = WTTheme.border.main
+            if bg  then UI:SetBackdropColor(bg.r,  bg.g,  bg.b,  bg.a  or 0.97) end
+            if bdr then UI:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, bdr.a or 1) end
+        elseif DelveTrackerDB.theme then
+            -- Fallback: oud inline systeem (voor spelers die upgraden)
             local t=DelveTrackerDB.theme
             if t.bg then UI:SetBackdropColor(t.bg[1],t.bg[2],t.bg[3],t.bg[4] or 0.97) end
             if t.border then UI:SetBackdropBorderColor(t.border[1],t.border[2],t.border[3],1) end
         end
+        -- Herstel taalinstelling
+        if DelveTrackerDB.language then
+            WT_ApplyLanguage(DelveTrackerDB.language)
+        end
         tickerLastT=GetTime(); tickerDirty=true
         TickerClock:SetText(string.format(SA_GOLD.."%s|r",date("%H:%M:%S")))
         -- Pre-fetch guild data
-        if IsInGuild() then GuildRoster() end
+        if IsInGuild() then WT_RequestGuildRoster() end
     end
     if event=="GUILD_ROSTER_UPDATE" then
         if Tab1:IsShown() then
@@ -1988,6 +2195,6 @@ UI:SetScript("OnEvent",function(self,event)
         ScanDelves()
         if Tab2:IsShown() then UpdateCharacterList() end
         tickerDirty=true
-        if event=="PLAYER_LOGIN" and IsInGuild() then GuildRoster() end
+        if event=="PLAYER_LOGIN" and IsInGuild() then WT_RequestGuildRoster() end
     end
 end)

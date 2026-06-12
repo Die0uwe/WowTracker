@@ -15,7 +15,7 @@
 --   /cbud help      — show command reference
 -- =========================================================================
 
-local ADDON_NAME = "DelveTracker"
+local ADDON_NAME = ...   -- echte addon-mapnaam ("WowTracker") via vararg
 local VERSION    = "14.5.1"  -- Removed Bright Linen Bolt (no cooldown)
 
 local CLOTH_DATA = {
@@ -1212,7 +1212,8 @@ evtFrame:SetScript("OnEvent",function(self,event,...)
         if session.currentZone~="" and session.currentZone~=nz then
             local hd=false
             for _,f in ipairs(CLOTH_DATA) do
-                if session.counts[f.name].total>0 then hd=true; break end end
+                local c = session.counts[f.name]   -- nil-safe: init kan gemist zijn
+                if c and c.total and c.total>0 then hd=true; break end end
             if hd then SaveRun() end; ResetSession()
         else session.currentZone=nz end
         if F:IsShown() then F:UpdateUI() end

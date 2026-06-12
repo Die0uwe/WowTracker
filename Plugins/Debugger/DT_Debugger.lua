@@ -1,6 +1,11 @@
 -- =====================================================================
---  DT_Debugger.lua  v1.0  —  DelveTracker Debug Console
---  Loaded last via DelveTracker.xml
+--  DT_Debugger.lua  v3.0  —  DelveTracker Debug Console
+--  Loaded last via WowTracker.xml
+--
+--  [v3.0] Global error capture: ALLE Lua errors met stack+locals (BugSack-stijl)
+--  [v3.0] Export = volledig error rapport + debug log
+--  [v2.0] Scroll: alle 200 entries zichtbaar (was: 30)
+--  [v2.0] Export knop: EditBox popup met volledige log (Ctrl+A, Ctrl+C)
 --
 --  /dtdebug              → toggle debug panel
 --  /dtdebug log          → show full error log
@@ -64,6 +69,45 @@ function DBG.Log(sev, src, msg)
 end
 
 -- ─────────────────────────────────────────────────────────────────────
+-- GLOBAL ERROR CAPTURE — BugSack-stijl (v3.0)
+-- Vangt ALLE Lua errors (van elke addon) via seterrorhandler chain.
+-- Bewaart message + volledige stack + locals, met dedup teller (Nx).
+-- Chained: bestaande handler (bijv. !BugGrabber) blijft gewoon werken.
+-- ─────────────────────────────────────────────────────────────────────
+DBG.errors = {}
+local MAX_ERRORS = 50
+
+local function CaptureError(msg)
+    msg = tostring(msg or "?")
+    -- Dedup: zelfde message = teller omhoog
+    for _, e in ipairs(DBG.errors) do
+        if e.msg == msg then
+            e.count = e.count + 1
+            e.time  = date("%H:%M:%S")
+            DBG.Log("ERR", "LuaError", e.count.."x "..msg:sub(1, 110))
+            return
+        end
+    end
+    if #DBG.errors >= MAX_ERRORS then table.remove(DBG.errors, 1) end
+    table.insert(DBG.errors, {
+        msg    = msg,
+        stack  = (debugstack  and debugstack(4))  or "",
+        locals = (debuglocals and debuglocals(4)) or "",
+        count  = 1,
+        time   = date("%H:%M:%S"),
+    })
+    DBG.Log("ERR", "LuaError", msg:sub(1, 110))
+end
+
+local _origErrHandler = geterrorhandler and geterrorhandler() or nil
+if seterrorhandler then
+    seterrorhandler(function(msg)
+        pcall(CaptureError, msg)
+        if _origErrHandler then return _origErrHandler(msg) end
+    end)
+end
+
+-- ─────────────────────────────────────────────────────────────────────
 -- Wrap plugin calls so errors are captured without crashing
 -- ─────────────────────────────────────────────────────────────────────
 local _origPluginDispatch = nil
@@ -123,10 +167,10 @@ end
 local function GetMemoryKB()
     if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then
         C_AddOns.UpdateAddOnMemoryUsage()
-        return C_AddOns.GetAddOnMemoryUsage("DelveTracker") or 0
+        return C_AddOns.GetAddOnMemoryUsage("WowTracker") or 0
     elseif UpdateAddOnMemoryUsage then
         UpdateAddOnMemoryUsage()
-        return GetAddOnMemoryUsage and GetAddOnMemoryUsage("DelveTracker") or 0
+        return GetAddOnMemoryUsage and GetAddOnMemoryUsage("WowTracker") or 0
     end
     return 0
 end
@@ -164,7 +208,7 @@ hdr:SetColorTexture(0.06, 0.14, 0.06, 1)
 -- Title
 local title = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 title:SetPoint("TOPLEFT", 10, -8)
-title:SetText("|cff44ff44DT Debug Console|r  |cff888888v1.0  —  WoW 12.0.5.67314|r")
+title:SetText("|cff44ff44DT Debug Console|r  |cff888888v3.0  —  WoW 12.0.5.67314|r")
 
 -- Close button
 local closeBtn = CreateFrame("Button", nil, DBG_frame, "UIPanelCloseButton")
@@ -223,9 +267,9 @@ logScroll:SetScrollChild(logContent)
 
 local LOG_LINES = {}
 local LOG_LINE_H = 13
-local MAX_VISIBLE = 30
+local MAX_VISIBLE = 200   -- alle 200 entries tonen, niet alleen 30
 
-for i = 1, MAX_VISIBLE do
+for i = 1, 30 do   -- pre-alloceer eerste 30 voor snelle start
     local fs = logContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     fs:SetPoint("TOPLEFT", 4, -(i-1) * LOG_LINE_H)
     fs:SetWidth(PANEL_W - 50)
@@ -236,17 +280,29 @@ end
 
 function DBG._RefreshLog()
     local count = math.min(#DBG.log, MAX_VISIBLE)
-    for i = 1, MAX_VISIBLE do
+    -- Maak ontbrekende FontStrings aan (pool uitbreiden tot count)
+    for i = #LOG_LINES + 1, count do
+        local fs = logContent:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        fs:SetPoint("TOPLEFT", 4, -(i-1) * LOG_LINE_H)
+        fs:SetWidth(PANEL_W - 50)
+        fs:SetJustifyH("LEFT")
+        fs:SetFont("Fonts\\2002.ttf", 10)
+        LOG_LINES[i] = fs
+    end
+    -- Tekst instellen
+    for i = 1, math.max(#LOG_LINES, count) do
+        local fs = LOG_LINES[i]
+        if not fs then break end
         local entry = DBG.log[i]
         if entry then
             local sc = SEV_COLOR[entry.sev] or SEV_COLOR.INFO
             local sl = SEV_LABEL[entry.sev] or "   "
-            LOG_LINES[i]:SetText(string.format(
+            fs:SetText(string.format(
                 "|cff666666[%s]|r %s%s|r  |cff88aaff%-14s|r  %s",
                 entry.time, sc, sl, entry.src, entry.msg
             ))
         else
-            LOG_LINES[i]:SetText("")
+            fs:SetText("")
         end
     end
     logContent:SetHeight(count * LOG_LINE_H + 4)
@@ -404,6 +460,93 @@ MakeToolBtn("DB Scan", 198, function()
     end)
 end)
 MakeToolBtn("Mem Snap", 293, function() DBG._RefreshMem() end)
+MakeToolBtn("Export",   388, function()
+    local out = {}
+    -- ── DEEL 1: ERROR RAPPORT (BugSack-stijl) ──
+    out[#out+1] = "=== WOWTRACKER ERROR REPORT — "..date("%Y-%m-%d %H:%M:%S").." ==="
+    out[#out+1] = "Build: WoW 12.0.5.67314 · Addon: WowTracker"
+    out[#out+1] = ""
+    if #DBG.errors == 0 then
+        out[#out+1] = "(geen Lua errors gevangen deze sessie)"
+    else
+        for i, e in ipairs(DBG.errors) do
+            out[#out+1] = string.format("[%d] %dx  %s", i, e.count, e.msg)
+            if e.stack and e.stack ~= "" then
+                out[#out+1] = "Stack:"
+                out[#out+1] = e.stack
+            end
+            if e.locals and e.locals ~= "" then
+                out[#out+1] = "Locals:"
+                out[#out+1] = e.locals
+            end
+            out[#out+1] = string.rep("-", 60)
+        end
+    end
+    -- ── DEEL 2: DEBUG LOG ──
+    out[#out+1] = ""
+    out[#out+1] = "=== DEBUG LOG ==="
+    for i = #DBG.log, 1, -1 do
+        local e = DBG.log[i]
+        if e then
+            out[#out+1] = string.format("[%s] %-4s  %-16s  %s",
+                e.time, e.sev, e.src, e.msg)
+        end
+    end
+    local txt = table.concat(out, "\n")
+    -- Vul export-frame in en toon
+    if DT_DBG_ExportEdit then
+        DT_DBG_ExportEdit:SetText(txt)
+        DT_DBG_ExportEdit:HighlightText()
+    end
+    if DT_DBG_ExportFrame then
+        DT_DBG_ExportFrame:Show()
+        if DT_DBG_ExportEdit then DT_DBG_ExportEdit:SetFocus() end
+    end
+end)
+
+-- ─────────────────────────────────────────────────────────────────────
+-- Export popup frame — EditBox met volledige log tekst
+-- Ctrl+A → Ctrl+C om te kopiëren
+-- ─────────────────────────────────────────────────────────────────────
+local expF = CreateFrame("Frame", "DT_DBG_ExportFrame", UIParent, "BackdropTemplate")
+expF:SetSize(640, 420)
+expF:SetPoint("CENTER", UIParent, "CENTER", 20, 20)
+expF:SetFrameStrata("TOOLTIP")
+expF:SetMovable(true); expF:EnableMouse(true)
+expF:RegisterForDrag("LeftButton")
+expF:SetScript("OnDragStart", expF.StartMoving)
+expF:SetScript("OnDragStop",  expF.StopMovingOrSizing)
+expF:SetClampedToScreen(true)
+expF:Hide()
+DT_DBG_ExportFrame = expF
+
+expF:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
+expF:SetBackdropColor(0.03, 0.06, 0.03, 0.98)
+expF:SetBackdropBorderColor(0.25, 0.75, 0.25, 1)
+
+local expHdr = expF:CreateTexture(nil, "BACKGROUND")
+expHdr:SetPoint("TOPLEFT",1,-1); expHdr:SetPoint("TOPRIGHT",-1,-1); expHdr:SetHeight(26)
+expHdr:SetColorTexture(0.05, 0.12, 0.05, 1)
+
+local expTitle = expF:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+expTitle:SetPoint("TOPLEFT", 10, -7)
+expTitle:SetText("|cff44ff44DT Debug Export|r  |cff888888Ctrl+A → Ctrl+C om te kopiëren|r")
+
+local expClose = CreateFrame("Button", nil, expF, "UIPanelCloseButton")
+expClose:SetPoint("TOPRIGHT", -2, -2)
+
+local expScroll = CreateFrame("ScrollFrame", nil, expF, "UIPanelScrollFrameTemplate")
+expScroll:SetPoint("TOPLEFT", 4, -30)
+expScroll:SetPoint("BOTTOMRIGHT", -26, 8)
+
+local expEdit = CreateFrame("EditBox", "DT_DBG_ExportEdit", expScroll)
+expEdit:SetMultiLine(true)
+expEdit:SetFontObject("GameFontHighlightSmall")
+expEdit:SetWidth(600)
+expEdit:SetAutoFocus(false)
+expEdit:SetScript("OnEscapePressed", function() expF:Hide() end)
+expScroll:SetScrollChild(expEdit)
+DT_DBG_ExportEdit = expEdit
 
 -- Error counter badge (bottom right)
 local errBadge = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
@@ -559,7 +702,7 @@ end
 -- Startup log entries
 -- ─────────────────────────────────────────────────────────────────────
 C_Timer.After(1.0, function()
-    DBG.Log("OK",  "Debugger",  "DT_Debugger v1.0 loaded — /dtdebug for panel")
+    DBG.Log("OK",  "Debugger",  "DT_Debugger v3.0 loaded — global error capture actief — /dtdebug voor panel · Export knop beschikbaar")
     DBG.Log("SYS", "Build",     "WoW 12.0.5 build 67314  ·  TOC 120005")
     DBG.Log("SYS", "Version",   "DelveTracker " .. (DelveTracker.Version or "?"))
 

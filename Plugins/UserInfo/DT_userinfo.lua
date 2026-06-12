@@ -3377,7 +3377,7 @@ frame:RegisterEvent("PLAYER_MONEY")
 frame:RegisterEvent("ADDON_LOADED")
 
 frame:SetScript("OnEvent", function(self, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == "DelveTracker" then
+    if event == "ADDON_LOADED" and (arg1 == "WowTracker" or arg1 == "DelveTracker") then
         SetLocale("en"); ApplyPanelTitles()
         ApplyScale(DB().uiScale or 1.0)
 

@@ -7,10 +7,15 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 
     <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- THEME ENGINE — ALTIJD VÓÓR CORE                       -->
+    <!-- WTTheme global beschikbaar voor alle volgende plugins  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Core\DT_Theme.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
     <!-- CORE ENGINE                                            -->
     <!-- Definieert DelveTracker global + plugin API           -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <Script file="Core\DT_Theme.lua"/>
     <Script file="Core\WowTracker.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
@@ -93,19 +98,20 @@
     <Script file="Plugins\Overlay\DT_Overlay.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- DEBUGGER — altijd als allerlaatste laden              -->
-    <!-- /dtdebug                                              -->
+    <!-- WARBANK BUDDY — vóór MailAttach                       -->
+    <!-- Personal bank · Reagent bank · Warband bank tabs 13-17-->
     <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\WarbankBuddy\DT_WarbankBuddy.lua"/>
+
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- MAIL ATTACH — Quick Attach panel bij mailbox            -->
+    <!-- MAIL ATTACH — Quick Attach panel bij mailbox           -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\MailAttach\DT_MailAttach.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- DEBUGGER — altijd als allerlaatste laden               -->
-    <!-- /dtdebug                                               -->
+    <!-- DEBUGGER — ALTIJD ALLERLAATSTE                        -->
+    <!-- /dtdebug                                              -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\Debugger\DT_Debugger.lua"/>
 
-    <Script file="Plugins\WarbankBuddy\DT_WarbankBuddy.lua"/>
 </Ui>

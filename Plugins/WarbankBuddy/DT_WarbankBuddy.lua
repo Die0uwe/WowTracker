@@ -3,10 +3,10 @@
 -- Compatible: WoW 12.0.5 / The War Within (Build 67314)
 -- =====================================================
 -- FIXES applied vs V0.2:
---  [BUG-1] pairs(B.BankFrame.buttons) → nil crash  (line ~139)
+--  [BUG-1] pairs(B.BankFrame.buttons) -> nil crash  (line ~139)
 --           Added explicit nil guard before iteration
 --  [BUG-2] GameTooltip:HookScript("OnTooltipSetItem") missing script
---           OnTooltipSetItem removed in 10.0.2 → replaced with
+--           OnTooltipSetItem removed in 10.0.2 -> replaced with
 --           TooltipDataProcessor.AddTooltipPostCall (TWW-native)
 --  [BUG-3] InterfaceOptionsCheckButtonTemplate deprecated (10.0+)
 --           Replaced with manual checkbox widget (textures)
@@ -18,7 +18,7 @@
 --           Added C_Container scan for Enum.BagIndex.AccountBankTab_1..5
 --  [BUG-7] E:GetModule("Bags") unguarded – crashes when module absent
 --           Wrapped in pcall; all ElvUI paths individually nil-guarded
---  [BUG-8] GetItemInfo → may be nil in TWW; added C_Item.GetItemInfo fallback
+--  [BUG-8] GetItemInfo -> may be nil in TWW; added C_Item.GetItemInfo fallback
 --  [BUG-9] PLAYER_ACCOUNT_BANK_SLOT_CHANGED does NOT exist in WoW 12.0.5
 --           Removed. Warbank updates flow through BAG_UPDATE_DELAYED.
 --           All RegisterEvent calls wrapped in pcall for future-proofing.
@@ -222,9 +222,9 @@ end
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Button lookup helper  (BUG-5 fix)
 -- Blizzard uses different global naming conventions per bag type:
---   Main bank (-1)  → BankFrameItem<slot>
---   Bank bags (5-11)→ ContainerFrame<bagID>Item<slot>
---   Warbank tabs    → AccountBankPanel<tab>Item<slot>  (TWW)
+--   Main bank (-1)  -> BankFrameItem<slot>
+--   Bank bags (5-11)-> ContainerFrame<bagID>Item<slot>
+--   Warbank tabs    -> AccountBankPanel<tab>Item<slot>  (TWW)
 -- ─────────────────────────────────────────────────────────────────────────────
 local function GetBankButton(bagID, slot)
     if bagID == BANK_MAIN_BAGID then
@@ -257,7 +257,7 @@ local function ScanElvUIBank()
     -- Helper: scan any ElvUI bank-style frame
     local function ScanElvFrame(frame)
         if not frame or not frame:IsShown() then return end
-        local buttons = frame.buttons          -- BUG-1: was nil → crash
+        local buttons = frame.buttons          -- BUG-1: was nil -> crash
         if not buttons then return end         -- ← nil guard added here
 
         for _, btn in pairs(buttons) do
@@ -398,7 +398,7 @@ end
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Event registration  (BUG-9/10 fix)
 --
--- ❌ REMOVED: "PLAYER_ACCOUNT_BANK_SLOT_CHANGED" — this event does NOT exist
+-- ❌ REMOVED: "PLAYER_ACCOUNT_BANK_SLOT_CHANGED" - this event does NOT exist
 --    in any version of WoW retail including 12.0.5.  Registering it causes:
 --    "Attempt to register unknown event" Lua error on every load.
 --
@@ -406,7 +406,7 @@ end
 --    already fires for ALL container updates (player bags, bank, warbank tabs).
 --
 -- ✅ All RegisterEvent calls wrapped in pcall so a future API rename cannot
---    crash the addon entirely — it will silently skip the unknown event.
+--    crash the addon entirely - it will silently skip the unknown event.
 -- ─────────────────────────────────────────────────────────────────────────────
 local eventFrame = CreateFrame("Frame")
 
@@ -469,7 +469,7 @@ SlashCmdList["WARBANKBUDDY"] = function(msg)
         print("  TooltipDP:", TooltipDataProcessor and "present" or "absent (fallback active)")
         if WBB._skippedEvents then
             for ev, err in pairs(WBB._skippedEvents) do
-                print("  |cffff4444SKIPPED event:|r", ev, "→", err)
+                print("  |cffff4444SKIPPED event:|r", ev, "->", err)
             end
         else
             print("  All events: |cff00ff00registered OK|r")

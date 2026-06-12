@@ -809,3 +809,51 @@ v3.0.7  Undead icon fix + volledig admin panel
 v3.0.8  Header warband stats + thema/taal admin + HighmountainTauren fix
 ```
 
+
+---
+
+## Midnight 12.0.5 Protected/Removed APIs (sessie 2026-06-12)
+
+### GuildRoster() EN C_GuildInfo.GuildRoster() — BEIDE weg/onbetrouwbaar
+```
+BUG:    GuildRoster() = nil (verwijderd); C_GuildInfo.GuildRoster() gaf ook nil-call
+FIX:    WT_RequestGuildRoster() safe wrapper met type()=="function" checks
+        GUILD_ROSTER_UPDATE vuurt sowieso periodiek — request is best-effort
+```
+
+### GetGuildRosterMOTD() is PROTECTED (ADDON_ACTION_BLOCKED + taint)
+```
+BUG:    Directe call → ADDON_ACTION_BLOCKED, Lua Taint: WowTracker
+FIX:    GUILD_MOTD event levert motd als payload → cache → WT_GetMOTD()
+        Eventueel C_GuildInfo.GetGuildRosterMOTD() met type-check (niet protected)
+```
+
+### Frames zijn Lua tables — Hide-loop valkuil
+```
+BUG:    type(row)=="table" matcht óók op Button frames → pairs() itereert
+        frame-internals (functions zoals OnBackdropLoaded) → index crash
+FIX:    Test EERST type(row.Hide)=="function" (= frame), dán pas table-iteratie
+```
+
+### Hardcoded "DelveTracker" ADDON_LOADED checks (map heet WowTracker)
+```
+BUG:    DT_ClothCounter: local ADDON_NAME="DelveTracker" → InitDB nooit gedraaid
+        DT_userinfo regel 3380: arg1=="DelveTracker" → init nooit
+        DT_Debugger: GetAddOnMemoryUsage("DelveTracker") → altijd 0.0 KB
+FIX:    local ADDON_NAME = ... (vararg = echte mapnaam) of beide namen accepteren
+```
+
+### Scan-regel herbevestigd: UnitRace tweede return
+```
+BUG:    Core regel 1793: d.race = UnitRace("player") — EERSTE return (localized)
+FIX:    local _, raceTag = UnitRace("player"); d.race = raceTag
+        d.sex = UnitSex("player") (getal) + d.gender alias
+        DT_SetRaceIcon() herbouwd in Core (was verloren bij ZIP-sync 9738d33)
+```
+
+### Debugger v3.0 — BugSack-stijl error capture
+```
+NIEUW:  seterrorhandler chain vangt ALLE Lua errors: msg + debugstack(4) +
+        debuglocals(4) + dedup teller. Export = error rapport + debug log.
+        Chained met bestaande handler (!BugGrabber blijft werken).
+```
