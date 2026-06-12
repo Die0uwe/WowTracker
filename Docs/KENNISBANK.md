@@ -1259,3 +1259,18 @@ CLOTHCOUNTER PATROON: theme-lezing IN de bestaande ApplyWindowStyle
   Archive herstylet — geen duplicatie.
 FASE 3.2 = AFGEROND. Alle frames volgen het actieve thema.
 ```
+
+## MOTD race-condition opgelost — v3.2.9 (sessie 2026-06-13)
+```
+PROBLEEM: tab open vóór GUILD_MOTD event → "Laden..." bleef hangen
+  zonder herpoging (event kan uitblijven: race, addon-conflict, hik).
+DRIE-LAAGS FIX:
+  A) Tab-open herpogingen: C_Timer.After 1s (stille retry) + 3s
+     (laatste poging, anders NO_MOTD i.p.v. eeuwig "Laden...")
+  B) GUILD_ROSTER_UPDATE vult de cache OOK met tab dicht —
+     MOTD staat klaar vóór de gebruiker de tab opent
+  C) WT_GetMOTD: pcall om C_GuildInfo.GetGuildRosterMOTD —
+     toekomstbestendig tegen protected/secret gedrag
+LES: event-afhankelijke UI altijd voorzien van timeout + herpoging;
+  "wachten op één event" is een single point of failure.
+```

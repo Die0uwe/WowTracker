@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.2.8"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.2.9"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -792,8 +792,10 @@ local _cachedMOTD = ""
 local function WT_SetCachedMOTD(m) _cachedMOTD = m or "" end
 local function WT_GetMOTD()
     if C_GuildInfo and type(C_GuildInfo.GetGuildRosterMOTD)=="function" then
-        local m = C_GuildInfo.GetGuildRosterMOTD()
-        if m and m ~= "" then _cachedMOTD = m end
+        -- v3.2.9: pcall — mocht deze route ooit protected/secret gedrag
+        -- vertonen, dan geen error maar gewoon cache-fallback
+        local ok, m = pcall(C_GuildInfo.GetGuildRosterMOTD)
+        if ok and type(m)=="string" and m ~= "" then _cachedMOTD = m end
     end
     return _cachedMOTD
 end
@@ -813,6 +815,24 @@ local function ShowTab(id)
             Tab1.guildName:SetText(SA_GOLD..(gName or "Slayer Alliance").."|r")
             local motd = WT_GetMOTD()
             Tab1.motdText:SetText(motd~="" and (SA_GREY..motd.."|r") or SA_GREY..WT_T("LOADING").."|r")
+            -- v3.2.9 OPTIE A: het GUILD_MOTD event kan uitblijven (race /
+            -- addon-conflict) — herpoging na 1s, en na 3s nette melding
+            -- i.p.v. eeuwig "Laden..."
+            if motd == "" and C_Timer and C_Timer.After then
+                C_Timer.After(1.0, function()
+                    if not (Tab1:IsShown() and Tab1.motdText) then return end
+                    local fresh = WT_GetMOTD()
+                    if fresh ~= "" then
+                        Tab1.motdText:SetText(SA_GREY..fresh.."|r")
+                    end
+                end)
+                C_Timer.After(3.0, function()
+                    if not (Tab1:IsShown() and Tab1.motdText) then return end
+                    local fresh = WT_GetMOTD()
+                    Tab1.motdText:SetText(fresh ~= "" and (SA_GREY..fresh.."|r")
+                        or SA_GREY..WT_T("NO_MOTD").."|r")
+                end)
+            end
         else
             Tab1.guildName:SetText(SA_GREY..WT_T("NO_GUILD").."|r")
             Tab1.motdText:SetText(SA_GREY..WT_T("NO_GUILD_MEMBER").."|r")
@@ -2126,6 +2146,10 @@ guildEventFrame:RegisterEvent("GUILD_MOTD")
 guildEventFrame:SetScript("OnEvent", function(_, event, arg1)
     if event == "GUILD_MOTD" then
         WT_SetCachedMOTD(arg1)
+    elseif event == "GUILD_ROSTER_UPDATE" then
+        -- v3.2.9 OPTIE B: roster-update als extra MOTD-trigger — vult de
+        -- cache OOK als de tab dicht is, zodat hij klaar staat bij openen
+        WT_GetMOTD()
     end
     if not Tab1:IsShown() then return end
     -- MOTD via cache (nooit protected call)
