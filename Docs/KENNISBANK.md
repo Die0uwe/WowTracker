@@ -982,3 +982,15 @@ PATROON: eventframe op PLAYER_LOGIN → UnregisterAllEvents →
 ui-files (events_ui, prey_ui) liften mee onder de hoofdplugin.
 TOTAAL: 22 plugins zichtbaar in admin panel (was 15).
 ```
+
+## Bounty subtabs — v3.1.3 (Fase 2.2, sessie 2026-06-12)
+```
+ROOT CAUSE LAYOUT: tiles staan in 2-koloms grid van TILE_H*1.4 (70px),
+  maar drie Y-berekeningen rekenden met TILE_H (50) per tile-COUNT:
+  · Nemesis ITEMS_Y → Required Items header OVERLAPTE tile bij iN=1 (11px)
+  · scB/scNr SetHeight → veel te hoge scroll-gebieden (lege ruimte)
+FIX: GridHeight(n) = ceil(n/2) * (floor(TILE_H*1.4) + TILE_G) — rijen!
+KLEUR: Bountiful tile gekalmeerd — backdrop neutraal donker
+  (0.07,0.04,0.02), border/glow zachter oranje; stripe+badge dragen
+  de herkenning. Intensiteit nu gelijk aan Nemesis/Normal.
+```

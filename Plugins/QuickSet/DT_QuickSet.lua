@@ -46,6 +46,16 @@ local SF_RIGHT = 20      -- right offset for scrollframe so scrollbar stays insi
 local SCROLL_W = CONT_W - 1 - SF_RIGHT - 2   -- = 377
 local TILE_H   = 50
 local TILE_G   = 3
+
+-- v3.1.3 (Fase 2.2): grid-hoogte helper — tiles staan in een 2-koloms
+-- grid met hoogte TILE_H*1.4 (70px), NIET TILE_H. Alle Y-berekeningen
+-- moeten in RIJEN rekenen, anders overlapt de Required Items header
+-- de tiles (iN=1) en krijgen Bountiful/Normal te hoge scroll-gebieden.
+local function GridHeight(n)
+    if n <= 0 then return 0 end
+    local tileH2 = math.floor(TILE_H * 1.4)
+    return math.ceil(n / 2) * (tileH2 + TILE_G)
+end
 local TAB_H    = 26
 local HDR_H    = 60      -- slightly taller for the 3D model
 
@@ -388,16 +398,18 @@ local function StyleTile(t, d, isBountiful, isNemesis)
     t.iconRim:SetColorTexture(1, 1, 1, 0)  -- always transparent
 
     if isBountiful then
-        t:SetBackdropColor(0.10, 0.04, 0.00, 0.95)
-        t:SetBackdropBorderColor(1.0, 0.55, 0.0, 0.85)
+        -- v3.1.3 (Fase 2.2): oranje gereduceerd tot ACCENT — backdrop neutraal
+        -- donker zoals Nemesis/Normal, stripe+badge dragen de herkenning
+        t:SetBackdropColor(0.07, 0.04, 0.02, 0.95)
+        t:SetBackdropBorderColor(0.80, 0.45, 0.05, 0.65)
         t.stripe:SetColorTexture(1.0, 0.55, 0.0, 1)
-        t.badge:SetColorTexture(0.85, 0.45, 0.0, 0.92)
-        t.glowBar:SetColorTexture(1.0, 0.70, 0.0, 1)
-        t.glowLeft:SetColorTexture(1.0, 0.70, 0.0, 1)
+        t.badge:SetColorTexture(0.70, 0.38, 0.0, 0.85)
+        t.glowBar:SetColorTexture(0.85, 0.55, 0.05, 0.8)
+        t.glowLeft:SetColorTexture(0.85, 0.55, 0.05, 0.8)
         t.badgeTxt:SetText("|cff0d0500BOUNTY|r")
         t.typeTxt:SetText(CO.orange .. "Bountiful Delve")
-        t._gr, t._gg, t._gb = 1.0, 0.75, 0.10
-        t._br, t._bg, t._bb, t._ba = 1.0, 0.55, 0.0, 0.85
+        t._gr, t._gg, t._gb = 0.95, 0.65, 0.10
+        t._br, t._bg, t._bb, t._ba = 0.90, 0.50, 0.08, 0.75
 
     elseif isNemesis then
         t:SetBackdropColor(0.08, 0.00, 0.12, 0.95)
@@ -1013,7 +1025,7 @@ local function BuildGrid(container)
         end
 
         -- Required Items section header
-        local ITEMS_Y = iN * (TILE_H + TILE_G) + 6
+        local ITEMS_Y = GridHeight(iN) + 6   -- v3.1.3: rijen i.p.v. tile-count
 
         if not scN.itemHeaderFrame then
             local hbar = CreateFrame("Frame", nil, scN, "BackdropTemplate")
@@ -1166,7 +1178,7 @@ local function BuildGrid(container)
                 t:Show()
             end
         end
-        scB:SetHeight(math.max(iB * (TILE_H + TILE_G) - TILE_G, 10))
+        scB:SetHeight(math.max(GridHeight(iB) - TILE_G, 10))   -- v3.1.3
 
         -- ── TAB 3: NORMAL (scrollbar visible) ──────────
         local iNr = 0
@@ -1194,7 +1206,7 @@ local function BuildGrid(container)
             t:SetScript("OnEnter", nil); t:SetScript("OnLeave", nil); t:SetScript("OnClick", nil)
             t:Show()
         end
-        scNr:SetHeight(math.max(iNr * (TILE_H + TILE_G) - TILE_G, 10))
+        scNr:SetHeight(math.max(GridHeight(iNr) - TILE_G, 10))   -- v3.1.3
     end
 
     local function RefreshAll()
