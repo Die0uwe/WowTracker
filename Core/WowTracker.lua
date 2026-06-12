@@ -33,6 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
+local WT_VERSION = "3.2.5"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -537,7 +538,7 @@ UI.title:SetText(SA_PURPLE.."SLAYER ALLIANCE|r")
 UI.versionTxt = UI:CreateFontString(nil,"OVERLAY")
 UI.versionTxt:SetFont(C_2002,9,"")
 UI.versionTxt:SetPoint("TOPLEFT",UI.title,"BOTTOMLEFT",0,-3)
-UI.versionTxt:SetText(SA_GREY.."DelveTracker v2.7.0 · Midnight 12.0.5|r")
+UI.versionTxt:SetText(SA_GREY.."WowTracker v"..WT_VERSION.." · Midnight 12.0.5|r")
 
 UI.charInfo = UI:CreateFontString(nil,"OVERLAY")
 UI.charInfo:SetFont(C_2002,11,"OUTLINE")
@@ -2263,14 +2264,59 @@ end
 MakeDebugBtn()
 
 -- ── DATA ──────────────────────────────────────────────────────────────────
-local function CheckWeeklyReset()
-    local cw=GetServerTime()/(60*60*24*7)
-    if not DelveTrackerDB.lastResetWeek or math.floor(cw)>math.floor(DelveTrackerDB.lastResetWeek) then
-        DelveTrackerDB.lastResetWeek=cw
-        if DelveTrackerDB.characters then
-            for _,d in pairs(DelveTrackerDB.characters) do d.delves={}; d.totalDone=0 end
-        end
+-- ── WEEKLY RESET v3.2.5 (Fase 3.4 — DataStore Cleanup.lua patroon) ────
+-- Oude versie gebruikte epoch-weken (wisselt do 00:00 UTC) — FOUT voor
+-- regionale resets. Nu: GetCVar("portal") → EU=woensdag(3) 6:00,
+-- US=dinsdag(2), CN/KR/TW=donderdag(4). Next-reset als datum in DB.
+local WR_DAYS_PER_MONTH = {31,28,31,30,31,30,31,31,30,31,30,31}
+
+local function WT_GetWeeklyResetDay()
+    local region = GetCVar and GetCVar("portal")
+    if region == "EU" then return 3
+    elseif region == "CN" or region == "KR" or region == "TW" then return 4 end
+    return 2  -- US/default: dinsdag
+end
+
+local function WT_NextWeeklyReset(resetDay, resetHour)
+    local year  = tonumber(date("%Y"))
+    local month = tonumber(date("%m"))
+    local day   = tonumber(date("%d"))
+    local wd    = tonumber(date("%w"))
+    local add
+    if wd < resetDay then add = resetDay - wd
+    elseif wd > resetDay then add = resetDay - wd + 7
+    else add = (tonumber(date("%H")) >= resetHour) and 7 or 0 end
+    if add == 0 then return date("%Y-%m-%d") end
+    -- schrikkeljaar
+    WR_DAYS_PER_MONTH[2] = ((year%4==0) and (year%100~=0 or year%400==0)) and 29 or 28
+    local nd = day + add
+    if nd <= WR_DAYS_PER_MONTH[month] then
+        return string.format("%04d-%02d-%02d", year, month, nd)
     end
+    if month <= 11 then
+        return string.format("%04d-%02d-%02d", year, month+1, nd - WR_DAYS_PER_MONTH[month])
+    end
+    return string.format("%04d-%02d-%02d", year+1, 1, nd - WR_DAYS_PER_MONTH[month])
+end
+
+local function CheckWeeklyReset()
+    DelveTrackerDB.WeeklyReset = DelveTrackerDB.WeeklyReset or {}
+    local wr = DelveTrackerDB.WeeklyReset
+    local resetDay, resetHour = WT_GetWeeklyResetDay(), 6
+    DelveTrackerDB.lastResetWeek = nil   -- oude epoch-week opruimen
+
+    if not wr.nextReset then
+        wr.day, wr.hour, wr.nextReset = resetDay, resetHour, WT_NextWeeklyReset(resetDay, resetHour)
+        return
+    end
+    local today = date("%Y-%m-%d")
+    if today < wr.nextReset then return end
+    if today == wr.nextReset and tonumber(date("%H")) < (wr.hour or 6) then return end
+    -- ── RESET: weekly velden wissen ──
+    if DelveTrackerDB.characters then
+        for _,d in pairs(DelveTrackerDB.characters) do d.delves={}; d.totalDone=0 end
+    end
+    wr.day, wr.hour, wr.nextReset = resetDay, resetHour, WT_NextWeeklyReset(resetDay, resetHour)
 end
 
 ScanDelves = function()
@@ -2519,7 +2565,7 @@ MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
 local function DT_OpenMurlocMenu(owner)
     if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
     MenuUtil.CreateContextMenu(owner, function(_, root)
-        root:CreateTitle(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v2.9.9|r")
+        root:CreateTitle(SA_PURPLE.."WowTracker|r  "..SA_GREY.."v"..WT_VERSION.."|r")
 
         root:CreateTitle(SA_GOLD.."Characters|r")
         root:CreateButton("|cffffffff⚔  Delves|r",       function() UI:Show(); ShowTab(2) end)
@@ -2673,7 +2719,7 @@ AP:SetBackdropBorderColor(0.40, 0.10, 0.65, 1)
 local apTitle = AP:CreateFontString(nil, "OVERLAY")
 apTitle:SetFont(C_2002, 15, "OUTLINE")
 apTitle:SetPoint("TOP", 0, -10)
-apTitle:SetText(SA_PURPLE.."WowTracker Admin|r  "..SA_GREY.."v3.0.9|r")
+apTitle:SetText(SA_PURPLE.."WowTracker Admin|r  "..SA_GREY.."v"..WT_VERSION.."|r")
 
 local apClose = CreateFrame("Button", nil, AP, "UIPanelCloseButton")
 apClose:SetPoint("TOPRIGHT", -2, -2)
@@ -2894,7 +2940,7 @@ local function ToggleAdminPanel()
     thLbl:SetText(SA_BLUE..WT_T("THEME_SET").."|r")
     taLbl:SetText(SA_BLUE..WT_T("LANG_TITLE").."|r")
     plLbl:SetText(SA_BLUE..WT_T("PLUGINS").."|r  "..SA_GREY..WT_T("PLUGINS_HINT").."|r")
-    apTitle:SetText(SA_PURPLE..WT_T("ADMIN_TITLE").."|r  "..SA_GREY.."v3.2.0|r")
+    apTitle:SetText(SA_PURPLE..WT_T("ADMIN_TITLE").."|r  "..SA_GREY.."v"..WT_VERSION.."|r")
     refreshUIScale(); refreshMScale()
     RefreshThemeBtns(); RefreshLangBtns(); RefreshCA(); RefreshPluginList()
     AP:Show()

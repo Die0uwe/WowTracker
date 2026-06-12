@@ -1195,3 +1195,16 @@ ARMORY i18n NALEVERING: labels verversen nu óók op Armory OnShow
   stond of zonder her-selectie getest werd. Na taalwissel: venster
   her-openen of karakter aanklikken.
 ```
+
+## Weekly reset + versie-constante — v3.2.5 (Fase 3.4 + 4.5, sessie 2026-06-13)
+```
+WEEKLY RESET (3.4): oude implementatie = GetServerTime()/epoch-week →
+  wisselt DONDERDAG 00:00 UTC, niet de regionale reset! Nu Cleanup.lua
+  patroon: GetCVar("portal") → EU=wo(3) · US=di(2) · CN/KR/TW=do(4),
+  reset-uur 6:00, next-reset als "YYYY-MM-DD" in DelveTrackerDB.WeeklyReset
+  {day, hour, nextReset}. Schrikkeljaar + maand/jaar-overflow afgedekt.
+  Oude lastResetWeek wordt opgeruimd (nil).
+VERSIE (4.5): WT_VERSION = "3.2.5" bovenin Core — header, contextmenu
+  en admin panel (2 plekken) lezen hem; TOC ## Version gelijkgetrokken.
+  Release-procedure: ALLEEN WT_VERSION + TOC bijwerken.
+```
