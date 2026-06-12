@@ -54,6 +54,17 @@ EB:SetScript("OnDragStop",  EB.StopMovingOrSizing)
 -- Thin invisible edge so backdrop border works
 EB:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
 EB:SetBackdropBorderColor(0, 0, 0, 0)
+    -- ── WTTHEME KOPPELING (Fase 3.2 ronde 2 · v3.2.8) ──
+    if WTTheme and WTTheme.Register then
+        local function _applyTheme()
+            local bg  = WTTheme.bg and WTTheme.bg.main
+            local bdr = WTTheme.border and WTTheme.border.main
+            if bg then EB:SetBackdropColor(bg.r, bg.g, bg.b, 0) end
+            if bdr then EB:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, 0.6) end
+        end
+        WTTheme.Register(_applyTheme)
+        _applyTheme()
+    end
 
 -- Background: near-black vertical gradient
 local bg = EB:CreateTexture(nil, "BACKGROUND")

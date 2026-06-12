@@ -1243,3 +1243,19 @@ GEEN EIGEN FRAME (kleuren al mee via core PluginArea): Lockout, QuickSet.
 NOG TE KOPPELEN: ClothCounter (F), Debugger, SkinNRare, ExchangeBot,
   MailAttach, HelpGuide — zelfde template, volgende ronde.
 ```
+
+## WTTheme uitrol COMPLEET — v3.2.8 (Fase 3.2 ronde 2, sessie 2026-06-13)
+```
+ALLE plugin-popups gekoppeld (live themawissel):
+  Registry · Charmory (v3.2.7) + ClothCounter (F+Archive via
+  ApplyWindowStyle) · Debugger · SkinNRare · ExchangeBot · MailAttach ·
+  HelpGuide (v3.2.8)
+BEWUSTE UITZONDERINGEN (functionele kenmerken behouden):
+  · Debugger border blijft GROEN (debug-identiteit)
+  · MailAttach border blijft GOUD
+  · ExchangeBot border was onzichtbaar → nu subtiel theme (0.6 alpha)
+CLOTHCOUNTER PATROON: theme-lezing IN de bestaande ApplyWindowStyle
+  helper (bg-fallback behouden) + één Register-callback die F én
+  Archive herstylet — geen duplicatie.
+FASE 3.2 = AFGEROND. Alle frames volgen het actieve thema.
+```

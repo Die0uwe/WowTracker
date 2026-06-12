@@ -279,6 +279,17 @@ frame:SetBackdrop({
 
 frame:SetBackdropColor(0.01, 0.01, 0.02, 0.98)
 frame:SetBackdropBorderColor(0.3, 0, 0.5, 1)
+    -- ── WTTHEME KOPPELING (Fase 3.2 ronde 2 · v3.2.8) ──
+    if WTTheme and WTTheme.Register then
+        local function _applyTheme()
+            local bg  = WTTheme.bg and WTTheme.bg.main
+            local bdr = WTTheme.border and WTTheme.border.main
+            if bg then frame:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.98, 0.95)) end
+            if bdr then frame:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, 1) end
+        end
+        WTTheme.Register(_applyTheme)
+        _applyTheme()
+    end
 
 -------------------------------------------------
 -- MODEL FRAME (single declaration — FIX-1 removes duplicate)

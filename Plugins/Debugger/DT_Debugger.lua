@@ -199,6 +199,17 @@ DBG_frame:SetBackdrop({
 })
 DBG_frame:SetBackdropColor(0.04, 0.04, 0.06, 0.97)
 DBG_frame:SetBackdropBorderColor(0.3, 0.8, 0.3, 1)
+    -- ── WTTHEME KOPPELING (Fase 3.2 ronde 2 · v3.2.8) ──
+    if WTTheme and WTTheme.Register then
+        local function _applyTheme()
+            local bg  = WTTheme.bg and WTTheme.bg.main
+            local bdr = WTTheme.border and WTTheme.border.main
+            if bg then DBG_frame:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.97, 0.95)) end
+            -- border blijft debug-groen (functioneel kenmerk)
+        end
+        WTTheme.Register(_applyTheme)
+        _applyTheme()
+    end
 
 -- Header bar
 local hdr = DBG_frame:CreateTexture(nil, "BACKGROUND")

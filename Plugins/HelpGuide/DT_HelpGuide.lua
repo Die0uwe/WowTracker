@@ -31,6 +31,17 @@ if DelveTracker then
     })
     helpFrame:SetBackdropColor(0.04,0.02,0.08,0.97)
     helpFrame:SetBackdropBorderColor(0.40,0.12,0.65,1)
+        -- ── WTTHEME KOPPELING (Fase 3.2 ronde 2 · v3.2.8) ──
+        if WTTheme and WTTheme.Register then
+            local function _applyTheme()
+                local bg  = WTTheme.bg and WTTheme.bg.main
+                local bdr = WTTheme.border and WTTheme.border.main
+                if bg then helpFrame:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.97, 0.95)) end
+                if bdr then helpFrame:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, 1) end
+            end
+            WTTheme.Register(_applyTheme)
+            _applyTheme()
+        end
     helpFrame:SetScript("OnDragStart",helpFrame.StartMoving)
     helpFrame:SetScript("OnDragStop",helpFrame.StopMovingOrSizing)
 

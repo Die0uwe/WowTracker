@@ -194,7 +194,13 @@ end
 local function ApplyWindowStyle(f,r,g,b)
     f:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8X8",
         edgeFile="Interface\\ChatFrame\\ChatFrameBackground",edgeSize=2})
-    f:SetBackdropColor(0.03,0.01,0.07,0.97)
+    -- v3.2.8 (Fase 3.2): bg uit WTTheme indien beschikbaar
+    local bg = WTTheme and WTTheme.bg and WTTheme.bg.main
+    if bg then
+        f:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.97, 0.95))
+    else
+        f:SetBackdropColor(0.03,0.01,0.07,0.97)
+    end
     f:SetBackdropBorderColor(r or 0.5,g or 0.22,b or 0.85,1)
 end
 local function MakeHeaderStripe(parent,h)
@@ -286,6 +292,13 @@ end
 
 -- ── Main widget ───────────────────────────────────────────────────────────
 local F=CreateFrame("Frame","ClothWidgetFrame",UIParent,"BackdropTemplate")
+-- v3.2.8: live themawissel — beide ClothCounter vensters restylen
+if WTTheme and WTTheme.Register then
+    WTTheme.Register(function()
+        if F then ApplyWindowStyle(F) end
+        if Archive then ApplyWindowStyle(Archive) end
+    end)
+end
 F:SetSize(458,195); F:SetPoint("CENTER",0,-150); F:Hide()
 F:SetMovable(true); F:EnableMouse(true); F:RegisterForDrag("LeftButton")
 F:SetScript("OnDragStart",F.StartMoving)

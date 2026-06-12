@@ -64,6 +64,17 @@ QA:SetBackdrop({
 })
 QA:SetBackdropColor(0.05,0.03,0.08,0.97)
 QA:SetBackdropBorderColor(0.55,0.40,0.05,1)  -- goud border
+    -- ── WTTHEME KOPPELING (Fase 3.2 ronde 2 · v3.2.8) ──
+    if WTTheme and WTTheme.Register then
+        local function _applyTheme()
+            local bg  = WTTheme.bg and WTTheme.bg.main
+            local bdr = WTTheme.border and WTTheme.border.main
+            if bg then QA:SetBackdropColor(bg.r, bg.g, bg.b, math.max(bg.a or 0.97, 0.95)) end
+            -- border blijft goud (functioneel kenmerk)
+        end
+        WTTheme.Register(_applyTheme)
+        _applyTheme()
+    end
 QA:SetScript("OnDragStart",QA.StartMoving)
 QA:SetScript("OnDragStop",QA.StopMovingOrSizing)
 
