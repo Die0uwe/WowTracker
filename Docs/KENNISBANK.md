@@ -1163,3 +1163,16 @@ GUILD CALENDAR SCANNER (Fase 3.3, DataStore_Agenda patroon):
   · Re-scan gedebounced (2s) op CALENDAR_UPDATE_EVENT_LIST
   VOLGENDE STAP: weergave in Events tab + ticker (UI-integratie).
 ```
+
+## Guild events weergave — v3.2.3 (Fase 3.3 compleet, sessie 2026-06-12)
+```
+TICKER: onder ts.guild — eerstvolgende 2 events als
+  [G] Titel · vandaag 20:00 / DD-MM HH:MM (GE_TODAY vertaald, 5 talen)
+GUILD TAB: header "Aankomende guild events" + 4 regels onder de MOTD
+  (Tab1.geHdr + geRows pool van 4 — eenmalig aangemaakt).
+  WT_UpdateGuildEventsList() global — ververst bij guild-events
+  in core én door de scanner zelf na elke scan (pcall guard).
+KETEN: PLAYER_LOGIN → LoadAddOn(Blizzard_Calendar) → 8s delay →
+  ScanGuildCalendar → WT_UpdateGuildEventsList → ticker pakt het mee
+  bij eerstvolgende rebuild. GE_* sleutels in alle 5 talen.
+```

@@ -84,6 +84,7 @@ local WT_LANG = {
     CM_AGILITY="Behendigheid", CM_INTELLECT="Intellect", CM_ARMOR="Pantser",
     CM_CURRENCIES="VALUTA", CM_DELVES_WEEK="DELVES DEZE WEEK",
     CM_GOLD="GOUD", CM_TOTAL="Totaal",
+    GE_HDR="Aankomende guild events", GE_TODAY="vandaag", GE_NONE="Geen geplande events",
 },
 ["English"] = {
     TAB_GUILD="GUILD", TAB_DELVES="DELVES", TAB_BOUNTY="BOUNTY",
@@ -127,6 +128,7 @@ local WT_LANG = {
     CM_AGILITY="Agility", CM_INTELLECT="Intellect", CM_ARMOR="Armor",
     CM_CURRENCIES="CURRENCIES", CM_DELVES_WEEK="DELVES THIS WEEK",
     CM_GOLD="GOLD", CM_TOTAL="Total",
+    GE_HDR="Upcoming guild events", GE_TODAY="today", GE_NONE="No scheduled events",
 },
 ["Deutsch"] = {
     TAB_GUILD="GILDE", TAB_DELVES="TIEFEN", TAB_BOUNTY="KOPFGELD",
@@ -170,6 +172,7 @@ local WT_LANG = {
     CM_AGILITY="Beweglichkeit", CM_INTELLECT="Intelligenz", CM_ARMOR="Rüstung",
     CM_CURRENCIES="WÄHRUNGEN", CM_DELVES_WEEK="TIEFEN DIESE WOCHE",
     CM_GOLD="GOLD", CM_TOTAL="Gesamt",
+    GE_HDR="Kommende Gildenevents", GE_TODAY="heute", GE_NONE="Keine geplanten Events",
 },
 ["Français"] = {
     TAB_GUILD="GUILDE", TAB_DELVES="GOUFFRES", TAB_BOUNTY="PRIME",
@@ -213,6 +216,7 @@ local WT_LANG = {
     CM_AGILITY="Agilité", CM_INTELLECT="Intelligence", CM_ARMOR="Armure",
     CM_CURRENCIES="MONNAIES", CM_DELVES_WEEK="GOUFFRES CETTE SEMAINE",
     CM_GOLD="OR", CM_TOTAL="Total",
+    GE_HDR="Événements de guilde à venir", GE_TODAY="aujourd'hui", GE_NONE="Aucun événement prévu",
 },
 ["Español"] = {
     TAB_GUILD="HERMANDAD", TAB_DELVES="SIMAS", TAB_BOUNTY="RECOMPENSA",
@@ -256,6 +260,7 @@ local WT_LANG = {
     CM_AGILITY="Agilidad", CM_INTELLECT="Intelecto", CM_ARMOR="Armadura",
     CM_CURRENCIES="MONEDAS", CM_DELVES_WEEK="SIMAS ESTA SEMANA",
     CM_GOLD="ORO", CM_TOTAL="Total",
+    GE_HDR="Próximos eventos de hermandad", GE_TODAY="hoy", GE_NONE="Sin eventos programados",
 },
 }
 local _WT_T = WT_LANG["Nederlands"]
@@ -417,6 +422,20 @@ local function BuildTickerStr()
                 else
                     table.insert(parts,"|cffccaa00◎ "..e.name.."|r  "..SA_GREY.."over "..t.."|r")
                 end
+            end
+        end
+    end
+
+    -- Guild calendar events (Fase 3.3 — eerstvolgende 2)
+    if ts.guild ~= false and DT_GetGuildEvents then
+        local gev = DT_GetGuildEvents()
+        if gev and #gev > 0 then
+            local today = date("%Y-%m-%d")
+            for i = 1, math.min(2, #gev) do
+                local e = gev[i]
+                local when = (e.date == today) and (WT_T("GE_TODAY").." "..e.time)
+                    or (e.date:sub(9,10).."-"..e.date:sub(6,7).." "..e.time)
+                table.insert(parts, SA_PURPLE.."[G] "..e.title.."|r  "..SA_GREY..when.."|r")
             end
         end
     end
@@ -908,6 +927,48 @@ Tab1.motdText:SetTextColor(0.85,0.85,0.85,1)
 Tab1.motdText:SetText(SA_GREY..WT_T("LOADING").."|r")
 -- MOTD hoogte begrenzen — max tot halverwege de tab (Kelsey staat onderin)
 Tab1.motdText:SetMaxLines(4)
+
+-- ── GUILD CALENDAR EVENTS LIJST (Fase 3.3 · v3.2.3) ──────────────────────
+Tab1.geHdr=Tab1:CreateFontString(nil,"OVERLAY")
+Tab1.geHdr:SetFont(C_2002,9,"OUTLINE")
+Tab1.geHdr:SetJustifyH("CENTER")
+Tab1.geHdr:SetPoint("TOP",Tab1.motdText,"BOTTOM",0,-14)
+Tab1.geHdr:SetText("")
+
+Tab1.geRows = {}
+for i = 1, 4 do
+    local r = Tab1:CreateFontString(nil,"OVERLAY")
+    r:SetFont(C_2002,10,"")
+    r:SetJustifyH("CENTER")
+    r:SetWidth(GUILD_LEFT_W-50)
+    r:SetWordWrap(false)
+    r:SetPoint("TOP",Tab1.geHdr,"BOTTOM",0,-6-(i-1)*14)
+    r:SetText("")
+    Tab1.geRows[i] = r
+end
+
+function WT_UpdateGuildEventsList()
+    if not (Tab1 and Tab1.geHdr) then return end
+    local gev = DT_GetGuildEvents and DT_GetGuildEvents()
+    if not gev or #gev == 0 then
+        Tab1.geHdr:SetText(SA_PURPLE.."─── "..WT_T("GE_HDR").." ───|r")
+        Tab1.geRows[1]:SetText(SA_GREY..WT_T("GE_NONE").."|r")
+        for i = 2, 4 do Tab1.geRows[i]:SetText("") end
+        return
+    end
+    Tab1.geHdr:SetText(SA_PURPLE.."─── "..WT_T("GE_HDR").." ───|r")
+    local today = date("%Y-%m-%d")
+    for i = 1, 4 do
+        local e = gev[i]
+        if e then
+            local when = (e.date == today) and (SA_GOLD..WT_T("GE_TODAY").." "..e.time.."|r")
+                or (SA_BLUE..e.date:sub(9,10).."-"..e.date:sub(6,7).." "..e.time.."|r")
+            Tab1.geRows[i]:SetText(when.."  |cffffffff"..e.title.."|r")
+        else
+            Tab1.geRows[i]:SetText("")
+        end
+    end
+end
 
 -- ── GUILD TAB IMAGES ─────────────────────────────────────────────────────
 -- Layout:
@@ -2944,6 +3005,7 @@ UI:SetScript("OnEvent",function(self,event)
             local gName=GetGuildInfo("player")
             if gName and Tab1.guildName then Tab1.guildName:SetText(SA_GOLD..gName.."|r") end
             WT_UpdateGuildOnline()
+            if WT_UpdateGuildEventsList then WT_UpdateGuildEventsList() end
         end
     end
     if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"

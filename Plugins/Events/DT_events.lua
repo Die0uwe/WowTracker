@@ -350,6 +350,8 @@ local function ScanGuildCalendar()
     calFrame:RegisterEvent("CALENDAR_UPDATE_EVENT_LIST")
     scanning = false
     if not ok then wipe(guildEvents) end
+    -- UI verversen zodra scan klaar is (core lijst + ticker volgt vanzelf)
+    if WT_UpdateGuildEventsList then pcall(WT_UpdateGuildEventsList) end
 end
 
 -- Publieke API voor Events tab / ticker / andere plugins
