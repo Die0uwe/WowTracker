@@ -1128,3 +1128,20 @@ SCOPE LESSEN:
 RONDE 2 (open): plugin-strings (QuickSet tooltips, Registry, Lockout
   etc.) — zelfde patroon, per plugin.
 ```
+
+## i18n Ronde 2: QuickSet — v3.2.1 (sessie 2026-06-12)
+```
+PATROON PLUGIN-VERTALING (template voor alle plugins):
+  1. Sleutels met plugin-prefix (QS_*) toevoegen aan WT_LANG in Core
+     (5 talen) — centrale tabel, geen aparte bestanden per plugin
+  2. In de plugin: local function T(key) return WT_T and WT_T(key) or key end
+     (guard: core laadt eerst, maar veilig bij losse load)
+  3. Strings vervangen door T("KEY") — tooltips bouwen bij hover →
+     automatisch actuele taal, geen refresh-code nodig
+QUICKSET: 37 strings omgezet (tile types, delve tooltips, abundance blok,
+  story/coffers, nemesis status, benefits, Valeera header, subtabs,
+  Required Items). Eigennamen (Valeera, Chel the Chip, delve namen)
+  blijven onvertaald — namen zijn geen UI-tekst.
+VOLGENDE PLUGINS (zelfde patroon): Registry, Lockout, HelpGuide,
+  ClothCounter, ExchangeBot, SkinNRare, MailAttach, Debugger.
+```

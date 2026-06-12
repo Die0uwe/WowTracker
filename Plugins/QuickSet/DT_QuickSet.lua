@@ -44,6 +44,13 @@ local CONT_W   = 400
 local SF_RIGHT = 20      -- right offset for scrollframe so scrollbar stays inside
 -- scroll child width = CONT_W - 1 (left border) - SF_RIGHT - 2 (padding)
 local SCROLL_W = CONT_W - 1 - SF_RIGHT - 2   -- = 377
+-- v3.2.1 (i18n ronde 2): vertaal-helper — WT_T komt uit de core
+-- (laadt vóór deze plugin); guard voor veiligheid bij losse load
+local function T(key)
+    if WT_T then return WT_T(key) end
+    return key
+end
+
 local TILE_H   = 50
 local TILE_G   = 3
 
@@ -407,7 +414,7 @@ local function StyleTile(t, d, isBountiful, isNemesis)
         t.glowBar:SetColorTexture(0.85, 0.55, 0.05, 0.8)
         t.glowLeft:SetColorTexture(0.85, 0.55, 0.05, 0.8)
         t.badgeTxt:SetText("|cff0d0500BOUNTY|r")
-        t.typeTxt:SetText(CO.orange .. "Bountiful Delve")
+        t.typeTxt:SetText(CO.orange .. T("QS_BOUNTIFUL"))
         t._gr, t._gg, t._gb = 0.95, 0.65, 0.10
         t._br, t._bg, t._bb, t._ba = 0.90, 0.50, 0.08, 0.75
 
@@ -427,7 +434,7 @@ local function StyleTile(t, d, isBountiful, isNemesis)
         end
         t.glowBar:SetColorTexture(1.0, 0.30, 1.0, 1)
         t.glowLeft:SetColorTexture(1.0, 0.30, 1.0, 1)
-        t.typeTxt:SetText(CO.magenta .. "Nemesis Delve")
+        t.typeTxt:SetText(CO.magenta .. T("QS_NEMESIS"))
         t._gr, t._gg, t._gb = 1.0, 0.30, 1.0
         t._br, t._bg, t._bb, t._ba = 1.0, 0.20, 0.90, 0.85
 
@@ -439,7 +446,7 @@ local function StyleTile(t, d, isBountiful, isNemesis)
         t.glowBar:SetColorTexture(0.30, 0.70, 1.0, 1)
         t.glowLeft:SetColorTexture(0.30, 0.70, 1.0, 1)
         t.badgeTxt:SetText("")
-        t.typeTxt:SetText(CO.gray .. "Delve")
+        t.typeTxt:SetText(CO.gray .. T("QS_DELVE"))
         t._gr, t._gg, t._gb = 0.30, 0.75, 1.0
         t._br, t._bg, t._bb, t._ba = 0.20, 0.55, 1.0, 0.75
     end
@@ -463,25 +470,25 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
         local prefix = isBountiful and "[BOUNTY] " or (isNemesis and "[NEMESIS] " or "")
         GameTooltip:AddLine(CO.white .. prefix .. d.name .. "|r")
         if isBountiful then
-            GameTooltip:AddLine(CO.orange .. "Bountiful Delve|r")
+            GameTooltip:AddLine(CO.orange .. T("QS_BOUNTIFUL").."|r")
         elseif isNemesis then
-            GameTooltip:AddLine(CO.magenta .. "Nemesis Delve|r")
+            GameTooltip:AddLine(CO.magenta .. T("QS_NEMESIS").."|r")
             -- v3.1.5 (Fase 2.4): Abundance vendor + farm route hint
             local abData = DT_GetAbundanceData and DT_GetAbundanceData()
             if abData and abData.active then
                 GameTooltip:AddLine(" ")
-                GameTooltip:AddLine(CO.green .. "Abundant Harvest actief: " .. CO.white .. (abData.zone or "?") .. "|r")
+                GameTooltip:AddLine(CO.green .. T("QS_AB_ACTIVE") .. CO.white .. (abData.zone or "?") .. "|r")
                 if abData.secondsLeft and abData.secondsLeft > 0 and DT_FormatAbundanceTime then
-                    GameTooltip:AddLine(CO.gray .. "Resterend: " .. CO.orange .. DT_FormatAbundanceTime(abData.secondsLeft) .. "|r")
+                    GameTooltip:AddLine(CO.gray .. T("QS_REMAINING") .. CO.orange .. DT_FormatAbundanceTime(abData.secondsLeft) .. "|r")
                 end
-                GameTooltip:AddLine(CO.gray .. "Shard of Dundun: " .. CO.white .. (abData.shards or 0) .. "|r")
-                GameTooltip:AddLine(CO.gray .. "Chip vendor: " .. CO.blue .. "Chel the Chip|r")
-                GameTooltip:AddLine(CO.gray .. "Farm route: doe de Nemesis delve in de actieve zone|r")
+                GameTooltip:AddLine(CO.gray .. T("QS_SHARD") .. CO.white .. (abData.shards or 0) .. "|r")
+                GameTooltip:AddLine(CO.gray .. T("QS_VENDOR") .. CO.blue .. "Chel the Chip|r")
+                GameTooltip:AddLine(CO.gray .. T("QS_FARM").."|r")
             else
-                GameTooltip:AddLine(CO.gray .. "Chip vendor: " .. CO.blue .. "Chel the Chip|r" .. CO.gray .. " (Abundance niet actief)|r")
+                GameTooltip:AddLine(CO.gray .. T("QS_VENDOR") .. CO.blue .. "Chel the Chip|r" .. CO.gray .. T("QS_AB_INACTIVE").."|r")
             end
         else
-            GameTooltip:AddLine(CO.gray .. "Delve|r")
+            GameTooltip:AddLine(CO.gray .. T("QS_DELVE").."|r")
         end
 
         local live = GetLiveDelveInfo(d)
@@ -490,9 +497,9 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             if live.atlas and live.atlas ~= "" then
                 GameTooltip:AddLine(CO.gray .. "Atlas: " .. live.atlas .. "|r")
             end
-            GameTooltip:AddLine(CO.teal .. "open world map with pin.|r")
+            GameTooltip:AddLine(CO.teal .. T("QS_OPEN_MAP").."|r")
         else
-            GameTooltip:AddLine(CO.red .. "Live delve POI not found; using ID fallback.|r")
+            GameTooltip:AddLine(CO.red .. T("QS_POI_404").."|r")
         end
 
         -- ── Story achievement with per-quest criteria ──
@@ -501,7 +508,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             if achName then
                 GameTooltip:AddLine(" ")
                 local col = compl and CO.green or CO.teal
-                GameTooltip:AddLine(col .. "Story: " .. CO.silver .. achName .. "|r")
+                GameTooltip:AddLine(col .. T("QS_STORY") .. CO.silver .. achName .. "|r")
 
                 -- Show all individual criteria (quests)
                 local criteria = AchCriteria(d.story)
@@ -514,10 +521,10 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
                 end
 
                 if total and total > 0 then
-                    GameTooltip:AddLine(col .. done .. "/" .. total .. " completed|r")
+                    GameTooltip:AddLine(col .. done .. "/" .. total .. T("QS_COMPLETED").."|r")
                 end
                 if compl then
-                    GameTooltip:AddLine(CO.green .. "Achievement completed!|r")
+                    GameTooltip:AddLine(CO.green .. T("QS_ACH_DONE").."|r")
                 end
             end
         end
@@ -528,7 +535,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             if total then
                 GameTooltip:AddLine(" ")
                 local col = compl and CO.green or CO.gold
-                GameTooltip:AddLine(col .. "Coffers: " .. CO.silver .. (achName or "") .. "|r")
+                GameTooltip:AddLine(col .. T("QS_COFFERS") .. CO.silver .. (achName or "") .. "|r")
 
                 local criteria = AchCriteria(d.chest)
                 for _, c in ipairs(criteria) do
@@ -539,7 +546,7 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
                     end
                 end
 
-                GameTooltip:AddLine(col .. done .. "/" .. total .. " opened|r")
+                GameTooltip:AddLine(col .. done .. "/" .. total .. T("QS_OPENED").."|r")
             end
         end
 
@@ -548,19 +555,19 @@ local function SetTooltip(t, d, isBountiful, isNemesis)
             local _, _, _, compl = AchInfo(d.nemesis)
             GameTooltip:AddLine(" ")
             if compl then
-                GameTooltip:AddLine(CO.green .. "Nemesis defeated!|r")
+                GameTooltip:AddLine(CO.green .. T("QS_NEM_DEAD").."|r")
             else
-                GameTooltip:AddLine(CO.magenta .. "Nemesis active|r")
-                GameTooltip:AddLine(CO.gray .. "Beacon of Hope required|r")
+                GameTooltip:AddLine(CO.magenta .. T("QS_NEM_ACTIVE").."|r")
+                GameTooltip:AddLine(CO.gray .. T("QS_BEACON").."|r")
             end
         end
 
         -- ── Bountiful tip ──
         if isBountiful then
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine(CO.orange .. "Bountiful benefits:|r")
-            GameTooltip:AddLine(CO.white  .. " + Bountiful Coffer (extra loot)|r")
-            GameTooltip:AddLine(CO.white  .. " + Extra Valeera XP|r")
+            GameTooltip:AddLine(CO.orange .. T("QS_BENEFITS").."|r")
+            GameTooltip:AddLine(CO.white  .. T("QS_BEN1").."|r")
+            GameTooltip:AddLine(CO.white  .. T("QS_BEN2").."|r")
         end
 
         GameTooltip:Show()
@@ -579,9 +586,9 @@ local function FillStory(t, d)
     local _, done, total, compl = AchInfo(d.story)
     if total and total > 0 then
         if compl then
-            t.storyTxt:SetText(CO.green .. "Story: Done|r")
+            t.storyTxt:SetText(CO.green .. T("QS_STORY") .. T("QS_DONE").."|r")
         else
-            t.storyTxt:SetText(CO.gray .. "Story: " .. done .. "/" .. total .. "|r")
+            t.storyTxt:SetText(CO.gray .. T("QS_STORY") .. done .. "/" .. total .. "|r")
         end
     else
         t.storyTxt:SetText("")
@@ -682,7 +689,7 @@ local function BuildGrid(container)
     -- Level / rep
     hdr.levelTxt = hdr:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     hdr.levelTxt:SetPoint("TOPLEFT", textAnchor, "TOPRIGHT", 8, -18)
-    hdr.levelTxt:SetText(CO.gray .. "Loading...")
+    hdr.levelTxt:SetText(CO.gray .. T("QS_LOADING"))
 
     -- XP bar background
     local barBG = hdr:CreateTexture(nil, "BORDER")
@@ -709,7 +716,7 @@ local function BuildGrid(container)
         GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
         GameTooltip:ClearLines()
         GameTooltip:AddLine(CO.teal .. "Valeera Sanguinar|r")
-        GameTooltip:AddLine(CO.gray .. "Warband Reputation|r")
+        GameTooltip:AddLine(CO.gray .. T("QS_WB_REP").."|r")
         if rank and rep then
             GameTooltip:AddLine(" ")
             GameTooltip:AddDoubleLine(
@@ -724,11 +731,11 @@ local function BuildGrid(container)
                     string.format(CO.teal .. "%d / %d|r", c, n),
                     1, 1, 1, 1, 1, 1)
             else
-                GameTooltip:AddLine(CO.gold .. "MAX level reached!|r")
+                GameTooltip:AddLine(CO.gold .. T("QS_MAX").."|r")
             end
         end
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine(CO.orange .. "Tip: Bountiful Delves give bonus Valeera XP!|r")
+        GameTooltip:AddLine(CO.orange .. T("QS_TIP").."|r")
         GameTooltip:Show()
     end)
     hdr:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -980,7 +987,7 @@ local function BuildGrid(container)
         local rank, rep = ValeeraData()
         if rank and rep then
             local cur, max = rank.currentLevel or 0, rank.maxLevel or 60
-            hdr.levelTxt:SetText(string.format(CO.white .. "Level %d / %d|r", cur, max))
+            hdr.levelTxt:SetText(string.format(CO.white .. T("QS_LEVEL").."|r", cur, max))
             if cur < max and rep.nextThreshold then
                 local c = (rep.standing or 0) - (rep.reactionThreshold or 0)
                 local n = (rep.nextThreshold or 1) - (rep.reactionThreshold or 0)
@@ -1000,7 +1007,7 @@ local function BuildGrid(container)
                 hdr.bar:SetStatusBarColor(1.0, 0.55, 0.0)
             end
         else
-            hdr.levelTxt:SetText(CO.gray .. "Not available")
+            hdr.levelTxt:SetText(CO.gray .. T("QS_NA"))
             hdr.bar:SetMinMaxValues(0, 1); hdr.bar:SetValue(0)
             hdr.xpTxt:SetText("")
         end
@@ -1027,7 +1034,7 @@ local function BuildGrid(container)
         tabBoun.lbl:SetText(bc > 0
             and ("|cff00ccff" .. "Bountiful (" .. bc .. ")|r")
             or  (CO.gray   .. "Bountiful|r"))
-        tabNorm.lbl:SetText(CO.blue .. "Normal (" .. #normal .. ")|r")
+        tabNorm.lbl:SetText(CO.blue .. T("QS_NORMAL").." (" .. #normal .. ")|r")
 
         for _, p in ipairs(poolN)    do p:Hide() end
         for _, p in ipairs(poolB)    do p:Hide() end
@@ -1067,7 +1074,7 @@ local function BuildGrid(container)
 
             local hlbl = hbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
             hlbl:SetPoint("LEFT", 12, 0)
-            hlbl:SetText(CO.magenta .. "Required Items|r")
+            hlbl:SetText(CO.magenta .. T("QS_REQ_ITEMS").."|r")
 
             scN.itemHeaderFrame = hbar
         end
@@ -1134,7 +1141,7 @@ local function BuildGrid(container)
             abf.info:SetFont("Fonts\\2002.ttf",10,"")
             abf.info:SetPoint("TOPLEFT",10,-22)
             abf.info:SetWidth(SCROLL_W-20)
-            abf.info:SetText("|cff887799Laden...|r")
+            abf.info:SetText("|cff887799"..T("QS_LOADING").."|r")
             -- Timer
             abf.timer = abf:CreateFontString(nil,"OVERLAY")
             abf.timer:SetFont("Fonts\\2002.ttf",10,"OUTLINE")
