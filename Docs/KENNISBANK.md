@@ -943,3 +943,20 @@ THEME: Register callback kleurt nu ook tabBtns live mee
 DB-MIGRATIE HERBOUWD (was verloren): gender string→getal,
   race spaties strippen op PLAYER_LOGIN
 ```
+
+## Admin Panel herbouwd — v3.1.0 (sessie 2026-06-12, Fase 1 punt 1)
+```
+LOCATIE: Core/WowTracker.lua, NA alle WT_* definities, VÓÓR events blok
+  (kennisbank load-volgorde regel — nil-crash bij schending)
+OPEN VIA: ⚙ header knop of /wtadmin
+PARENT: UIParent + DIALOG strata (schaalt niet mee met HUD)
+SLIDERS: 100% handmatig (track frame + thumb texture + cursor drag,
+  GetCursorPosition()/GetEffectiveScale(), stappen 0.05) —
+  OptionsSliderTemplate blijft VERBODEN in 12.x
+SECTIES: UI schaal · Murloc schaal · Thema (WTTheme grid, goud=actief) ·
+  Taal (5, live via WT_ApplyLanguage) · Combat alert · Plugins on/off
+PLUGINS: leest DelveTracker.Plugins (gesorteerd), toggle schrijft
+  PluginStates[naam] — default aan (~= false patroon)
+SCOPE LES: MBtn local op regel 2078 — panel MOET daarna staan om de
+  murloc-slider closure te laten werken
+```

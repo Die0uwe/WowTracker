@@ -2215,6 +2215,257 @@ SlashCmdList["WTCOMBAT"]=function()
 end
 
 -- ============================================================================
+-- ADMIN PANEL — herbouw v3.0.7 functionaliteit (sessie 2026-06-12)
+-- KENNISBANK REGELS:
+--   · Parented aan UIParent (schaalt NIET mee met HUD)
+--   · Handmatige sliders met SetThumbTexture (OptionsSliderTemplate = verboden)
+--   · Staat NA alle WT_* definities, VÓÓR events (load-volgorde regel)
+-- Open via: ⚙ knop in header of /wtadmin
+-- ============================================================================
+local AP = CreateFrame("Frame", "DT_AdminPanel", UIParent, "BackdropTemplate")
+AP:SetSize(440, 540)
+AP:SetPoint("CENTER", UIParent, "CENTER", 0, 20)
+AP:SetFrameStrata("DIALOG")
+AP:SetMovable(true); AP:EnableMouse(true)
+AP:RegisterForDrag("LeftButton")
+AP:SetScript("OnDragStart", AP.StartMoving)
+AP:SetScript("OnDragStop",  AP.StopMovingOrSizing)
+AP:SetClampedToScreen(true)
+AP:Hide()
+AP:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+AP:SetBackdropColor(0.04, 0.02, 0.08, 0.98)
+AP:SetBackdropBorderColor(0.40, 0.10, 0.65, 1)
+
+local apTitle = AP:CreateFontString(nil, "OVERLAY")
+apTitle:SetFont(C_2002, 15, "OUTLINE")
+apTitle:SetPoint("TOP", 0, -10)
+apTitle:SetText(SA_PURPLE.."WowTracker Admin|r  "..SA_GREY.."v3.0.9|r")
+
+local apClose = CreateFrame("Button", nil, AP, "UIPanelCloseButton")
+apClose:SetPoint("TOPRIGHT", -2, -2)
+
+-- ── Handmatige slider helper (geen OptionsSliderTemplate!) ──────────────
+local function MakeSlider(parent, y, label, minV, maxV, getV, setV)
+    local lbl = parent:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(C_2002, 11, "OUTLINE")
+    lbl:SetPoint("TOPLEFT", 16, y)
+    lbl:SetText(SA_BLUE..label.."|r")
+
+    local valTxt = parent:CreateFontString(nil, "OVERLAY")
+    valTxt:SetFont(C_2002, 11, "OUTLINE")
+    valTxt:SetPoint("TOPRIGHT", -16, y)
+    valTxt:SetText(string.format("%.2f", getV()))
+
+    local track = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    track:SetSize(408, 10)
+    track:SetPoint("TOPLEFT", 16, y - 16)
+    track:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+    track:SetBackdropColor(0.10, 0.05, 0.16, 1)
+    track:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+    track:EnableMouse(true)
+
+    local thumb = track:CreateTexture(nil, "OVERLAY")
+    thumb:SetSize(14, 18)
+    thumb:SetColorTexture(0.75, 0.20, 1.0, 1)
+
+    local function Position()
+        local v = getV()
+        local pct = (v - minV) / (maxV - minV)
+        pct = math.max(0, math.min(1, pct))
+        thumb:SetPoint("CENTER", track, "LEFT", 7 + pct * (408 - 14), 0)
+        valTxt:SetText(string.format("%.2f", v))
+    end
+    Position()
+
+    local dragging = false
+    local function FromCursor()
+        local cx = GetCursorPosition() / track:GetEffectiveScale()
+        local left = track:GetLeft() or 0
+        local pct = math.max(0, math.min(1, (cx - left - 7) / (408 - 14)))
+        local v = minV + pct * (maxV - minV)
+        v = math.floor(v * 20 + 0.5) / 20   -- stappen van 0.05
+        setV(v); Position()
+    end
+    track:SetScript("OnMouseDown", function() dragging = true; FromCursor() end)
+    track:SetScript("OnMouseUp",   function() dragging = false end)
+    track:SetScript("OnUpdate",    function() if dragging then FromCursor() end end)
+
+    return Position   -- refresh functie
+end
+
+-- ── Sectie: sliders ─────────────────────────────────────────────────────
+local refreshUIScale = MakeSlider(AP, -42, "UI schaal", 0.5, 2.0,
+    function() return DelveTrackerDB.mainScale or 1.0 end,
+    function(v) DelveTrackerDB.mainScale = v; UI:SetScale(v) end)
+
+local refreshMScale = MakeSlider(AP, -86, "Murloc schaal", 0.5, 2.0,
+    function() return DelveTrackerDB.mScale or 1.0 end,
+    function(v) DelveTrackerDB.mScale = v; if MBtn then MBtn:SetScale(v) end end)
+
+-- ── Sectie: thema ───────────────────────────────────────────────────────
+local thLbl = AP:CreateFontString(nil, "OVERLAY")
+thLbl:SetFont(C_2002, 11, "OUTLINE")
+thLbl:SetPoint("TOPLEFT", 16, -132)
+thLbl:SetText(SA_BLUE.."Thema|r")
+
+local apThemeBtns = {}
+local function RefreshThemeBtns()
+    local active = (WTTheme and WTTheme.GetActive and WTTheme.GetActive()) or ""
+    for name, b in pairs(apThemeBtns) do
+        if name == active then
+            b:SetBackdropBorderColor(0.85, 0.70, 0.10, 1)
+        else
+            b:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+        end
+    end
+end
+do
+    local names = (WTTheme and WTTheme.GetThemeNames and WTTheme.GetThemeNames()) or {}
+    local bx, by = 16, -148
+    for i, name in ipairs(names) do
+        local n = name
+        local b = CreateFrame("Button", nil, AP, "BackdropTemplate")
+        b:SetSize(98, 22)
+        b:SetPoint("TOPLEFT", bx, by)
+        b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+        b:SetBackdropColor(0.08, 0.04, 0.14, 0.95)
+        b:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+        local t = b:CreateFontString(nil, "OVERLAY")
+        t:SetFont(C_2002, 9, "OUTLINE"); t:SetPoint("CENTER")
+        t:SetText("|cffffffff"..n.."|r")
+        b:SetScript("OnClick", function()
+            if WTTheme and WTTheme.SetActiveTheme then
+                WTTheme.SetActiveTheme(n)
+                RefreshThemeBtns()
+                print(SA_PURPLE.."[WowTracker] Thema: "..n.."|r")
+            end
+        end)
+        apThemeBtns[n] = b
+        bx = bx + 102
+        if i % 4 == 0 then bx = 16; by = by - 26 end
+    end
+end
+
+-- ── Sectie: taal ────────────────────────────────────────────────────────
+local taLbl = AP:CreateFontString(nil, "OVERLAY")
+taLbl:SetFont(C_2002, 11, "OUTLINE")
+taLbl:SetPoint("TOPLEFT", 16, -208)
+taLbl:SetText(SA_BLUE.."Taal / Language|r")
+
+local apLangBtns = {}
+local function RefreshLangBtns()
+    local active = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
+    for name, b in pairs(apLangBtns) do
+        if name == active then
+            b:SetBackdropBorderColor(0.85, 0.70, 0.10, 1)
+        else
+            b:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+        end
+    end
+end
+do
+    local langs = {"Nederlands","English","Deutsch","Français","Español"}
+    local bx = 16
+    for _, lang in ipairs(langs) do
+        local l = lang
+        local b = CreateFrame("Button", nil, AP, "BackdropTemplate")
+        b:SetSize(78, 22)
+        b:SetPoint("TOPLEFT", bx, -224)
+        b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+        b:SetBackdropColor(0.08, 0.04, 0.14, 0.95)
+        b:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+        local t = b:CreateFontString(nil, "OVERLAY")
+        t:SetFont(C_2002, 9, "OUTLINE"); t:SetPoint("CENTER")
+        t:SetText("|cffffffff"..l.."|r")
+        b:SetScript("OnClick", function()
+            DelveTrackerDB.language = l
+            if WT_ApplyLanguage then WT_ApplyLanguage(l) end
+            RefreshLangBtns()
+            print(SA_PURPLE.."[WowTracker] Taal: "..l.."|r")
+        end)
+        apLangBtns[l] = b
+        bx = bx + 82
+    end
+end
+
+-- ── Sectie: combat alert toggle ─────────────────────────────────────────
+local caBtn = CreateFrame("Button", nil, AP, "BackdropTemplate")
+caBtn:SetSize(200, 22)
+caBtn:SetPoint("TOPLEFT", 16, -262)
+caBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+caBtn:SetBackdropColor(0.08, 0.04, 0.14, 0.95)
+caBtn:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+local caTxt = caBtn:CreateFontString(nil, "OVERLAY")
+caTxt:SetFont(C_2002, 10, "OUTLINE"); caTxt:SetPoint("CENTER")
+local function RefreshCA()
+    caTxt:SetText("Combat alert: "..(DelveTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))
+end
+caBtn:SetScript("OnClick", function()
+    DelveTrackerDB.enableCombatAlert = not DelveTrackerDB.enableCombatAlert
+    RefreshCA()
+end)
+
+-- ── Sectie: plugins on/off ──────────────────────────────────────────────
+local plLbl = AP:CreateFontString(nil, "OVERLAY")
+plLbl:SetFont(C_2002, 11, "OUTLINE")
+plLbl:SetPoint("TOPLEFT", 16, -296)
+plLbl:SetText(SA_BLUE.."Plugins|r  "..SA_GREY.."(uit = verborgen na /reload)|r")
+
+local plugScroll = CreateFrame("ScrollFrame", nil, AP, "UIPanelScrollFrameTemplate")
+plugScroll:SetPoint("TOPLEFT", 16, -312)
+plugScroll:SetPoint("BOTTOMRIGHT", -34, 14)
+local plugContent = CreateFrame("Frame", nil, plugScroll)
+plugContent:SetSize(380, 10)
+plugScroll:SetScrollChild(plugContent)
+
+local plugRows = {}
+local function RefreshPluginList()
+    for _, r in ipairs(plugRows) do r:Hide() end
+    local names = {}
+    for n in pairs(DelveTracker.Plugins or {}) do table.insert(names, n) end
+    table.sort(names)
+    for i, n in ipairs(names) do
+        local row = plugRows[i]
+        if not row then
+            row = CreateFrame("Button", nil, plugContent, "BackdropTemplate")
+            row:SetSize(380, 20)
+            row:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+            row.txt = row:CreateFontString(nil, "OVERLAY")
+            row.txt:SetFont(C_2002, 10, "OUTLINE")
+            row.txt:SetPoint("LEFT", 6, 0)
+            row.st = row:CreateFontString(nil, "OVERLAY")
+            row.st:SetFont(C_2002, 10, "OUTLINE")
+            row.st:SetPoint("RIGHT", -6, 0)
+            plugRows[i] = row
+        end
+        row:SetPoint("TOPLEFT", 0, -(i-1)*22)
+        local enabled = DelveTrackerDB.PluginStates[n] ~= false
+        row:SetBackdropColor(0.07, 0.03, 0.12, 0.9)
+        row:SetBackdropBorderColor(enabled and 0.30 or 0.15, 0.08, enabled and 0.50 or 0.20, 0.8)
+        row.txt:SetText((enabled and "|cffffffff" or SA_GREY)..n.."|r")
+        row.st:SetText(enabled and "|cff44cc66AAN|r" or "|cffcc4444UIT|r")
+        row:SetScript("OnClick", function()
+            DelveTrackerDB.PluginStates[n] = not (DelveTrackerDB.PluginStates[n] ~= false)
+            RefreshPluginList()
+        end)
+        row:Show()
+    end
+    plugContent:SetHeight(#names * 22 + 4)
+end
+
+-- ── Open/close koppeling ────────────────────────────────────────────────
+local function ToggleAdminPanel()
+    if AP:IsShown() then AP:Hide() return end
+    refreshUIScale(); refreshMScale()
+    RefreshThemeBtns(); RefreshLangBtns(); RefreshCA(); RefreshPluginList()
+    AP:Show()
+end
+UI.settingsBtn:SetScript("OnClick", ToggleAdminPanel)
+
+SLASH_WTADMIN1 = "/wtadmin"
+SlashCmdList["WTADMIN"] = ToggleAdminPanel
+
+-- ============================================================================
 -- EVENTS
 -- ============================================================================
 UI:RegisterEvent("PLAYER_LOGIN")
