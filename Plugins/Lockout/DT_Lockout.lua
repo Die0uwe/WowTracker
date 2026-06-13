@@ -117,12 +117,12 @@ local function DT_GetChallengeMapName(mapID)
 end
 
 local function ScanAll()
-    if not DelveTrackerDB then return end
-    DelveTrackerDB.characters = DelveTrackerDB.characters or {}
+    if not WowTrackerDB then return end
+    WowTrackerDB.characters = WowTrackerDB.characters or {}
 
     local charKey = (UnitName("player") or "Unknown") .. "-" .. (GetNormalizedRealmName() or GetRealmName() or "Unknown")
-    local char = DelveTrackerDB.characters[charKey] or {}
-    DelveTrackerDB.characters[charKey] = char
+    local char = WowTrackerDB.characters[charKey] or {}
+    WowTrackerDB.characters[charKey] = char
 
     -- ── 3a. Raid lockouts ────────────────────────────────────────────────
     char.lockouts = {}
@@ -377,8 +377,8 @@ SLASH_DTLOCKOUT1 = "/dtlockout"
 SlashCmdList["DTLOCKOUT"] = function()
     ScanAll()
     local charKey = (UnitName("player") or "Unknown") .. "-" .. (GetNormalizedRealmName() or GetRealmName() or "Unknown")
-    local char    = DelveTrackerDB and DelveTrackerDB.characters
-                    and DelveTrackerDB.characters[charKey]
+    local char    = WowTrackerDB and WowTrackerDB.characters
+                    and WowTrackerDB.characters[charKey]
     if not char then
         print("|cffa335ee[DT Lockout]|r No character data found.")
         return

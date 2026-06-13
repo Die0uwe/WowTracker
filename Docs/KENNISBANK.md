@@ -1442,3 +1442,16 @@ Restore schrijft naar DelveTrackerDB + WowTrackerDB simultaneaously
 
 ### v4.0 status
 WowTrackerDB staat klaar in TOC · backup-bridge aanwezig · 180 refs te renamen
+
+## v4.0 DB RENAME COMPLEET (2026-06-13)
+```
+TECHNIEK: bulk binary replace (DelveTrackerDB → WowTrackerDB) op 13 bestanden
+RESULTAAT: 249 referenties hernoemd, 0 syntax fouten
+BRUG: _G["DelveTrackerDB"] → WowTrackerDB op file-load (vóór events)
+  → DelveTrackerDB staat nog in TOC zodat WoW hem laadt voor bestaande spelers
+  → na copy is WowTrackerDB actief; DelveTrackerDB wordt genegeerd
+DB_VERSION: 4 (RunMigrations op PLAYER_LOGIN)
+TOC volgorde: WowTrackerDB (primair), WowTrackerDB_Backup, DelveTrackerDB (brug)
+LET OP: bulk replace raakte ook de brug-tekst zelf → altijd _G["naam"] gebruiken
+  in brug-code zodat hij niet door de volgende rename geraakt wordt
+```

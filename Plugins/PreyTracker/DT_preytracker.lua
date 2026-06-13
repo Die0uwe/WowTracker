@@ -818,12 +818,12 @@ addonTable.UpdateCompassLogic = function() PreyFrame:UpdateCompass() end
 
 addonTable.SaveNeedleOffset = function(offset)
     addonTable.DT_preytracker.needleOffset = offset or 0
-    if DelveTrackerDB then DelveTrackerDB.preyNeedleOffset = offset or 0 end
+    if WowTrackerDB then WowTrackerDB.preyNeedleOffset = offset or 0 end
 end
 
 addonTable.LoadNeedleOffset = function()
-    if DelveTrackerDB and DelveTrackerDB.preyNeedleOffset then
-        addonTable.DT_preytracker.needleOffset = DelveTrackerDB.preyNeedleOffset
+    if WowTrackerDB and WowTrackerDB.preyNeedleOffset then
+        addonTable.DT_preytracker.needleOffset = WowTrackerDB.preyNeedleOffset
     end
 end
 

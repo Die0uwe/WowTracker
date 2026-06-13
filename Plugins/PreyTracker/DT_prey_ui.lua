@@ -7,7 +7,7 @@
 --   1. SETTINGS PANEL — ⚙ knop opent een volledig settings popup (apart frame,
 --      niet embedded in compass). Bevat: Scale, Opacity, Needle Offset + 4
 --      toggles (Auto-show, Combat fade, Ticker, Affix badges). Alles saved in
---      DelveTrackerDB.preySettings. Scale en opacity schalen het HELE frame.
+--      WowTrackerDB.preySettings. Scale en opacity schalen het HELE frame.
 --
 --   2. SCALING — SetScale() op PreyUI schaalt alles: ring, naald, bar, tekst.
 --      Alle textures/bars zijn kinderen van PreyUI, dus meteen mee. Settings
@@ -40,7 +40,7 @@ local math_cos = math.cos
 
 -- ============================================================================
 -- SAVED SETTINGS — defaults + load/save helpers
--- Stored in DelveTrackerDB.preySettings
+-- Stored in WowTrackerDB.preySettings
 -- ============================================================================
 local SETTINGS_DEFAULTS = {
     scale        = 1.0,
@@ -55,24 +55,24 @@ local SETTINGS_DEFAULTS = {
 local S = {}  -- active settings table, populated on PLAYER_LOGIN
 
 local function LoadSettings()
-    if not DelveTrackerDB then DelveTrackerDB = {} end
-    if not DelveTrackerDB.preySettings then DelveTrackerDB.preySettings = {} end
-    local db = DelveTrackerDB.preySettings
+    if not WowTrackerDB then WowTrackerDB = {} end
+    if not WowTrackerDB.preySettings then WowTrackerDB.preySettings = {} end
+    local db = WowTrackerDB.preySettings
     for k, v in pairs(SETTINGS_DEFAULTS) do
         S[k] = (db[k] ~= nil) and db[k] or v
     end
     -- Backwards compat: import old preyNeedleOffset if no new setting yet
-    if db.needleOffset == nil and DelveTrackerDB.preyNeedleOffset then
-        S.needleOffset = DelveTrackerDB.preyNeedleOffset
+    if db.needleOffset == nil and WowTrackerDB.preyNeedleOffset then
+        S.needleOffset = WowTrackerDB.preyNeedleOffset
     end
 end
 
 local function SaveSettings()
-    if not DelveTrackerDB then DelveTrackerDB = {} end
-    DelveTrackerDB.preySettings = {}
-    for k, v in pairs(S) do DelveTrackerDB.preySettings[k] = v end
+    if not WowTrackerDB then WowTrackerDB = {} end
+    WowTrackerDB.preySettings = {}
+    for k, v in pairs(S) do WowTrackerDB.preySettings[k] = v end
     -- Keep legacy key in sync
-    DelveTrackerDB.preyNeedleOffset = S.needleOffset
+    WowTrackerDB.preyNeedleOffset = S.needleOffset
 end
 
 -- ============================================================================
@@ -164,9 +164,9 @@ end)
 PreyUI:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     -- Save position
-    if not DelveTrackerDB then DelveTrackerDB = {} end
+    if not WowTrackerDB then WowTrackerDB = {} end
     local pt, _, rpt, x, y = self:GetPoint()
-    DelveTrackerDB.preyPos = { pt=pt, rpt=rpt, x=x, y=y }
+    WowTrackerDB.preyPos = { pt=pt, rpt=rpt, x=x, y=y }
 end)
 
 -- Apply scale to the compass frame (NOT to the settings panel)
@@ -789,8 +789,8 @@ local EnableCB = MakeToggle(SettPanel, "Prey Tracker ingeschakeld", -218, functi
     else
         if addonTable.PreyTrackerDisable then addonTable.PreyTrackerDisable() end
     end
-    if not DelveTrackerDB then DelveTrackerDB = {} end
-    DelveTrackerDB.preyEnabled = v
+    if not WowTrackerDB then WowTrackerDB = {} end
+    WowTrackerDB.preyEnabled = v
 end)
 
 -- Sync enable checkbox op OpenSettings
@@ -798,7 +798,7 @@ local _origOpenSettings = OpenSettings
 OpenSettings = function()
     _origOpenSettings()
     if SettPanel:IsShown() then
-        local enabled = DelveTrackerDB and (DelveTrackerDB.preyEnabled ~= false) or true
+        local enabled = WowTrackerDB and (WowTrackerDB.preyEnabled ~= false) or true
         EnableCB:SetChecked(enabled)
     end
 end
@@ -1128,8 +1128,8 @@ PreyUI:SetScript("OnEvent", function(self, event)
             addonTable.DT_preytracker.needleOffset = S.needleOffset
         end
         -- Restore saved position
-        if DelveTrackerDB and DelveTrackerDB.preyPos then
-            local p = DelveTrackerDB.preyPos
+        if WowTrackerDB and WowTrackerDB.preyPos then
+            local p = WowTrackerDB.preyPos
             PreyUI:ClearAllPoints()
             PreyUI:SetPoint(p.pt or "CENTER", UIParent, p.rpt or "CENTER",
                 p.x or 0, p.y or 40)

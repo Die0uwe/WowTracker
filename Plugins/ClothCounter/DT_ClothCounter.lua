@@ -132,7 +132,7 @@ local function GetDate()
     return string.format("%04d-%02d-%02d %02d:%02d",t.year,t.month,t.day,t.hour,t.min)
 end
 local function GetCharKey()
-    -- Use GetNormalizedRealmName() for consistency with DelveTrackerDB.characters keys
+    -- Use GetNormalizedRealmName() for consistency with WowTrackerDB.characters keys
     -- (GetRealmName() can differ on connected realms, causing duplicate entries)
     return (UnitName("player") or "Unknown").."-"..(GetNormalizedRealmName() or GetRealmName() or "Unknown")
 end

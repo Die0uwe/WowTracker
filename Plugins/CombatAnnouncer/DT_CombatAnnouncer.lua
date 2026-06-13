@@ -5,7 +5,7 @@
 if DelveTracker then
     -- 1. DATABASE
     local function CheckDB()
-        DelveTrackerDB = DelveTrackerDB or {}
+        WowTrackerDB = WowTrackerDB or {}
         local defaults = {
             enableCombatAlert = true, 
             enableCombatSound = true,
@@ -15,7 +15,7 @@ if DelveTracker then
             CA_StopText = "COMBAT ENDED"
         }
         for k, v in pairs(defaults) do
-            if DelveTrackerDB[k] == nil then DelveTrackerDB[k] = v end
+            if WowTrackerDB[k] == nil then WowTrackerDB[k] = v end
         end
     end
 
@@ -29,13 +29,13 @@ if DelveTracker then
     CA_Frame:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
         local point, _, relPoint, x, y = self:GetPoint()
-        DelveTrackerDB.CA_Anchor = {point, relPoint, x, y}
+        WowTrackerDB.CA_Anchor = {point, relPoint, x, y}
     end)
     CA_Frame:Hide()
 
     local function LoadPosition()
-        if DelveTrackerDB and DelveTrackerDB.CA_Anchor then
-            local p = DelveTrackerDB.CA_Anchor
+        if WowTrackerDB and WowTrackerDB.CA_Anchor then
+            local p = WowTrackerDB.CA_Anchor
             CA_Frame:ClearAllPoints()
             CA_Frame:SetPoint(p[1], UIParent, p[2], p[3], p[4])
         else
@@ -71,11 +71,11 @@ if DelveTracker then
     -- 3. ANIMATION LOGIC
     CA_Frame.PlayAnim = function(isStart)
         CheckDB()
-        if not DelveTrackerDB.enableCombatAlert then return end
+        if not WowTrackerDB.enableCombatAlert then return end
         LoadPosition()
 
-        local scale = DelveTrackerDB.CA_Size or 1
-        local speed = 1 / (DelveTrackerDB.CA_Speed or 1)
+        local scale = WowTrackerDB.CA_Size or 1
+        local speed = 1 / (WowTrackerDB.CA_Speed or 1)
 
         CA_Frame:SetAlpha(1); CA_Frame:Show()
         UIFrameFadeRemoveFrame(CA_Frame)
@@ -93,7 +93,7 @@ if DelveTracker then
             local aR1 = gR:CreateAnimation("Translation"); aR1:SetOffset(130 * scale, -130 * scale); aR1:SetDuration(0); aR1:SetOrder(1)
             local aR2 = gR:CreateAnimation("Translation"); aR2:SetOffset(-130 * scale, 130 * scale); aR2:SetDuration(0.4 * speed); aR2:SetSmoothing("OUT"); aR2:SetOrder(2)
 
-            CA_Text:SetText(DelveTrackerDB.CA_StartText); CA_Text:SetTextColor(1, 0.1, 0.1)
+            CA_Text:SetText(WowTrackerDB.CA_StartText); CA_Text:SetTextColor(1, 0.1, 0.1)
             local gT = TextFrame:CreateAnimationGroup()
             local t1 = gT:CreateAnimation("Translation"); t1:SetOffset(0, -20 * scale); t1:SetDuration(0); t1:SetOrder(1)
             local t2 = gT:CreateAnimation("Translation"); t2:SetOffset(0, 40 * scale); t2:SetDuration(0.4 * speed); t2:SetOrder(2)
@@ -106,15 +106,15 @@ if DelveTracker then
                 local gS = shield:CreateAnimationGroup()
                 local s1 = gS:CreateAnimation("Scale"); s1:SetScale(1.4, 1.4); s1:SetDuration(0.1 * speed); s1:SetOrder(1)
                 gS:Play()
-                if DelveTrackerDB.enableCombatSound then PlaySound(3175, "Master") end
+                if WowTrackerDB.enableCombatSound then PlaySound(3175, "Master") end
             end)
             C_Timer.After(2.5 * speed, function() UIFrameFadeOut(CA_Frame, 0.8 * speed, 1, 0) end)
         else
             shield:SetAlpha(1); shield:Show()
-            CA_Text:SetText(DelveTrackerDB.CA_StopText); CA_Text:SetTextColor(0.1, 1, 0.1)
+            CA_Text:SetText(WowTrackerDB.CA_StopText); CA_Text:SetTextColor(0.1, 1, 0.1)
             TextFrame:SetPoint("CENTER", CA_Frame, "CENTER", 0, -35 * scale)
             TextFrame:SetAlpha(1)
-            if DelveTrackerDB.enableCombatSound then PlaySound(11467, "Master") end
+            if WowTrackerDB.enableCombatSound then PlaySound(11467, "Master") end
             C_Timer.After(1.5 * speed, function() UIFrameFadeOut(CA_Frame, 0.5 * speed, 1, 0) end)
         end
     end
@@ -149,16 +149,16 @@ if DelveTracker then
         end
 
         local alertBtn = CreateSlayerBtn("Combat Alert: ", -60, function(self)
-            DelveTrackerDB.enableCombatAlert = not DelveTrackerDB.enableCombatAlert
-            self.t:SetText("Combat Alert: "..(DelveTrackerDB.enableCombatAlert and "ON" or "OFF"))
+            WowTrackerDB.enableCombatAlert = not WowTrackerDB.enableCombatAlert
+            self.t:SetText("Combat Alert: "..(WowTrackerDB.enableCombatAlert and "ON" or "OFF"))
         end)
-        alertBtn.t:SetText("Combat Alert: "..(DelveTrackerDB.enableCombatAlert and "ON" or "OFF"))
+        alertBtn.t:SetText("Combat Alert: "..(WowTrackerDB.enableCombatAlert and "ON" or "OFF"))
 
         local soundBtn = CreateSlayerBtn("Combat Sound: ", -95, function(self)
-            DelveTrackerDB.enableCombatSound = not DelveTrackerDB.enableCombatSound
-            self.t:SetText("Combat Sound: "..(DelveTrackerDB.enableCombatSound and "ON" or "OFF"))
+            WowTrackerDB.enableCombatSound = not WowTrackerDB.enableCombatSound
+            self.t:SetText("Combat Sound: "..(WowTrackerDB.enableCombatSound and "ON" or "OFF"))
         end)
-        soundBtn.t:SetText("Combat Sound: "..(DelveTrackerDB.enableCombatSound and "ON" or "OFF"))
+        soundBtn.t:SetText("Combat Sound: "..(WowTrackerDB.enableCombatSound and "ON" or "OFF"))
 
         local function CreateSld(label, dbKey, y, minVal, maxVal)
             -- OptionsSliderTemplate deprecated in 10.0 → manual slider, preserves s.Text API
@@ -168,8 +168,8 @@ if DelveTracker then
             s:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
             local bg=s:CreateTexture(nil,"BACKGROUND"); bg:SetTexture("Interface\\Buttons\\UI-SliderBar-Background"); bg:SetAllPoints()
             s.Text = s:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-            s.Text:SetPoint("BOTTOM", s, "TOP", 0, 2); s:SetValue(DelveTrackerDB[dbKey] or 1)
-            s:SetScript("OnValueChanged", function(self, v) DelveTrackerDB[dbKey] = v; self.Text:SetText(label .. " (" .. string.format("%.1f", v) .. ")") end)
+            s.Text:SetPoint("BOTTOM", s, "TOP", 0, 2); s:SetValue(WowTrackerDB[dbKey] or 1)
+            s:SetScript("OnValueChanged", function(self, v) WowTrackerDB[dbKey] = v; self.Text:SetText(label .. " (" .. string.format("%.1f", v) .. ")") end)
             s.Text:SetText(label .. " (" .. string.format("%.1f", s:GetValue()) .. ")")
         end
 
@@ -181,7 +181,7 @@ if DelveTracker then
             t:SetPoint("TOP", 0, y); t:SetText(label); t:SetTextColor(0.8, 0.8, 0.8)
             local eb = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
             eb:SetSize(220, 22); eb:SetPoint("TOP", 0, y-18); eb:SetAutoFocus(false)
-            eb:SetText(DelveTrackerDB[dbKey] or ""); eb:SetScript("OnTextChanged", function(self) DelveTrackerDB[dbKey] = self:GetText() end)
+            eb:SetText(WowTrackerDB[dbKey] or ""); eb:SetScript("OnTextChanged", function(self) WowTrackerDB[dbKey] = self:GetText() end)
         end
 
         CreateEB("Start Text:", "CA_StartText", -270)

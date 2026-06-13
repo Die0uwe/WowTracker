@@ -2,7 +2,7 @@
 --  DT_userinfo.lua  v8.1.0  —  Character Dashboard · Midnight Edition
 --  Compatible with: Retail 12.0.5.67314 (Midnight)
 --  Loaded via DelveTracker.xml after DelveTracker.lua
---  Storage: DelveTrackerDB.UserInfo + DelveTrackerDB.characters
+--  Storage: WowTrackerDB.UserInfo + WowTrackerDB.characters
 --
 --  v8.1.0 — Layout & Scroll Audit vs v8.0.0
 --  ──────────────────────────────────────────
@@ -68,8 +68,8 @@
 --  [OPT-2]  All inline comments translated to English
 -- ================================================================
 
-if not DelveTrackerDB then
-    print("|cffff4444[DT_userinfo]:|r DelveTrackerDB not found. Load DelveTracker first.")
+if not WowTrackerDB then
+    print("|cffff4444[DT_userinfo]:|r WowTrackerDB not found. Load DelveTracker first.")
     return
 end
 
@@ -253,7 +253,7 @@ end
 --  DATABASE ACCESSOR
 -- ================================================================
 local function DB()
-    DelveTrackerDB.UserInfo = DelveTrackerDB.UserInfo or {
+    WowTrackerDB.UserInfo = WowTrackerDB.UserInfo or {
         lang            = "en",
         bgStats         = {},
         amStats         = {},
@@ -270,7 +270,7 @@ local function DB()
         voidforgeRollsWeek = 0,
         uiScale = 1.0,
     }
-    return DelveTrackerDB.UserInfo
+    return WowTrackerDB.UserInfo
 end
 
 -- ================================================================
@@ -1742,7 +1742,7 @@ local charW = math.floor(
 local wbCharsOuter = MakePanel(WBT, 0, -62, FW - 8, WB_STRIP_H)
 PanelTitle(wbCharsOuter,
     Blue("Characters") ..
-    Dim("  (auto-sync via DelveTrackerDB  ·  sorted by iLvl)"))
+    Dim("  (auto-sync via WowTrackerDB  ·  sorted by iLvl)"))
 
 -- [FIX-SCROLL] Inner scroll frame — UIPanelScrollFrameTemplate gives
 -- the user a visible, draggable scrollbar (previously invisible).
@@ -2308,14 +2308,14 @@ end
 
 -- SaveCharSnapshot: persist current character's data for Warband view
 local function SaveCharSnapshot(wd)
-    if not DelveTrackerDB then return end
-    DelveTrackerDB.characters = DelveTrackerDB.characters or {}
+    if not WowTrackerDB then return end
+    WowTrackerDB.characters = WowTrackerDB.characters or {}
 
     local key = (UnitName("player") or "Unknown") ..
                 "-" ..
                 (GetNormalizedRealmName() or "Unknown")
-    local d = DelveTrackerDB.characters[key] or {}
-    DelveTrackerDB.characters[key] = d
+    local d = WowTrackerDB.characters[key] or {}
+    WowTrackerDB.characters[key] = d
 
     -- [FIX-4] Use C_ClassColor for class hex in 12.0.x
     local classFile = select(2, UnitClass("player"))
@@ -2767,7 +2767,7 @@ local function RefreshWarband()
     WBH.wblvl:SetText(Dim("Warband Level  ") .. Blue("?"))
 
     -- Build and sort character list by item level (desc)
-    local chars    = DelveTrackerDB.characters or {}
+    local chars    = WowTrackerDB.characters or {}
     local charList = {}
     for key, data in pairs(chars) do
         if data.class or data.ilvl then

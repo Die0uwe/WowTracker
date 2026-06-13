@@ -338,9 +338,9 @@ SLASH_CHARMORY2 = "/armory"
     if Armory.closeBtn then Armory.closeBtn:Show() end 
         local name, realm = UnitName("player"), GetNormalizedRealmName()
         local key = name.."-"..realm
-        if not DelveTrackerDB.characters then DelveTrackerDB.characters = {} end
-        if not DelveTrackerDB.characters[key] then DelveTrackerDB.characters[key] = { gear = {}, stats = {} } end
-        local charData = DelveTrackerDB.characters[key]
+        if not WowTrackerDB.characters then WowTrackerDB.characters = {} end
+        if not WowTrackerDB.characters[key] then WowTrackerDB.characters[key] = { gear = {}, stats = {} } end
+        local charData = WowTrackerDB.characters[key]
         charData.name, charData.class, charData.money = name, select(2, UnitClass("player")), GetMoney()
         charData.guild = GetGuildInfo("player") or "Geen Guild"
         charData.avgIlvl = select(2, GetAverageItemLevel())

@@ -6,9 +6,9 @@
 if DelveTracker then
     -- 1. DATABASE & SETTINGS
     local function GetSettings()
-        if not DelveTrackerDB then DelveTrackerDB = {} end
-        if not DelveTrackerDB.MenuSettings then
-            DelveTrackerDB.MenuSettings = {
+        if not WowTrackerDB then WowTrackerDB = {} end
+        if not WowTrackerDB.MenuSettings then
+            WowTrackerDB.MenuSettings = {
                 { label = "Character Roster", action = "/crew" },
                 { label = "Charmory", action = "/charmory" },
                 { label = "Curency", action = "/cbot" },
@@ -18,7 +18,7 @@ if DelveTracker then
                 { label = "-Combad Announcer", action = "/cset" },
             }
         end
-        return DelveTrackerDB.MenuSettings
+        return WowTrackerDB.MenuSettings
     end
 
     -- 2. ACTION HANDLER
@@ -216,7 +216,7 @@ if DelveTracker then
             
             local totalKeys = 0
             -- Check zowel 'Characters' als 'characters' (backwards compat)
-            local charTable = DelveTrackerDB and (DelveTrackerDB.Characters or DelveTrackerDB.characters)
+            local charTable = WowTrackerDB and (WowTrackerDB.Characters or WowTrackerDB.characters)
             
             if charTable then
                 for charName, charData in pairs(charTable) do

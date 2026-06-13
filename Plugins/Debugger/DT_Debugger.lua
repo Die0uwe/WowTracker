@@ -144,21 +144,21 @@ end
 -- ─────────────────────────────────────────────────────────────────────
 local function GetDBStats()
     local stats = {}
-    if not DelveTrackerDB then
-        return { error = "DelveTrackerDB is nil" }
+    if not WowTrackerDB then
+        return { error = "WowTrackerDB is nil" }
     end
     stats.charCount      = 0
     stats.charWithDelves = 0
     stats.charWithGear   = 0
     stats.charWithLockout = 0
-    local chars = DelveTrackerDB.characters or {}
+    local chars = WowTrackerDB.characters or {}
     for _, d in pairs(chars) do
         stats.charCount = stats.charCount + 1
         if d.delves and #d.delves > 0     then stats.charWithDelves  = stats.charWithDelves  + 1 end
         if d.gear                          then stats.charWithGear    = stats.charWithGear    + 1 end
         if d.lockouts and #d.lockouts > 0  then stats.charWithLockout = stats.charWithLockout + 1 end
     end
-    stats.pluginStates = DelveTrackerDB.PluginStates or {}
+    stats.pluginStates = WowTrackerDB.PluginStates or {}
     stats.pluginCount  = 0
     for _ in pairs(DelveTracker.Plugins) do stats.pluginCount = stats.pluginCount + 1 end
     return stats
@@ -342,7 +342,7 @@ plugContent:SetSize(PANEL_W - 40, 1); plugScroll:SetScrollChild(plugContent)
 local PLUG_ROWS = {}
 
 function DBG._RefreshPlugins()
-    local states = (DelveTrackerDB and DelveTrackerDB.PluginStates) or {}
+    local states = (WowTrackerDB and WowTrackerDB.PluginStates) or {}
     local names = {}
     for n in pairs(DelveTracker.Plugins) do table.insert(names, n) end
     table.sort(names)
@@ -394,15 +394,15 @@ function DBG._RefreshDB()
         "",
         string.format("|cff44aaff Plugins registered:|r %d", s.pluginCount),
         string.format("|cff44aaff SavedVar keys (root):|r %d",
-            (function() local n=0; for _ in pairs(DelveTrackerDB) do n=n+1 end; return n end)()),
+            (function() local n=0; for _ in pairs(WowTrackerDB) do n=n+1 end; return n end)()),
         "",
-        "|cffaaaaaa  Root keys in DelveTrackerDB:|r",
+        "|cffaaaaaa  Root keys in WowTrackerDB:|r",
     }
-    for k in pairs(DelveTrackerDB) do
-        local vtype = type(DelveTrackerDB[k])
+    for k in pairs(WowTrackerDB) do
+        local vtype = type(WowTrackerDB[k])
         local extra = ""
         if vtype == "table" then
-            local n = 0; for _ in pairs(DelveTrackerDB[k]) do n=n+1 end
+            local n = 0; for _ in pairs(WowTrackerDB[k]) do n=n+1 end
             extra = string.format("  |cff888888{%d entries}|r", n)
         end
         table.insert(lines, string.format("    |cffdddddd%s|r  |cff666666[%s]|r%s", k, vtype, extra))
@@ -788,7 +788,7 @@ SlashCmdList["DTDEBUG"] = function(msg)
         print("  Plugins registered: " .. s.pluginCount)
 
     elseif msg == "plugins" then
-        local states = (DelveTrackerDB and DelveTrackerDB.PluginStates) or {}
+        local states = (WowTrackerDB and WowTrackerDB.PluginStates) or {}
         print("|cff44ff44[DT Debug]|r  Registered plugins:")
         local names = {}
         for n in pairs(DelveTracker.Plugins) do table.insert(names, n) end
@@ -849,10 +849,10 @@ C_Timer.After(1.0, function()
 
     -- Log DB character count
     local charCount = 0
-    if DelveTrackerDB and DelveTrackerDB.characters then
-        for _ in pairs(DelveTrackerDB.characters) do charCount = charCount + 1 end
+    if WowTrackerDB and WowTrackerDB.characters then
+        for _ in pairs(WowTrackerDB.characters) do charCount = charCount + 1 end
     end
-    DBG.Log("INFO", "DB", charCount .. " character(s) in DelveTrackerDB")
+    DBG.Log("INFO", "DB", charCount .. " character(s) in WowTrackerDB")
 
     -- Memory baseline
     local kb = GetMemoryKB()

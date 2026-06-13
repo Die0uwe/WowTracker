@@ -66,8 +66,8 @@ if DelveTracker then
     CreateRailBtn("Wipe DB", 115, "red", function() StaticPopup_Show("DT_CONF_WIPE") end)
     CreateRailBtn("Del Char", 225, "red", function() 
         local key = (UnitName("player") or "Unknown").."-"..(GetNormalizedRealmName() or "Unknown")
-        if DelveTrackerDB and DelveTrackerDB.characters then
-            DelveTrackerDB.characters[key] = nil
+        if WowTrackerDB and WowTrackerDB.characters then
+            WowTrackerDB.characters[key] = nil
             print("|cff00ff00DT:|r Character removed. UI Reload recommended.")
         end
     end)
@@ -89,7 +89,7 @@ if DelveTracker then
                 DT_CombatAlertFrame:SetScript("OnDragStop", function(self)
                     self:StopMovingOrSizing()
                     local point, _, relPoint, x, y = self:GetPoint()
-                    DelveTrackerDB.CA_Anchor = {point, relPoint, x, y}
+                    WowTrackerDB.CA_Anchor = {point, relPoint, x, y}
                 end)
                 DT_CombatAlertFrame.bg:SetColorTexture(0, 1, 0, 0.3)
                 DT_CombatAlertFrame:Show()
@@ -122,7 +122,7 @@ if DelveTracker then
         button1 = "Next", button2 = "Cancel",
         hasEditBox = 1,
         OnAccept = function(self)
-            DelveTrackerDB.CA_StartText = self.EditBox:GetText()
+            WowTrackerDB.CA_StartText = self.EditBox:GetText()
             StaticPopup_Show("DT_EDIT_CA_STOP")
         end,
         timeout = 0, whileDead = true, hideOnEscape = true,
@@ -133,7 +133,7 @@ if DelveTracker then
         button1 = "Save", button2 = "Cancel",
         hasEditBox = 1,
         OnAccept = function(self)
-            DelveTrackerDB.CA_StopText = self.EditBox:GetText()
+            WowTrackerDB.CA_StopText = self.EditBox:GetText()
             print("|cff00ff00DT:|r All texts saved.")
         end,
         timeout = 0, whileDead = true, hideOnEscape = true,
@@ -142,7 +142,7 @@ if DelveTracker then
     StaticPopupDialogs["DT_CONF_WIPE"] = { 
         text = "Are you sure you want to wipe the entire database?", 
         button1 = "Yes", button2 = "No", 
-        OnAccept = function() DelveTrackerDB = {characters = {}}; ReloadUI() end,
+        OnAccept = function() WowTrackerDB = {characters = {}}; ReloadUI() end,
         timeout = 0, whileDead = true 
     }
 end -- This closes the main 'if DelveTracker then' block

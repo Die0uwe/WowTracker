@@ -392,8 +392,8 @@ function WTTheme.SetActiveTheme(name)
     if not THEMES[name] then return false end
     _activeTheme = name
     -- Opslaan in DB
-    if DelveTrackerDB then
-        DelveTrackerDB.activeTheme = name
+    if WowTrackerDB then
+        WowTrackerDB.activeTheme = name
     end
     -- Live reload alle geregistreerde frames
     for _, callback in ipairs(_registeredFrames) do
@@ -438,8 +438,8 @@ initFrame:RegisterEvent("ADDON_LOADED")
 initFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
         -- Herstel opgeslagen theme
-        if DelveTrackerDB and DelveTrackerDB.activeTheme then
-            local saved = DelveTrackerDB.activeTheme
+        if WowTrackerDB and WowTrackerDB.activeTheme then
+            local saved = WowTrackerDB.activeTheme
             if THEMES[saved] then
                 _activeTheme = saved
             end

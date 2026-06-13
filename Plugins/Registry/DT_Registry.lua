@@ -20,13 +20,13 @@ local function T(key)
     return key
 end
 
-        if not DelveTrackerDB then return end
-        DelveTrackerDB.characters = DelveTrackerDB.characters or {}
+        if not WowTrackerDB then return end
+        WowTrackerDB.characters = WowTrackerDB.characters or {}
 
         local charKey = (UnitName("player") or "Unknown").."-"..(GetNormalizedRealmName() or GetRealmName() or "Unknown")
-        DelveTrackerDB.characters[charKey] = DelveTrackerDB.characters[charKey] or {}
+        WowTrackerDB.characters[charKey] = WowTrackerDB.characters[charKey] or {}
 
-        DelveTrackerDB.characters[charKey].currencies = DelveTrackerDB.characters[charKey].currencies or {}
+        WowTrackerDB.characters[charKey].currencies = WowTrackerDB.characters[charKey].currencies or {}
 
         -- 3028 = Restored Coffer Keys
         -- 3310 = Coffer Key Shards
@@ -36,7 +36,7 @@ end
         for _, id in ipairs(ids) do
             local ok, info = pcall(C_CurrencyInfo.GetCurrencyInfo, id)
             if ok and info then
-                DelveTrackerDB.characters[charKey].currencies[id] = info.quantity
+                WowTrackerDB.characters[charKey].currencies[id] = info.quantity
             end
         end
     end
@@ -194,14 +194,14 @@ local Registry = CreateFrame("Frame", "DT_RegistryFrame", UIParent, "BackdropTem
     end
 
     function DT_Registry_Update()
-        if not DelveTrackerDB or not DelveTrackerDB.characters then return end
+        if not WowTrackerDB or not WowTrackerDB.characters then return end
         ScanAndSyncCurrencies()
 
         for _, h in ipairs(headers) do h:Hide(); for _, b in ipairs(h.chars) do b:Hide() end end
 
         local grouped = {}
         local classOrder = {}
-        for key, data in pairs(DelveTrackerDB.characters) do
+        for key, data in pairs(WowTrackerDB.characters) do
             local cls = data.class or "UNKNOWN"
             if not grouped[cls] then grouped[cls] = {}; table.insert(classOrder, cls) end
             if #grouped[cls] < 10 then data.fullKey = key; table.insert(grouped[cls], data) end
