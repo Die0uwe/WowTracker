@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.3.8"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.3.9"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -1163,12 +1163,12 @@ end
 --   DieOuwe: klein, rechtsonder linker kolom, gespiegeld, wijst naar binnen
 --   Logo: subtiel watermark linksonder
 
--- Kelsey kleiner — minder ruimte innemen zodat tekst beter past
+-- Kelsey: 66x66 rechtsonder de online-users kolom (v3.3.9)
 Tab1.img=Tab1:CreateTexture(nil,"ARTWORK")
-Tab1.img:SetSize(140,140)  -- was 220, nu kleiner
-Tab1.img:SetPoint("BOTTOMLEFT",Tab1,"BOTTOMLEFT",20,30)
+Tab1.img:SetSize(66,66)
+Tab1.img:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-4,8)
 Tab1.img:SetTexture("Interface\\AddOns\\WowTracker\\Media\\kelsey.tga")
-Tab1.img:SetAlpha(0.90)
+Tab1.img:SetAlpha(0.85)
 
 -- DieOuwe: klein, rechterhoek van linker kolom, gespiegeld (wijst naar binnen)
 Tab1.dieouwe=Tab1:CreateTexture(nil,"ARTWORK")
@@ -1208,14 +1208,72 @@ Tab1.onlineCount:SetTextColor(0.6,0.4,0.9,1)
 Tab1.onlineCount:SetText("")
 
 -- Scroll frame voor online leden
-Tab1.onlineScroll=CreateFrame("ScrollFrame",nil,Tab1,"UIPanelScrollFrameTemplate")
-Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-20,-26)
-Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-20,8)
-Tab1.onlineScroll:SetWidth(GUILD_RIGHT_W-22)
+-- v3.3.9: handmatige scrollbar met SA-kleuren (geen UIPanelScrollFrameTemplate)
+local SB_W = 8  -- breedte scrollbar baan
+Tab1.onlineScroll=CreateFrame("ScrollFrame",nil,Tab1)
+Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-(SB_W+6),-26)
+Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-(SB_W+6),76)  -- ruimte voor Kelsey
+Tab1.onlineScroll:SetWidth(GUILD_RIGHT_W-SB_W-10)
 Tab1.onlineScroll.content=CreateFrame("Frame",nil,Tab1.onlineScroll)
-Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-40,1)
+Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-SB_W-24,1)
 Tab1.onlineScroll:SetScrollChild(Tab1.onlineScroll.content)
 Tab1.onlineScroll.content.rows={}
+
+-- SA-kleur scrollbar: baan + thumb
+local sbTrack=Tab1:CreateTexture(nil,"BACKGROUND")
+sbTrack:SetWidth(SB_W)
+sbTrack:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-4,-26)
+sbTrack:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-4,76)
+sbTrack:SetColorTexture(0.18,0.06,0.30,0.7)  -- donker paars
+
+local sbThumb=CreateFrame("Button",nil,Tab1,"BackdropTemplate")
+sbThumb:SetSize(SB_W,40)
+sbThumb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+sbThumb:SetBackdropColor(0.48,0.00,0.80,0.9)       -- SA neon paars
+sbThumb:SetBackdropBorderColor(0.70,0.20,1.00,1)
+
+-- Thumb positie updaten op scroll
+local function UpdateThumb()
+    local total  = Tab1.onlineScroll.content:GetHeight()
+    local vis    = Tab1.onlineScroll:GetHeight()
+    if total <= vis then sbThumb:Hide(); return end
+    sbThumb:Show()
+    local ratio   = vis/total
+    local trackH  = sbTrack:GetHeight()
+    local thumbH  = math.max(20, trackH*ratio)
+    sbThumb:SetHeight(thumbH)
+    local scrolled = Tab1.onlineScroll:GetVerticalScroll()
+    local maxScroll= total-vis
+    local yPos    = -(scrolled/maxScroll)*(trackH-thumbH)
+    sbThumb:ClearAllPoints()
+    sbThumb:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-4,(-26)+yPos)
+end
+Tab1.onlineScroll:HookScript("OnScrollRangeChanged", function() UpdateThumb() end)
+Tab1.onlineScroll:HookScript("OnVerticalScroll",     function() UpdateThumb() end)
+
+-- Klikken + slepen op thumb
+sbThumb:SetScript("OnMouseDown",function(self,btn)
+    if btn~="LeftButton" then return end
+    local startY = select(2,GetCursorPosition())
+    local startScroll = Tab1.onlineScroll:GetVerticalScroll()
+    local total = Tab1.onlineScroll.content:GetHeight()
+    local vis   = Tab1.onlineScroll:GetHeight()
+    local trackH= sbTrack:GetHeight()
+    self:SetScript("OnUpdate",function()
+        local dy = startY - select(2,GetCursorPosition())
+        local scrollPerPx = (total-vis)/(trackH-self:GetHeight())
+        local newScroll = math.min(total-vis, math.max(0, startScroll + dy*scrollPerPx))
+        Tab1.onlineScroll:SetVerticalScroll(newScroll)
+    end)
+end)
+sbThumb:SetScript("OnMouseUp",function(self) self:SetScript("OnUpdate",nil) end)
+
+-- Mousewheel op het scroll-paneel
+Tab1.onlineScroll:EnableMouseWheel(true)
+Tab1.onlineScroll:SetScript("OnMouseWheel",function(_,d)
+    local cur = Tab1.onlineScroll:GetVerticalScroll()
+    Tab1.onlineScroll:SetVerticalScroll(math.max(0,cur-d*20))
+end)
 
 -- ── TAB 2: DELVES — 2 kolommen + zoek met suggesties ─────────────────────
 local searchBox=CreateFrame("EditBox","DT_SearchBox",Tab2,"SearchBoxTemplate")
