@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "4.0.0"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "4.0.1"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -3605,6 +3605,34 @@ UI:SetScript("OnEvent",function(self,event)
         end
         tickerLastT=GetTime(); tickerDirty=true
         TickerClock:SetText(string.format(SA_GOLD.."%s|r",date("%H:%M:%S")))
+        -- v4.0.1: auto-cleanup spatie-duplicaten bij login
+        C_Timer.After(5, function()
+            if not WowTrackerDB or not WowTrackerDB.characters then return end
+            local seen2, removed2 = {}, 0
+            for key2 in pairs(WowTrackerDB.characters) do
+                local nm2, rl2 = key2:match("^(.+)-(.+)$")
+                if nm2 and rl2 then
+                    local norm2 = nm2.."-"..rl2:gsub("%s+","")
+                    if seen2[norm2] then
+                        local oldD2 = WowTrackerDB.characters[seen2[norm2]]
+                        local newD2 = WowTrackerDB.characters[key2]
+                        if (oldD2 and oldD2.level or 0) >= (newD2 and newD2.level or 0) then
+                            WowTrackerDB.characters[key2] = nil
+                        else
+                            WowTrackerDB.characters[seen2[norm2]] = nil
+                            seen2[norm2] = key2
+                        end
+                        removed2 = removed2 + 1
+                    else
+                        seen2[norm2] = key2
+                    end
+                end
+            end
+            if removed2 > 0 then
+                print("|cffbf00ff[WowTracker]|r "..SA_GREY..removed2.." realm-duplicaat(en) opgeruimd.|r")
+                if WT_UpdateRoster then C_Timer.After(0.5, WT_UpdateRoster) end
+            end
+        end)
         -- Pre-fetch guild data
         if IsInGuild() then WT_RequestGuildRoster() end
     end
