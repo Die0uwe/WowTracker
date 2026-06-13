@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.4.2"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.4.1"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -2972,7 +2972,29 @@ SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty";   SLASH_WTAB33="/dt3"; SLASH_WTA
 SLASH_WTAB41="/wt4"; SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
 SLASH_WTAB51="/wt5"; SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
 SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
-SLASH_WTRELOAD1="/wt-reload"; SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
+SLASH_WTRELOAD1="/wt-reload"; -- v3.4.3: /wt-cleanup — verwijdert orphaned karakter-entries (geen class/level/race/gold)
+SLASH_WTCLEAN1 = "/wt-cleanup"
+SlashCmdList["WTCLEAN"] = function()
+    if not DelveTrackerDB or not DelveTrackerDB.characters then
+        print("|cffbf00ffWowTracker|r: Geen database."); return
+    end
+    local removed = 0
+    for key, data in pairs(DelveTrackerDB.characters) do
+        if not data.class and not data.level and not data.race
+           and (not data.money or data.money == 0) then
+            DelveTrackerDB.characters[key] = nil
+            removed = removed + 1
+            print("|cffbf00ffWowTracker|r: Orphan verwijderd: |cffccaa00"..key.."|r")
+        end
+    end
+    if removed == 0 then
+        print("|cffbf00ffWowTracker|r: Geen orphaned entries gevonden.")
+    else
+        print("|cffbf00ffWowTracker|r: "..removed.." orphan(s) verwijderd — /reload om roster te verversen.")
+    end
+end
+
+SLASH_WTMEM1="/wt-mem"; SLASH_WTCOMBAT1="/wt-combat"
 
 SlashCmdList["WTMAIN"]=function(msg)
     msg=(msg or ""):lower():gsub("^%s+",""):gsub("%s+$","")
