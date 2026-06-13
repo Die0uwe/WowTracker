@@ -42,7 +42,8 @@ end
     end
 
     -- 3. THE XL FRAME
-    local Registry = CreateFrame("Frame", "DT_RegistryFrame", UIParent, "BackdropTemplate")
+    local function T(k) return WT_T and WT_T(k) or k end
+local Registry = CreateFrame("Frame", "DT_RegistryFrame", UIParent, "BackdropTemplate")
     Registry:SetSize(1320, 750); Registry:SetPoint("CENTER"); Registry:Hide()
     Registry:SetMovable(true); Registry:EnableMouse(true); Registry:RegisterForDrag("LeftButton")
     Registry:SetScript("OnDragStart", Registry.StartMoving); Registry:SetScript("OnDragStop", Registry.StopMovingOrSizing)

@@ -1312,3 +1312,17 @@ GEBRUIK: /dtdebug → Security knop → log toont Midnight-staat in groen/rood.
   Als "IsAddOnRestrictionActive = JA" verschijnt → ALERT: Blizzard beperkt
   de addon → voor actie contact BigBoss + code-architect.
 ```
+
+## i18n Ronde 3 compleet — v3.3.0 (sessie 2026-06-13)
+```
+Registry: "CHARACTER INDEX" → T("RG_TITLE") (5 talen)
+  "SLAYER ALLIANCE" = eigennaam → NIET vertaald
+Lockout: Raid Lockouts · no active lockouts · Professions · Secondary
+  (4 strings, 5 talen); "Mythic+" = eigennaam → NIET vertaald
+HelpGuide: header "Help Guide" + volledige body (4 sectie-headers +
+  6 tab-beschrijvingen + 14 slash-omschrijvingen) = 25 strings, 5 talen
+  Slash commands zelf (/wt, /crew...) NIET vertaald (technische waarden)
+  HookScript OnShow: body herbouwen bij elk openen → actuele taal direct
+SCOPE-LES: T() guard + HookScript OnShow voor frames die op file-load
+  bouwen (vóór taal-restore) — zelfde patroon als Charmory I18N_LABELS
+```

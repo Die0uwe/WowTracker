@@ -94,6 +94,7 @@ end
 -- 3. SCANNER
 -- =====================================================
 
+local function T(k) return WT_T and WT_T(k) or k end
 local LockoutScanner = CreateFrame("Frame", "DT_LockoutScannerFrame")
 
 local function DT_GetChallengeMapName(mapID)

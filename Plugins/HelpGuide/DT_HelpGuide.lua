@@ -20,7 +20,8 @@ end
     local C_2002    = "Fonts\\2002.ttf"
 
     -- Standalone help frame (niet op opt canvas)
-    local helpFrame = CreateFrame("Frame","DT_HelpFrame",UIParent,"BackdropTemplate")
+    local function T(k) return WT_T and WT_T(k) or k end
+local helpFrame = CreateFrame("Frame","DT_HelpFrame",UIParent,"BackdropTemplate")
     helpFrame:SetSize(480, 560)
     helpFrame:SetPoint("CENTER")
     helpFrame:SetMovable(true)
