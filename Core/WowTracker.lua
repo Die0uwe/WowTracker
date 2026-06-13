@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "4.0.1"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "4.0.2"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -383,11 +383,26 @@ end
 -- DelveTrackerDB staat nog in TOC zodat WoW hem laadt voor bestaande spelers.
 -- Draait op file-load vóór enig event of plugin.
 -- ════════════════════════════════════════════════════════════════════
-if _G["DelveTrackerDB"] and not WowTrackerDB then
-    WowTrackerDB = _G["DelveTrackerDB"]
-    print("|cffbf00ff[WowTracker]|r |cffccaa00v4.0: data gemigreerd → WowTrackerDB ✓|r")
-end
-WowTrackerDB = WowTrackerDB or {}
+-- ════════════════════════════════════════════════════════════════════
+-- v4.0.2 MIGRATIEBRUG — in ADDON_LOADED (NIET file-load!)
+-- WoW laadvolgorde: Lua files → SavedVariables overschrijven → ADDON_LOADED
+-- File-load: SavedVariables bestaan nog NIET → brug werkt dan NIET.
+-- ════════════════════════════════════════════════════════════════════
+local _migrationFrame = CreateFrame("Frame")
+_migrationFrame:RegisterEvent("ADDON_LOADED")
+_migrationFrame:SetScript("OnEvent", function(self, event, addonName)
+    if addonName ~= "WowTracker" then return end
+    self:UnregisterEvent("ADDON_LOADED")
+    -- Nu zijn SavedVariables geladen
+    if DelveTrackerDB and (not WowTrackerDB or not next(WowTrackerDB or {})) then
+        WowTrackerDB = DelveTrackerDB
+        local n = 0
+        for _ in pairs(WowTrackerDB.characters or {}) do n = n + 1 end
+        print("|cffbf00ff[WowTracker]|r |cffccaa00v4.0: "..n.." chars gemigreerd → WowTrackerDB â|r")
+    end
+    WowTrackerDB = WowTrackerDB or {}
+    WT_RunMigrations(WowTrackerDB)
+end)
 
 local CURRENT_DB_VERSION = 4
 local function WT_RunMigrations(db)
@@ -3174,10 +3189,10 @@ local function WT_DBRestore()
     restored._backup_time    = nil
     restored._backup_chars   = nil
     restored._backup_version = nil
-    -- v3.5.1: schrijf naar BEIDE DB-namen (huidige + toekomstige v4.0)
-    -- → na v4.0 rename is WowTrackerDB al gevuld; geen extra migratiestap nodig
+    -- v4.0.2: schrijf uitsluitend naar WowTrackerDB; DelveTrackerDB=nil
+    -- zodat ADDON_LOADED brug hem niet overschrijft na reload
     WowTrackerDB = restored
-    WowTrackerDB   = WT_DeepCopy(restored)   -- v4.0 klaar-zetten
+    DelveTrackerDB = nil
     print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Restore geslaagd!|r "
         ..SA_GREY..c.." chars terug uit backup van "..t.."|r")
     print(SA_GREY.."Geschreven naar: WowTrackerDB + WowTrackerDB (v4.0 ready)|r")
