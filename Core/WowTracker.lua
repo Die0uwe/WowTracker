@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.3.7"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.3.8"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)

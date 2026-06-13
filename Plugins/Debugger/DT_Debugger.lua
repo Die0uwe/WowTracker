@@ -219,7 +219,7 @@ hdr:SetColorTexture(0.06, 0.14, 0.06, 1)
 -- Title
 local title = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 title:SetPoint("TOPLEFT", 10, -8)
-title:SetText("|cff44ff44DT Debug Console|r  |cff888888v3.3.0  —  WoW 12.0.5.67314|r")
+title:SetText("|cff44ff44DT Debug Console|r  |cff888888v"..(WT_VERSION or "?").."  —  WoW 12.0.5.67314|r")
 
 -- Close button
 local closeBtn = CreateFrame("Button", nil, DBG_frame, "UIPanelCloseButton")
@@ -626,14 +626,14 @@ function DBG._RefreshSec()
             local col = (state == Enum.AddOnRestrictionState.NotRestricted) and "|cff44cc66" or "|cffff4444"
             add("  GetAddOnRestrictionState: "..col..(tostring(state) or "?").."|r")
         else
-            add("  GetAddOnRestrictionState: |cffff4444error|r")
+            add("  GetAddOnRestrictionState: |cffaaaaaa(niet publiek in 12.x)|r")
         end
         local ok2, active = pcall(C_RestrictedActions.IsAddOnRestrictionActive)
         if ok2 then
             local col = active and "|cffff4444" or "|cff44cc66"
             add("  IsAddOnRestrictionActive: "..col..tostring(active).."|r")
         else
-            add("  IsAddOnRestrictionActive: |cffff4444error|r")
+            add("  IsAddOnRestrictionActive: |cffaaaaaa(niet publiek in 12.x)|r")
         end
     else
         add("  |cffaaaaaa C_RestrictedActions: niet beschikbaar|r")
