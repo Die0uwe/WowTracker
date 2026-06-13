@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.4.1"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.4.2"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -888,6 +888,8 @@ local currArrowPool     -- Tab6.scroll.content parent
 -- ═══════════════════════════════════════════════════════════════════════
 function WT_MakeSAScrollbar(sf, parent)
     local SB_W = 8
+    -- v3.4.2: fallback op sf:GetParent() als parent nil is
+    parent = parent or sf:GetParent()
     -- Verberg Blizzard-standaard scrollbar (UIPanelScrollFrameTemplate)
     if sf.ScrollBar then sf.ScrollBar:Hide() end
 
@@ -1283,12 +1285,13 @@ Tab1.onlineCount:SetText("")
 
 -- Scroll frame voor online leden
 -- v3.3.9: handmatige scrollbar met SA-kleuren (geen UIPanelScrollFrameTemplate)
+local _SBW = 8  -- v3.4.2: local (SB_W was per abuis verwijderd)
 Tab1.onlineScroll=CreateFrame("ScrollFrame",nil,Tab1)
-Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-(SB_W+6),-26)
-Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-(SB_W+6),76)  -- ruimte voor Kelsey
-Tab1.onlineScroll:SetWidth(GUILD_RIGHT_W-SB_W-10)
+Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-(_SBW+6),-26)
+Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-(_SBW+6),76)
+Tab1.onlineScroll:SetWidth(GUILD_RIGHT_W-_SBW-10)
 Tab1.onlineScroll.content=CreateFrame("Frame",nil,Tab1.onlineScroll)
-Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-SB_W-24,1)
+Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-_SBW-24,1)
 Tab1.onlineScroll:SetScrollChild(Tab1.onlineScroll.content)
 Tab1.onlineScroll.content.rows={}
 
