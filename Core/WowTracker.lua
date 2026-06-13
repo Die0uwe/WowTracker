@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.3.6"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.3.7"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -2141,17 +2141,21 @@ WT_UpdateCurrency = function()
         nameRow:SetBackdropBorderColor(0.40,0.10,0.60,0.7)
         nameRow:Show()
 
-        local nm=nameRow:CreateFontString(nil,"OVERLAY")
-        nm:SetFont(C_2002,12,"OUTLINE")
-        nm:SetPoint("LEFT",8,0)
-        nm:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s · iLvl %d|r",
+        -- v3.3.7: hergebruik bestaande FontStrings op gepoold frame
+        if not nameRow.nm then
+            nameRow.nm=nameRow:CreateFontString(nil,"OVERLAY")
+            nameRow.nm:SetFont(C_2002,12,"OUTLINE")
+            nameRow.nm:SetPoint("LEFT",8,0)
+        end
+        nameRow.nm:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s · iLvl %d|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
             shortName, data.spec or "??", data.ilvl or 0))
-
-        local gld=nameRow:CreateFontString(nil,"OVERLAY")
-        gld:SetFont(C_2002,11,"OUTLINE")
-        gld:SetPoint("RIGHT",-8,0)
-        gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
+        if not nameRow.gld then
+            nameRow.gld=nameRow:CreateFontString(nil,"OVERLAY")
+            nameRow.gld:SetFont(C_2002,11,"OUTLINE")
+            nameRow.gld:SetPoint("RIGHT",-8,0)
+        end
+        nameRow.gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
 
         -- (pool beheert levensduur)
         yOff = yOff - ROW_H - 2
@@ -2162,13 +2166,15 @@ WT_UpdateCurrency = function()
         hScroll:SetSize(hScrollW - 36, TILE_H)
         hScroll:SetPoint("TOPLEFT",18,yOff)
 
-        -- Scroll child hergebruiken of aanmaken
+        -- Scroll child hergebruiken of aanmaken (v3.3.7: explicit Show)
+        hScroll:Show()
         if not hScroll.hContent then
             hScroll.hContent = CreateFrame("Frame",nil,hScroll)
         end
         local hContent = hScroll.hContent
         local totalTileW = #CUR_DEFS*(TILE_W+TILE_G)
         hContent:SetSize(totalTileW, TILE_H)
+        hContent:Show()
         hScroll:SetScrollChild(hContent)
 
         -- Linker/rechter pijl knoppen (v3.3.2: pool)
@@ -2230,19 +2236,23 @@ WT_UpdateCurrency = function()
                 val>0 and 1.0  or 0.4)
             card:Show()
 
-            -- Icoon
-            card.ico=card:CreateTexture(nil,"ARTWORK")
-            card.ico:SetSize(22, 22)   -- 2x kleiner (was 44px)
-            card.ico:SetPoint("TOP",card,"TOP",0,-3)
-            -- iconID is gegarandeerd aanwezig: blanco currencies zijn al gefilterd
+            -- Icoon (hergebruik op gepoold frame)
+            if not card.ico then
+                card.ico=card:CreateTexture(nil,"ARTWORK")
+                card.ico:SetSize(22, 22)
+                card.ico:SetPoint("TOP",card,"TOP",0,-3)
+                card.ico:SetTexCoord(0.08,0.92,0.08,0.92)
+            end
             card.ico:SetTexture(def.iconID or 134400)
-            card.ico:SetTexCoord(0.08,0.92,0.08,0.92)
             card.ico:SetAlpha(val>0 and 1.0 or 0.3)
+            card.ico:Show()
 
-            -- Waarde
-            card.valTxt=card:CreateFontString(nil,"OVERLAY")
-            card.valTxt:SetFont(C_2002,12,"OUTLINE")
-            card.valTxt:SetPoint("BOTTOM",card,"BOTTOM",0,3)
+            -- Waarde (hergebruik op gepoold frame)
+            if not card.valTxt then
+                card.valTxt=card:CreateFontString(nil,"OVERLAY")
+                card.valTxt:SetFont(C_2002,12,"OUTLINE")
+                card.valTxt:SetPoint("BOTTOM",card,"BOTTOM",0,3)
+            end
             card.valTxt:SetText((val>0 and def.col or SA_GREY)..val.."|r")
 
             -- Tooltip
