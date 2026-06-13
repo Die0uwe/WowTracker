@@ -1616,11 +1616,24 @@ WT_UpdateRoster = function()
     InitRosterPools(Tab4.scroll.content)
     rosterCardPool:ReleaseAll()
 
+    -- v3.4.6: sorteer op klasse (WoW volgorde) → daarna naam
+    local CLASS_ORDER = {
+        WARRIOR=1,PALADIN=2,HUNTER=3,ROGUE=4,PRIEST=5,
+        DEATHKNIGHT=6,SHAMAN=7,MAGE=8,WARLOCK=9,
+        MONK=10,DRUID=11,DEMONHUNTER=12,EVOKER=13,
+    }
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
         table.insert(sorted,k)
     end
-    table.sort(sorted)
+    table.sort(sorted, function(a, b)
+        local da = DelveTrackerDB.characters[a]
+        local db_ = DelveTrackerDB.characters[b]
+        local oa = CLASS_ORDER[da and da.class or ""] or 99
+        local ob = CLASS_ORDER[db_ and db_.class or ""] or 99
+        if oa ~= ob then return oa < ob end
+        return a < b  -- zelfde klasse: alfabetisch op naam
+    end)
 
     local visIdx = 0  -- v3.4.5: telt alleen zichtbare (niet-orphan) cards
     for _,key in ipairs(sorted) do
@@ -1635,8 +1648,13 @@ WT_UpdateRoster = function()
 
         local col = (visIdx-1) % ROSTER_COLS
         local row = math.floor((visIdx-1) / ROSTER_COLS)
-        local xPos = col * (ROSTER_CARD_W + ROSTER_GAP)
-        local yPos = -(row * (ROSTER_CARD_H + ROSTER_GAP))
+        -- v3.4.6: grid centrerend — bereken offset zodat 3-koloms grid
+        -- horizontaal gecentreerd staat in het scroll-frame
+        local _gridW  = ROSTER_COLS * ROSTER_CARD_W + (ROSTER_COLS-1) * ROSTER_GAP
+        local _frameW = Tab4.scroll:GetWidth()
+        local _xOff   = math.floor((_frameW > 0 and (_frameW - _gridW) or 0) / 2)
+        local xPos = _xOff + col * (ROSTER_CARD_W + ROSTER_GAP)
+        local yPos = -(row * (ROSTER_CARD_H + ROSTER_GAP) + ROSTER_GAP)
 
         -- v3.3.2: pool acquire
         local card = rosterCardPool:Acquire()
