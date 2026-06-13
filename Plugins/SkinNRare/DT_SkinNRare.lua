@@ -982,6 +982,10 @@ local updatePending = false
 eventFrame:SetScript("OnEvent", function(self, event, arg1)
     -- [SS-7] Aura path: direct, no debounce
     if event == "UNIT_AURA" then
+        -- v3.3.4 Fase 4.2: unitID is normaal geen secret, maar guard
+        -- is defensief consistent met het Midnight audit-beleid
+        if issecretvalue and issecretvalue(arg1) then return end
+        if type(arg1) ~= "string" then return end
         CheckSixthSense(arg1); return
     end
     -- [SS-7] Zone change: re-check aura + fall through to data refresh

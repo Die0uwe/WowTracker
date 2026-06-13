@@ -1360,3 +1360,26 @@ HSCROLL: hContent als sub-frame op de ScrollFrame (1x aangemaken,
   hergebruikt via hScroll.hContent), SetParent van tiles op hContent
   bij elke acquire.
 ```
+
+## Fase 4.2 COMBAT_LOG secret-audit — v3.3.4 (sessie 2026-06-13)
+```
+VOLLEDIGE AUDIT RESULTATEN (alle plugins + Core):
+  COMBAT_LOG_EVENT_UNFILTERED: NIET gebruikt in WowTracker — veilig
+  CombatAnnouncer: alleen PLAYER_REGEN_DISABLED/ENABLED — geen payloads
+  TooltipExtra: geen combat events — veilig
+  WarbankBuddy: geen combat events — veilig
+  ExchangeBot: Python-grep gaf false positive (CHAT_MSG = 0) — veilig
+
+UNIT_AURA (RISICO: LAAG — unitID is normaal geen secret):
+  · SkinNRare: issecretvalue guard + type check toegevoegd
+  · PreyTracker: issecretvalue guard + type check toegevoegd
+  REDEN: defensief consistent beleid — toekomstige Blizzard-wijzigingen
+  kunnen unitID wel secret maken op bepaalde paths.
+
+CHAT_MSG (reeds gefixt v3.2.4):
+  · ContentManager: ✓ guard
+  · ClothCounter: ✓ guard
+
+CONCLUSIE: WowTracker gebruikt geen COMBAT_LOG_EVENT_UNFILTERED.
+  Alle event-payloads beveiligd. Fase 4.2 AFGEROND.
+```

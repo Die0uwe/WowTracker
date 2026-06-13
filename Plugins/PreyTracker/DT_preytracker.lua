@@ -797,6 +797,9 @@ PreyFrame:SetScript("OnEvent", function(self, event, arg1)
 
     elseif event == "UNIT_AURA" then
         -- Only rescan affixes when player auras change (unit = "player")
+        -- v3.3.4 Fase 4.2: defensieve guard (unitID is normaal niet secret)
+        if issecretvalue and issecretvalue(arg1) then return end
+        if type(arg1) ~= "string" then return end
         if arg1 == "player" then
             local prey = addonTable.DT_preytracker
             if prey.active and not prey.isTesting then ScanAffixes(prey) end
