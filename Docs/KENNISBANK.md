@@ -1294,3 +1294,21 @@ I18N TOTAAL (alle rondes):
   Registry: 1 · Lockout: 4 · HelpGuide: 18 (v3.3.0)
   TOTAAL: ~109 strings in 5 talen (NL/EN/DE/FR/ES)
 ```
+
+## Fase 4.3: Midnight Security Diagnostiek in Debugger — v3.3.1 (sessie 2026-06-13)
+```
+NIEUWE KNOP: "Security" in de Debugger toolbar (6e knop, xOff 483)
+DIAGNOSTIEK (7 checks, output in log-venster):
+  1. issecretvalue/scrubsecretvalues/issecurevariable: aanwezig?
+  2. C_RestrictedActions.GetAddOnRestrictionState → restriction-state
+  3. C_RestrictedActions.IsAddOnRestrictionActive → JA/NEE
+  4. InCombatLockdown() → combat-staat
+  5. macrotext-limiet reminder (255 tekens, SecureActionButtonTemplate)
+  6. IsForbidden(testFrame) → frame forbidden-status
+  7. issecurevariable(DelveTrackerDB, "characters") → taint-check DB
+  + C_AddOns.GetAddOnInfo reason → addon-restrict reden
+ALLE calls via pcall — diagnostiek crasht nooit de Debugger zelf.
+GEBRUIK: /dtdebug → Security knop → log toont Midnight-staat in groen/rood.
+  Als "IsAddOnRestrictionActive = JA" verschijnt → ALERT: Blizzard beperkt
+  de addon → voor actie contact BigBoss + code-architect.
+```

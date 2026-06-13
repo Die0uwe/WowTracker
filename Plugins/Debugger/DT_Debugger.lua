@@ -219,7 +219,7 @@ hdr:SetColorTexture(0.06, 0.14, 0.06, 1)
 -- Title
 local title = DBG_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 title:SetPoint("TOPLEFT", 10, -8)
-title:SetText("|cff44ff44DT Debug Console|r  |cff888888v3.0  —  WoW 12.0.5.67314|r")
+title:SetText("|cff44ff44DT Debug Console|r  |cff888888v3.3.0  —  WoW 12.0.5.67314|r")
 
 -- Close button
 local closeBtn = CreateFrame("Button", nil, DBG_frame, "UIPanelCloseButton")
@@ -477,6 +477,70 @@ MakeToolBtn("DB Scan", 198, function()
     end)
 end)
 MakeToolBtn("Mem Snap", 293, function() DBG._RefreshMem() end)
+MakeToolBtn("Security", 483, function()
+    -- ── FASE 4.3: Midnight Security Diagnostiek ──
+    -- Toont in het log-venster: secret value checks, restrict states,
+    -- taint-gevoelige API's, macrotext-limiet, addon-restrict status.
+    local lines = {}
+    local function add(col, lbl, val)
+        lines[#lines+1] = string.format("|cff%s[%s]|r  %s", col, lbl, tostring(val))
+    end
+
+    add("44ccff", "MIDNIGHT SECURITY", "── WowTracker Diagnostic ──")
+
+    -- 1) issecretvalue API beschikbaar?
+    add("aaaaaa", "API", "issecretvalue: "..(type(issecretvalue)=="function" and "|cff44cc66OK|r" or "|cffcc4444ONTBREEKT|r"))
+    add("aaaaaa", "API", "scrubsecretvalues: "..(type(scrubsecretvalues)=="function" and "|cff44cc66OK|r" or "|cffcc4444ONTBREEKT|r"))
+    add("aaaaaa", "API", "issecurevariable: "..(type(issecurevariable)=="function" and "|cff44cc66OK|r" or "|cffcc4444ONTBREEKT|r"))
+
+    -- 2) C_RestrictedActions staat
+    if C_RestrictedActions then
+        local ok1, state = pcall(C_RestrictedActions.GetAddOnRestrictionState)
+        add("ffaa44", "RESTRICT", "GetAddOnRestrictionState: "..(ok1 and tostring(state) or "|cffcc4444error|r"))
+        local ok2, active = pcall(C_RestrictedActions.IsAddOnRestrictionActive)
+        add("ffaa44", "RESTRICT", "IsAddOnRestrictionActive: "..(ok2 and (active and "|cffcc4444JA – beperkt!|r" or "|cff44cc66NEE – vrij|r") or "|cffcc4444error|r"))
+    else
+        add("cc4444", "RESTRICT", "C_RestrictedActions: |cffcc4444NIET beschikbaar|r")
+    end
+
+    -- 3) Combat lockdown
+    add("aaaaaa", "COMBAT", "InCombatLockdown: "..(InCombatLockdown() and "|cffcc4444JA|r" or "|cff44cc66NEE|r"))
+
+    -- 4) macrotext-limiet (255 tekens sinds 11.0.2)
+    add("aaaaaa", "MACRO", "macrotext limiet: |cffccaa00255 tekens|r (SecureActionButtonTemplate)")
+
+    -- 5) Forbidden frame test
+    local testFrm = CreateFrame("Frame")
+    add("aaaaaa", "FORBIDDEN", "IsForbidden(testFrame): "..(testFrm:IsForbidden() and "|cffcc4444JA|r" or "|cff44cc66NEE|r"))
+
+    -- 6) Taint check op DelveTrackerDB
+    if issecurevariable then
+        local ok3, isSec = pcall(issecurevariable, DelveTrackerDB, "characters")
+        add("aaaaaa", "TAINT", "DelveTrackerDB.characters secure: "..(ok3 and (isSec and "|cff44cc66JA|r" or "|cffffd700NEIN (tainted)|r") or "|cffcc4444error|r"))
+    end
+
+    -- 7) WowTracker addon restrict
+    if C_AddOns and C_AddOns.GetAddOnInfo then
+        local ok4, _, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, "WowTracker")
+        add("aaaaaa", "ADDON", "GetAddOnInfo reason: "..(ok4 and tostring(reason) or "|cffcc4444error|r"))
+    end
+
+    add("44ccff", "DONE", string.format("Diagnostiek compleet — %s", date("%H:%M:%S")))
+
+    -- Output in het log-venster
+    for _, l in ipairs(lines) do
+        DBG.Log("SYS", "Security", l:gsub("|c%x%x%x%x%x%x%x%x",""):gsub("|r",""))
+    end
+    -- Direct tonen in het log-display
+    local txt = table.concat(lines, "
+")
+    if DBG_frame:IsShown() then
+        -- Herschrijf tijdelijk het log-venster met security-rapport
+        DBG._RefreshLog()
+    end
+    print("|cff44ccffWowTracker Security:|r Diagnostiek in /dtdebug log-venster.")
+end)
+
 MakeToolBtn("Export",   388, function()
     local out = {}
     -- ── DEEL 1: ERROR RAPPORT (BugSack-stijl) ──
