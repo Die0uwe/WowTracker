@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.3.5"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.3.6"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -873,19 +873,25 @@ local UpdateCharacterList
 -- ── FRAME POOLS (Fase 4.1 · v3.3.2) ──────────────────────────────────────
 -- Blizzard-patroon: één pool per type, AcquireFrame/ReleaseAll i.p.v.
 -- steeds nieuwe frames aanmaken + garbage genereren.
-local rosterCardPool    -- CreateFramePool geïnitialiseerd op PLAYER_LOGIN
-local currNameRowPool   -- karakter-header rijen
-local currTilePool      -- currency tiles
-local currScrollPool    -- horizontale ScrollFrames per karakter
-local currArrowPool     -- pijl-knoppen
+-- v3.3.6 FIX: aparte init per tab zodat parents correct zijn
+local rosterCardPool    -- Tab4.scroll.content parent
+local currNameRowPool   -- Tab6.scroll.content parent
+local currTilePool      -- Tab6.scroll.content parent (SetParent bij acquire)
+local currScrollPool    -- Tab6.scroll.content parent
+local currArrowPool     -- Tab6.scroll.content parent
 
-local function InitPools(parent)
-    if rosterCardPool then return end  -- eenmalig
+local rosterPoolsReady  = false
+local currPoolsReady    = false
+
+local function InitRosterPools(parent)
+    if rosterPoolsReady then return end
     rosterCardPool = CreateFramePool("Button", parent, "BackdropTemplate",
-        function(_, f)
-            f:ClearAllPoints(); f:Hide()
-            -- child textures/fontstrings bewust NIET destroy — hergebruiken
-        end)
+        function(_, f) f:ClearAllPoints(); f:Hide() end)
+    rosterPoolsReady = true
+end
+
+local function InitCurrPools(parent)
+    if currPoolsReady then return end
     currNameRowPool = CreateFramePool("Frame", parent, "BackdropTemplate",
         function(_, f) f:ClearAllPoints(); f:Hide() end)
     currTilePool = CreateFramePool("Button", parent, "BackdropTemplate",
@@ -894,6 +900,12 @@ local function InitPools(parent)
         function(_, f) f:ClearAllPoints(); f:Hide() end)
     currArrowPool = CreateFramePool("Button", parent, "BackdropTemplate",
         function(_, f) f:ClearAllPoints(); f:Hide() end)
+    currPoolsReady = true
+end
+
+-- Legacy alias voor bestaande aanroepen op PLAYER_LOGIN
+local function InitPools(parent)
+    InitRosterPools(parent)
 end
 
 local WT_UpdateRoster
@@ -1517,7 +1529,7 @@ WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
 
     -- v3.3.2: CreateFramePool ReleaseAll (geen garbage, hergebruik)
-    InitPools(Tab4.scroll.content)
+    InitRosterPools(Tab4.scroll.content)
     rosterCardPool:ReleaseAll()
 
     local sorted={}
@@ -1951,8 +1963,8 @@ WT_UpdateCurrency = function()
         if t ~= "Filter karakter..." then filter = t:lower() end
     end
 
-    -- v3.3.2: pool ReleaseAll — nul garbage
-    InitPools(Tab6.scroll.content)
+    -- v3.3.6: pool ReleaseAll — nul garbage (aparte init voor juiste parent)
+    InitCurrPools(Tab6.scroll.content)
     currNameRowPool:ReleaseAll()
     currTilePool:ReleaseAll()
     currScrollPool:ReleaseAll()
@@ -3259,7 +3271,8 @@ UI:SetScript("OnEvent",function(self,event)
     end
     if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
     or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
-        InitPools(Tab4.scroll.content)
+        InitRosterPools(Tab4.scroll.content)
+        InitCurrPools(Tab6.scroll.content)
         ScanDelves()
         if WT_UpdateWarbandStats then WT_UpdateWarbandStats() end
         if WT_UpdateCharInfo then WT_UpdateCharInfo() end

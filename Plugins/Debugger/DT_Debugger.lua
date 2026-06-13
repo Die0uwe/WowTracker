@@ -606,7 +606,7 @@ table.insert(TAB_FRAMES, secFrame)  -- positie 5
 local secLines = {}
 for i = 1, 22 do
     local fs = secFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    fs:SetFont("Fonts\2002.ttf", 10, "")
+    fs:SetFont("Fonts\\2002.ttf", 10, "")
     fs:SetJustifyH("LEFT")
     fs:SetPoint("TOPLEFT", 10, -8 - (i-1)*14)
     fs:SetWidth(540)
