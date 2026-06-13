@@ -3090,6 +3090,75 @@ SlashCmdList["WTCOMBAT"]=function()
 end
 
 -- ============================================================================
+-- DB BACKUP SYSTEEM (v4.0.0)
+-- WoW Lua sandbox staat geen schijf-I/O toe, maar wel extra SavedVariables.
+-- WowTrackerDB_Backup wordt gedeclareerd in de TOC en opgeslagen in de WTF-map.
+-- De gebruiker kan het WTF/Account/.../SavedVariables.lua bestand als backup
+-- kopiëren of hernoemen buiten het spel.
+-- ============================================================================
+local function WT_DeepCopy(orig, seen)
+    seen = seen or {}
+    if type(orig) ~= "table" then return orig end
+    if seen[orig] then return seen[orig] end
+    local copy = {}
+    seen[orig] = copy
+    for k, v in pairs(orig) do
+        copy[WT_DeepCopy(k, seen)] = WT_DeepCopy(v, seen)
+    end
+    return setmetatable(copy, getmetatable(orig))
+end
+
+local function WT_DBBackup()
+    if not DelveTrackerDB then
+        print(SA_PURPLE.."[WowTracker]|r Geen database gevonden."); return
+    end
+    WowTrackerDB_Backup = WT_DeepCopy(DelveTrackerDB)
+    WowTrackerDB_Backup._backup_time    = date("%Y-%m-%d %H:%M:%S")
+    WowTrackerDB_Backup._backup_chars   = 0
+    for _ in pairs(DelveTrackerDB.characters or {}) do
+        WowTrackerDB_Backup._backup_chars = WowTrackerDB_Backup._backup_chars + 1
+    end
+    WowTrackerDB_Backup._backup_version = WT_VERSION
+    print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Backup succesvol!|r "
+        ..SA_GREY..WowTrackerDB_Backup._backup_chars.." chars · "
+        ..WowTrackerDB_Backup._backup_time.."|r")
+    print(SA_GREY.."Backup opgeslagen als WowTrackerDB_Backup in je WTF-map.|r")
+end
+
+local function WT_DBRestore()
+    if not WowTrackerDB_Backup then
+        print(SA_PURPLE.."[WowTracker]|r ".."|cffff4444Geen backup gevonden.|r"); return
+    end
+    local t = WowTrackerDB_Backup._backup_time or "?"
+    local c = WowTrackerDB_Backup._backup_chars or "?"
+    local v = WowTrackerDB_Backup._backup_version or "?"
+    -- Stateful bevestiging
+    if not WT_DBRestore._confirmed then
+        WT_DBRestore._confirmed = true
+        print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Bevestig restore:|r "
+            ..SA_GREY.."Backup van "..t.." · "..c.." chars · v"..v.."|r")
+        print("|cffff4444Huidige data wordt OVERSCHREVEN. "
+            .."Typ /wt-dbrestore opnieuw om te bevestigen.|r")
+        C_Timer.After(30, function() WT_DBRestore._confirmed = nil end)
+        return
+    end
+    WT_DBRestore._confirmed = nil
+    local restored = WT_DeepCopy(WowTrackerDB_Backup)
+    restored._backup_time    = nil
+    restored._backup_chars   = nil
+    restored._backup_version = nil
+    DelveTrackerDB = restored
+    print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Restore geslaagd!|r "
+        ..SA_GREY..c.." chars terug uit backup van "..t.."|r")
+    C_Timer.After(1.5, function() ReloadUI() end)
+end
+
+SLASH_WTBACKUP1  = "/wt-dbbackup"
+SLASH_WTRESTORE1 = "/wt-dbrestore"
+SlashCmdList["WTBACKUP"]  = WT_DBBackup
+SlashCmdList["WTRESTORE"] = WT_DBRestore
+
+-- ============================================================================
 -- ADMIN PANEL — herbouw v3.0.7 functionaliteit (sessie 2026-06-12)
 -- KENNISBANK REGELS:
 --   · Parented aan UIParent (schaalt NIET mee met HUD)
@@ -3281,13 +3350,77 @@ caBtn:SetScript("OnClick", function()
 end)
 
 -- ── Sectie: plugins on/off ──────────────────────────────────────────────
+-- ── Backup / Restore knoppen ────────────────────────────────────────────
+local function MakeAPBtn(lbl, col, x, y, w, fn)
+    local b = CreateFrame("Button", nil, AP, "BackdropTemplate")
+    b:SetSize(w, 22)
+    b:SetPoint("TOPLEFT", x, y)
+    b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",
+                   edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    b:SetBackdropColor(0.08, 0.04, 0.14, 0.95)
+    b:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+    local t = b:CreateFontString(nil, "OVERLAY")
+    t:SetFont(C_2002, 10, "OUTLINE")
+    t:SetPoint("CENTER")
+    t:SetText(col..lbl.."|r")
+    b:SetScript("OnClick", fn)
+    b:SetScript("OnEnter", function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
+    b:SetScript("OnLeave", function(s) s:SetBackdropBorderColor(0.30,0.08,0.50,0.8) end)
+    return b
+end
+
+local backupBtn = MakeAPBtn("💾  DB Backup", SA_BLUE, 16, -270, 196, function()
+    WT_DBBackup()
+end)
+backupBtn:SetScript("OnEnter", function(self)
+    self:SetBackdropBorderColor(0.10, 0.70, 0.95, 1)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText(SA_GOLD.."Database Backup")
+    GameTooltip:AddLine(SA_GREY.."Kopieert de volledige DB naar WowTrackerDB_Backup.|r")
+    GameTooltip:AddLine(SA_GREY.."Bestand: WTF/Account/.../SavedVariables.lua|r")
+    if WowTrackerDB_Backup then
+        GameTooltip:AddLine(SA_GOLD.."Laatste backup: "
+            ..SA_GREY..(WowTrackerDB_Backup._backup_time or "?").."|r")
+    else
+        GameTooltip:AddLine("|cffff5555Nog geen backup aanwezig.|r")
+    end
+    GameTooltip:Show()
+end)
+backupBtn:SetScript("OnLeave", function(self)
+    self:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
+    GameTooltip:Hide()
+end)
+
+local restoreBtn = MakeAPBtn("↩  Restore", "|cffff8844", 220, -270, 190, function()
+    WT_DBRestore()
+end)
+restoreBtn:SetScript("OnEnter", function(self)
+    self:SetBackdropBorderColor(0.95, 0.50, 0.10, 1)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText("|cffff8844Database Restore")
+    GameTooltip:AddLine(SA_GREY.."Herstelt DB vanuit de laatste backup.|r")
+    GameTooltip:AddLine("|cffff4444Overschrijft huidige data! Vereist bevestiging.|r")
+    if WowTrackerDB_Backup then
+        GameTooltip:AddLine(SA_GOLD.."Backup van: "
+            ..SA_GREY..(WowTrackerDB_Backup._backup_time or "?")
+            .." · "..(WowTrackerDB_Backup._backup_chars or "?").." chars|r")
+    else
+        GameTooltip:AddLine("|cffff5555Geen backup beschikbaar.|r")
+    end
+    GameTooltip:Show()
+end)
+restoreBtn:SetScript("OnLeave", function(self)
+    self:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
+    GameTooltip:Hide()
+end)
+
 local plLbl = AP:CreateFontString(nil, "OVERLAY")
 plLbl:SetFont(C_2002, 11, "OUTLINE")
-plLbl:SetPoint("TOPLEFT", 16, -296)
+plLbl:SetPoint("TOPLEFT", 16, -300)
 plLbl:SetText(SA_BLUE..WT_T("PLUGINS").."|r  "..SA_GREY..WT_T("PLUGINS_HINT").."|r")
 
 local plugScroll = CreateFrame("ScrollFrame", nil, AP)
-plugScroll:SetPoint("TOPLEFT", 16, -312)
+plugScroll:SetPoint("TOPLEFT", 16, -316)
 plugScroll:SetPoint("BOTTOMRIGHT", -22, 14)
 local plugContent = CreateFrame("Frame", nil, plugScroll)
 plugContent:SetSize(380, 10)
