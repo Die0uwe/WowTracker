@@ -2105,18 +2105,19 @@ WT_UpdateCurrency = function()
     -- Volledige lijst alle currencies — IDs geverifieerd via DataStore Enum
     -- (sessie 2026-06-12) · gesorteerd nieuw → oud per expansie
     local CUR_DEFS_ALL = {
-        -- ── MIDNIGHT 12.x — DAWNCREST (upgrade tokens, Season 1) ────
-        -- Volgorde: Adventurer → Myth (laagste → hoogste tier)
-        -- IDs geverifieerd via DT_userinfo.lua kennisbank (2026-06-13)
+        -- ── MIDNIGHT 12.x — DELVES & KEYS (was al goed) ─────────────
+        {id=3028, label="Restored Coffer Key",  col="|cff00ccff", expac="Midnight"},
+        {id=3310, label="Coffer Key Shards",    col="|cffffee00", expac="Midnight"},
+        {id=3376, label="Shard of Dundun",      col="|cff44cc66", expac="Midnight"},
+        {id=3378, label="Dawnlight Manaflux",   col="|cff27e0dc", expac="Midnight"},
+        -- ── MIDNIGHT 12.x — NA MANAFLUX: Dawncrest + rest Midnight ──
+        -- Adventurer → Myth (laag → hoog)
         {id=3383, label="Adventurer Dawncrest", col="|cffaaaaaa", expac="Midnight"},
         {id=3341, label="Veteran Dawncrest",    col="|cfffff027", expac="Midnight"},
         {id=3343, label="Champion Dawncrest",   col="|cff0071e0", expac="Midnight"},
         {id=3345, label="Hero Dawncrest",       col="|cffcc88ff", expac="Midnight"},
         {id=3347, label="Myth Dawncrest",       col="|cff00ccff", expac="Midnight"},
-        -- ── MIDNIGHT 12.x — PRIMAIRE CURRENCIES ─────────────────────
         {id=3008, label="Valorstones",          col="|cffff9900", expac="Midnight"},
-        {id=3378, label="Dawnlight Manaflux",   col="|cff27e0dc", expac="Midnight"},
-        {id=3376, label="Shard of Dundun",      col="|cff44cc66", expac="Midnight"},
         {id=3377, label="Unalloyed Abundance",  col="|cff55ff55", expac="Midnight"},
         {id=3316, label="Voidlight Marl",       col="|cff8866cc", expac="Midnight"},
         {id=3379, label="Brimming Arcana",      col="|cffcc66ff", expac="Midnight"},
@@ -2124,9 +2125,6 @@ WT_UpdateCurrency = function()
         {id=3392, label="Remnant of Anguish",   col="|cffcc3333", expac="Midnight"},
         {id=3318, label="Delver's Journey",     col="|cff44aaff", expac="Midnight"},
         {id=2803, label="Undercoin",            col="|cff665588", expac="Midnight"},
-        -- ── MIDNIGHT 12.x — DELVE / COFFER KEYS ─────────────────────
-        {id=3028, label="Restored Coffer Key",  col="|cff00ccff", expac="Midnight"},
-        {id=3310, label="Coffer Key Shards",    col="|cffffee00", expac="Midnight"},
         -- ── THE WAR WITHIN 11.2 (DataStore) ─────────────────────────
         {id=3284, label="Weathered Ethereal Crest",    col="|cff99aa77", expac="War Within"},
         {id=3286, label="Carved Ethereal Crest",       col="|cff88bb55", expac="War Within"},
