@@ -1383,3 +1383,62 @@ CHAT_MSG (reeds gefixt v3.2.4):
 CONCLUSIE: WowTracker gebruikt geen COMBAT_LOG_EVENT_UNFILTERED.
   Alle event-payloads beveiligd. Fase 4.2 AFGEROND.
 ```
+
+## GROTE SESSIE 2026-06-13 — v3.2.0 t/m v3.5.2 (33 releases)
+
+### i18n (Fase 3.1) COMPLEET
+WT_LANG 5 talen bovenaan Core · WT_T() patroon · 5 plugins vertaald ·
+I18N_LABELS registry voor frames die op file-load bouwen · HelpGuide OnShow
+
+### WTTheme (Fase 3.2) COMPLEET
+Alle popups gekoppeld · functionele borders bewaard (Debugger=groen, Mail=goud)
+ClothCounter: theme-check in ApplyWindowStyle helper
+
+### Guild Calendar (Fase 3.3) COMPLEET
+LoD Blizzard_Calendar · SetAbsMonth verplicht · event UNregistered tijdens scan
+DT_GetGuildEvents() API · Guild tab lijst + ticker [G]-regels · 5 talen
+
+### Weekly Reset (Fase 3.4) COMPLEET
+GetCVar("portal") regionaal · EU=wo(3) 6:00 · WeeklyReset{day,hour,nextReset}
+
+### CreateFramePool (Fase 4.1) COMPLEET
+5 pools · aparte Roster/Currency init · Show() na Acquire · child-reuse guards
+
+### Secret Audit (Fase 4.2) COMPLEET
+CHAT_MSG guards aanwezig · UNIT_AURA defensief · COMBAT_LOG niet gebruikt
+
+### Security Debugger Tab (Fase 4.3) COMPLEET
+6 secties · C_RestrictedActions niet publiek 12.x · err:0 wrn:0 bevestigd
+
+### WT_MakeSAScrollbar (v3.4.0) COMPLEET
+Centrale helper · alle 15+ scrollframes uitgerold · parent-fallback
+
+### Roster
+Klasse-sortering (CLASS_ORDER) · gecentreerd grid (visIdx) · orphan filter ·
+/wt cleanup · DB-duplicate fix (spatie realm)
+
+### Currency Tab
+Volledige Midnight set · Dawncrest 5-tiers · correcte volgorde
+
+### Overig
+MOTD race-condition (timer 1s/3s + roster-trigger) · charInfo gevuld ·
+Vault knop · Kelsey 66×66 · Debugger-titel live · DB Backup/Restore v3.5.x
+
+### KRITIEKE LESSEN
+```
+goto/::label:: = VERBODEN in WoW Lua 5.1 → altijd if/else
+Python LF in Lua string = CRASH → binary fix of handmatig escapen
+Pool parent = PER TAB (niet gedeeld!)
+hScroll:Show() + hContent:Show() VERPLICHT na Acquire
+rows[visIdx] na for _,key (niet rows[i])
+C_RestrictedActions methods zijn NIET publiek in Midnight 12.x
+```
+
+### DB Backup/Restore (v3.5.0-3.5.2)
+TOC: WowTrackerDB + WowTrackerDB_Backup toegevoegd als v4.0 bridge
+Admin panel: 💾 Backup + ↩ Restore knoppen · 2-staps bevestiging
+Restore schrijft naar DelveTrackerDB + WowTrackerDB simultaneaously
+/wt-dbbackup + /wt-dbrestore slash commands
+
+### v4.0 status
+WowTrackerDB staat klaar in TOC · backup-bridge aanwezig · 180 refs te renamen
