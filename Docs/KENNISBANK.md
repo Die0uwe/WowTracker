@@ -1274,3 +1274,23 @@ DRIE-LAAGS FIX:
 LES: event-afhankelijke UI altijd voorzien van timeout + herpoging;
   "wachten op één event" is een single point of failure.
 ```
+
+## i18n Ronde 3 compleet — v3.3.0 (sessie 2026-06-13)
+```
+REGISTRY: "SLAYER ALLIANCE - CHARACTER INDEX" → titel-suffix via RG_TITLE.
+  "B"-knop = navigatie-symbool — bewust NIET vertaald (geen taal).
+LOCKOUT: 4 strings — "Raid Lockouts", "no active lockouts",
+  "Professions (Midnight)", "Secondary". Mythic+ = eigennaam onvertaald.
+  Divider-lijn = decoratie onvertaald.
+HELPGUIDE: titel + VOLLEDIGE body (17 sleutels: 4 sectie-headers,
+  3 basic-control regels, 6 tab-beschrijvingen, 14 slash-beschrijvingen).
+  Slash commands zelf (/wt, /crew, etc.) altijd EN — zijn commando's.
+  OnShow-hook herbouwt de body bij elk openen → taalwissel werkt direct.
+SCOPE VALKUIL (gevangen): guard T() geplaatst MID in DIFF_LABEL tabel
+  → Lua parse-error "no viable alternative at input local". Guard ALTIJD
+  vóór de eerste tabel-definitie in het bestand plaatsen.
+I18N TOTAAL (alle rondes):
+  Core: 33 strings (v3.2.0) · QuickSet: 37 (v3.2.1) · Charmory: 16 (v3.2.2)
+  Registry: 1 · Lockout: 4 · HelpGuide: 18 (v3.3.0)
+  TOTAAL: ~109 strings in 5 talen (NL/EN/DE/FR/ES)
+```

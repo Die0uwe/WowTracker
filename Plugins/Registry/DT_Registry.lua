@@ -14,6 +14,12 @@ if DelveTracker then
 
     -- 2. CURRENCY SCANNER (Schrijft naar de database)
     local function ScanAndSyncCurrencies()
+-- v3.3.0 (i18n ronde 3): vertaal-helper
+local function T(key)
+    if WT_T then return WT_T(key) end
+    return key
+end
+
         if not DelveTrackerDB then return end
         DelveTrackerDB.characters = DelveTrackerDB.characters or {}
 
@@ -83,7 +89,7 @@ if DelveTracker then
 
     Registry.title = Registry:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     Registry.title:SetPoint("LEFT", Registry.header, "LEFT", 25, 0)
-    Registry.title:SetText("|cffa335eeSLAYER ALLIANCE|r - CHARACTER INDEX")
+    Registry.title:SetText("|cffa335eeSLAYER ALLIANCE|r - "..T("RG_TITLE"))
 
     Registry.close = CreateFrame("Button", nil, Registry, "UIPanelCloseButton")
     Registry.close:SetPoint("TOPRIGHT", 2, 2)

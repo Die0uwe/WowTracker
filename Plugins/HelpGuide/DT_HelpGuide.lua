@@ -7,6 +7,12 @@ if DelveTracker then
     DelveTracker:RegisterPlugin("HelpGuide", function() end)
 
     local SA_GOLD   = "|cffccaa00"
+-- v3.3.0 (i18n ronde 3): vertaal-helper
+local function T(key)
+    if WT_T then return WT_T(key) end
+    return key
+end
+
     local SA_PURPLE = "|cffa335ee"
     local SA_BLUE   = "|cff00ccff"
     local SA_GREEN  = "|cff00ff00"
@@ -55,7 +61,7 @@ if DelveTracker then
     local hdrTxt = helpFrame:CreateFontString(nil,"OVERLAY")
     hdrTxt:SetFont(C_2002,13,"OUTLINE")
     hdrTxt:SetPoint("TOPLEFT",12,-10)
-    hdrTxt:SetText(SA_PURPLE.."WowTracker|r  "..SA_GOLD.."Help Guide|r")
+    hdrTxt:SetText(SA_PURPLE.."WowTracker|r  "..SA_GOLD..T("HG_TITLE").."|r")
 
     local closeBtn = CreateFrame("Button",nil,helpFrame,"UIPanelCloseButton")
     closeBtn:SetPoint("TOPRIGHT",helpFrame,"TOPRIGHT",2,-2)
@@ -76,37 +82,72 @@ if DelveTracker then
     txt:SetJustifyH("LEFT")
     txt:SetSpacing(5)
     txt:SetText(
-        SA_BLUE.."BASIC CONTROLS:"..WHITE.."\n"..
-        "  • Klik de Murloc om de tracker te openen.\n"..
-        "  • Rechtermuisklik + sleep om te verplaatsen.\n"..
-        "  • Tandwiel bovenaan voor instellingen.\n\n"..
-        SA_PURPLE.."TABS:"..WHITE.."\n"..
-        "  • Guild — gilde info + MOTD + online leden\n"..
-        "  • Delves — warband karakter lijst + voortgang\n"..
-        "  • Bounty — Nemesis/Bountiful/Normal delve tracker\n"..
-        "  • Roster — karakter index (klik = Armory)\n"..
-        "  • Armory — 3D model + gear + stats\n"..
-        "  • Currency — alle currencies per karakter\n\n"..
-        SA_GOLD.."SLASH COMMANDS:"..WHITE.."\n"..
-        "  /wt  /dt  /delves     — Open/sluit tracker\n"..
-        "  /wt1  /wt2  /wt3      — Tab direct openen\n"..
-        "  /wt4  /wt5  /wt6      — Roster/Armory/Currency\n"..
-        "  /prey  /pton  /ptoff  — Prey Tracker HUD\n"..
-        "  /crew                 — Registry XL\n"..
-        "  /cbud  /cloth         — ClothCounter\n"..
-        "  /snr  /mt             — SkinNRare\n"..
-        "  /dtlockout  /dtprof   — Lockout scanner\n"..
-        "  /cbot                 — Exchange Bot\n"..
-        "  /dtafk  /dtgrid       — AFK scherm\n"..
-        "  /dtdebug              — Debug console\n"..
-        "  /dthelp               — Dit scherm\n"..
-        "  /dtmem                — Geheugengebruik\n"..
-        "  /wt-reload            — UI herladen\n\n"..
-        SA_GREEN.."DISCORD:"..WHITE.."\n"..
+        SA_BLUE..T("HG_BASIC")..WHITE.."\n"..
+        "  • "..T("HG_B1").."\n"..
+        "  • "..T("HG_B2").."\n"..
+        "  • "..T("HG_B3").."\n\n"..
+        SA_PURPLE..T("HG_TABS")..WHITE.."\n"..
+        "  • "..T("HG_T1").."\n"..
+        "  • "..T("HG_T2").."\n"..
+        "  • "..T("HG_T3").."\n"..
+        "  • "..T("HG_T4").."\n"..
+        "  • "..T("HG_T5").."\n"..
+        "  • "..T("HG_T6").."\n\n"..
+        SA_GOLD..T("HG_SLASH")..WHITE.."\n"..
+        "  /wt  /dt  /delves     — "..T("HG_S1").."\n"..
+        "  /wt1  /wt2  /wt3      — "..T("HG_S2").."\n"..
+        "  /wt4  /wt5  /wt6      — "..T("HG_S3").."\n"..
+        "  /prey  /pton  /ptoff  — "..T("HG_S4").."\n"..
+        "  /crew                 — "..T("HG_S5").."\n"..
+        "  /cbud  /cloth         — "..T("HG_S6").."\n"..
+        "  /snr  /mt             — "..T("HG_S7").."\n"..
+        "  /dtlockout  /dtprof   — "..T("HG_S8").."\n"..
+        "  /cbot                 — "..T("HG_S9").."\n"..
+        "  /dtafk  /dtgrid       — "..T("HG_S10").."\n"..
+        "  /dtdebug              — "..T("HG_S11").."\n"..
+        "  /dthelp               — "..T("HG_S12").."\n"..
+        "  /dtmem                — "..T("HG_S13").."\n"..
+        "  /wt-reload            — "..T("HG_S14").."\n\n"..
+        SA_GREEN..T("HG_DISCORD")..WHITE.."\n"..
         "  https://slayeralliance.com/discord\n"..
         "  https://slayeralliance.com"
     )
     sc:SetHeight(txt:GetStringHeight() + 20)
+    -- v3.3.0: tekst herbouwen bij elk openen (actuele taal)
+    helpFrame:HookScript("OnShow", function()
+        txt:SetText(
+            SA_BLUE..T("HG_BASIC")..WHITE.."\n"..
+            "  • "..T("HG_B1").."\n"..
+            "  • "..T("HG_B2").."\n"..
+            "  • "..T("HG_B3").."\n\n"..
+            SA_PURPLE..T("HG_TABS")..WHITE.."\n"..
+            "  • "..T("HG_T1").."\n"..
+            "  • "..T("HG_T2").."\n"..
+            "  • "..T("HG_T3").."\n"..
+            "  • "..T("HG_T4").."\n"..
+            "  • "..T("HG_T5").."\n"..
+            "  • "..T("HG_T6").."\n\n"..
+            SA_GOLD..T("HG_SLASH")..WHITE.."\n"..
+            "  /wt  /dt  /delves     — "..T("HG_S1").."\n"..
+            "  /wt1  /wt2  /wt3      — "..T("HG_S2").."\n"..
+            "  /wt4  /wt5  /wt6      — "..T("HG_S3").."\n"..
+            "  /prey  /pton  /ptoff  — "..T("HG_S4").."\n"..
+            "  /crew                 — "..T("HG_S5").."\n"..
+            "  /cbud  /cloth         — "..T("HG_S6").."\n"..
+            "  /snr  /mt             — "..T("HG_S7").."\n"..
+            "  /dtlockout  /dtprof   — "..T("HG_S8").."\n"..
+            "  /cbot                 — "..T("HG_S9").."\n"..
+            "  /dtafk  /dtgrid       — "..T("HG_S10").."\n"..
+            "  /dtdebug              — "..T("HG_S11").."\n"..
+            "  /dthelp               — "..T("HG_S12").."\n"..
+            "  /dtmem                — "..T("HG_S13").."\n"..
+            "  /wt-reload            — "..T("HG_S14").."\n\n"..
+            SA_GREEN..T("HG_DISCORD")..WHITE.."\n"..
+            "  https://slayeralliance.com/discord\n"..
+            "  https://slayeralliance.com"
+        )
+        sc:SetHeight(txt:GetStringHeight() + 20)
+    end)
 
     SLASH_DTHELP1 = "/dthelp"
     SlashCmdList["DTHELP"] = function()

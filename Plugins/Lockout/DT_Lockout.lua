@@ -12,6 +12,12 @@ DT_TooltipModules = DT_TooltipModules or {}
 -- 1. CONSTANTEN
 -- =====================================================
 
+-- v3.3.0 (i18n ronde 3): vertaal-helper
+local function T(key)
+    if WT_T then return WT_T(key) end
+    return key
+end
+
 local DIFF_LABEL = {
     [1]  = "N",
     [2]  = "H",
@@ -289,7 +295,7 @@ table.insert(DT_TooltipModules, function(data, charKey)
 
     -- ── 4b. Raid Lockouts ────────────────────────────────────────────────
     Divider()
-    GameTooltip:AddLine("|cffccaa00|TInterface\\Icons\\Achievement_Raid_NaxxramasWing:14:14:0:0|t  Raid Lockouts|r")
+    GameTooltip:AddLine("|cffccaa00|TInterface\\Icons\\Achievement_Raid_NaxxramasWing:14:14:0:0|t  "..T("LK_RAID").."|r")
 
     local lockouts = data.lockouts
     if lockouts and #lockouts > 0 then
@@ -304,7 +310,7 @@ table.insert(DT_TooltipModules, function(data, charKey)
             GameTooltip:AddDoubleLine(nameStr, bossStr, 1,1,1, 1,1,1)
         end
     else
-        GameTooltip:AddLine("  |cffaaaaaa-- no active lockouts --|r")
+        GameTooltip:AddLine("  |cffaaaaaa"..T("LK_NONE").."|r")
     end
 
     -- ── 4c. Professions ─────────────────────────────────────────────────────
@@ -319,7 +325,7 @@ table.insert(DT_TooltipModules, function(data, charKey)
 
         if #primary > 0 then
             Divider()
-            GameTooltip:AddLine("|cffa335ee|TInterface\\Icons\\Trade_BlackSmithing:14:14:0:0|t  Professions  |cffaaaaaa(Midnight)|r|r")
+            GameTooltip:AddLine("|cffa335ee|TInterface\\Icons\\Trade_BlackSmithing:14:14:0:0|t  "..T("LK_PROF").."  |cffaaaaaa(Midnight)|r|r")
             for _, p in ipairs(primary) do
                 local rc      = RankColor(p.rank, p.maxRank)
                 local nameStr = string.format("  |cffdddddd%s|r", p.name)
@@ -346,7 +352,7 @@ table.insert(DT_TooltipModules, function(data, charKey)
 
         if #secondary > 0 then
             Divider()
-            GameTooltip:AddLine("|cffddaa44|TInterface\\Icons\\INV_Misc_Food_15:14:14:0:0|t  Secondary|r")
+            GameTooltip:AddLine("|cffddaa44|TInterface\\Icons\\INV_Misc_Food_15:14:14:0:0|t  "..T("LK_SEC").."|r")
             for _, p in ipairs(secondary) do
                 local rc      = RankColor(p.rank, p.maxRank)
                 local nameStr = string.format("  |cffdddddd%s|r", p.name)
