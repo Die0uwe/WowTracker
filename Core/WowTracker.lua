@@ -1624,6 +1624,9 @@ WT_UpdateRoster = function()
 
     for i,key in ipairs(sorted) do
         local data=DelveTrackerDB.characters[key]
+        -- v3.4.3: skip orphaned entries zonder bruikbare data
+        if not (data.class or data.level or data.race or (data.money and data.money > 0)) then
+        else  -- heeft echte data
         local shortName=key:match("([^-]+)") or key
         local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
 
@@ -1832,6 +1835,7 @@ WT_UpdateRoster = function()
         end)
 
         Tab4.scroll.content.rows[i]=card
+        end  -- else data-check
     end
 
     local totalRows = math.ceil(#sorted / ROSTER_COLS)
@@ -2972,8 +2976,8 @@ SLASH_WTAB31="/wt3"; SLASH_WTAB32="/wt bounty";   SLASH_WTAB33="/dt3"; SLASH_WTA
 SLASH_WTAB41="/wt4"; SLASH_WTAB42="/wt roster";   SLASH_WTAB43="/wtroster"
 SLASH_WTAB51="/wt5"; SLASH_WTAB52="/wt armory";   SLASH_WTAB53="/wtarmory"
 SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
-SLASH_WTRELOAD1="/wt-reload"; -- v3.4.3: /wt-cleanup — verwijdert orphaned karakter-entries (geen class/level/race/gold)
-SLASH_WTCLEAN1 = "/wt-cleanup"
+SLASH_WTRELOAD1="/wt-reload"
+SLASH_WTCLEAN1 = "/wt-cleanup"; SLASH_WTCLEAN2 = "/wt cleanup"
 SlashCmdList["WTCLEAN"] = function()
     if not DelveTrackerDB or not DelveTrackerDB.characters then
         print("|cffbf00ffWowTracker|r: Geen database."); return
