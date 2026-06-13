@@ -3175,7 +3175,7 @@ SlashCmdList["WTRESTORE"] = WT_DBRestore
 -- Open via: ⚙ knop in header of /wtadmin
 -- ============================================================================
 local AP = CreateFrame("Frame", "DT_AdminPanel", UIParent, "BackdropTemplate")
-AP:SetSize(440, 540)
+AP:SetSize(440, 570)
 AP:SetPoint("CENTER", UIParent, "CENTER", 0, 20)
 AP:SetFrameStrata("DIALOG")
 AP:SetMovable(true); AP:EnableMouse(true)
@@ -3377,7 +3377,7 @@ local function MakeAPBtn(lbl, col, x, y, w, fn)
     return b
 end
 
-local backupBtn = MakeAPBtn("💾  DB Backup", SA_BLUE, 16, -270, 196, function()
+local backupBtn = MakeAPBtn("💾  DB Backup", SA_BLUE, 16, -293, 196, function()
     WT_DBBackup()
 end)
 backupBtn:SetScript("OnEnter", function(self)
@@ -3399,7 +3399,7 @@ backupBtn:SetScript("OnLeave", function(self)
     GameTooltip:Hide()
 end)
 
-local restoreBtn = MakeAPBtn("↩  Restore", "|cffff8844", 220, -270, 190, function()
+local restoreBtn = MakeAPBtn("↩  Restore", "|cffff8844", 220, -293, 190, function()
     WT_DBRestore()
 end)
 restoreBtn:SetScript("OnEnter", function(self)
@@ -3424,11 +3424,11 @@ end)
 
 local plLbl = AP:CreateFontString(nil, "OVERLAY")
 plLbl:SetFont(C_2002, 11, "OUTLINE")
-plLbl:SetPoint("TOPLEFT", 16, -300)
+plLbl:SetPoint("TOPLEFT", 16, -328)
 plLbl:SetText(SA_BLUE..WT_T("PLUGINS").."|r  "..SA_GREY..WT_T("PLUGINS_HINT").."|r")
 
 local plugScroll = CreateFrame("ScrollFrame", nil, AP)
-plugScroll:SetPoint("TOPLEFT", 16, -316)
+plugScroll:SetPoint("TOPLEFT", 16, -344)
 plugScroll:SetPoint("BOTTOMRIGHT", -22, 14)
 local plugContent = CreateFrame("Frame", nil, plugScroll)
 plugContent:SetSize(380, 10)
