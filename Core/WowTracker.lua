@@ -3109,20 +3109,23 @@ local function WT_DeepCopy(orig, seen)
 end
 
 local function WT_DBBackup()
-    if not DelveTrackerDB then
+    -- v3.5.1: lees van WowTrackerDB als die al actief is (v4.0+), anders DelveTrackerDB
+    local source = WowTrackerDB or DelveTrackerDB
+    if not source then
         print(SA_PURPLE.."[WowTracker]|r Geen database gevonden."); return
     end
-    WowTrackerDB_Backup = WT_DeepCopy(DelveTrackerDB)
+    WowTrackerDB_Backup = WT_DeepCopy(source)
     WowTrackerDB_Backup._backup_time    = date("%Y-%m-%d %H:%M:%S")
     WowTrackerDB_Backup._backup_chars   = 0
-    for _ in pairs(DelveTrackerDB.characters or {}) do
+    for _ in pairs(source.characters or {}) do
         WowTrackerDB_Backup._backup_chars = WowTrackerDB_Backup._backup_chars + 1
     end
     WowTrackerDB_Backup._backup_version = WT_VERSION
+    local dbName = WowTrackerDB and "WowTrackerDB" or "DelveTrackerDB"
     print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Backup succesvol!|r "
         ..SA_GREY..WowTrackerDB_Backup._backup_chars.." chars · "
         ..WowTrackerDB_Backup._backup_time.."|r")
-    print(SA_GREY.."Backup opgeslagen als WowTrackerDB_Backup in je WTF-map.|r")
+    print(SA_GREY.."Bron: "..dbName.." → WowTrackerDB_Backup (WTF-map)|r")
 end
 
 local function WT_DBRestore()
@@ -3144,12 +3147,17 @@ local function WT_DBRestore()
     end
     WT_DBRestore._confirmed = nil
     local restored = WT_DeepCopy(WowTrackerDB_Backup)
+    -- Metadata-velden opruimen uit de restore-kopie
     restored._backup_time    = nil
     restored._backup_chars   = nil
     restored._backup_version = nil
+    -- v3.5.1: schrijf naar BEIDE DB-namen (huidige + toekomstige v4.0)
+    -- → na v4.0 rename is WowTrackerDB al gevuld; geen extra migratiestap nodig
     DelveTrackerDB = restored
+    WowTrackerDB   = WT_DeepCopy(restored)   -- v4.0 klaar-zetten
     print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Restore geslaagd!|r "
         ..SA_GREY..c.." chars terug uit backup van "..t.."|r")
+    print(SA_GREY.."Geschreven naar: DelveTrackerDB + WowTrackerDB (v4.0 ready)|r")
     C_Timer.After(1.5, function() ReloadUI() end)
 end
 
