@@ -1622,16 +1622,19 @@ WT_UpdateRoster = function()
     end
     table.sort(sorted)
 
-    for i,key in ipairs(sorted) do
+    local visIdx = 0  -- v3.4.5: telt alleen zichtbare (niet-orphan) cards
+    for _,key in ipairs(sorted) do
         local data=DelveTrackerDB.characters[key]
-        -- v3.4.3: skip orphaned entries zonder bruikbare data
+        -- skip orphaned entries zonder bruikbare data
         if not (data.class or data.level or data.race or (data.money and data.money > 0)) then
-        else  -- heeft echte data
+            -- orphan: geen kaartje, geen positie
+        else
+        visIdx = visIdx + 1
         local shortName=key:match("([^-]+)") or key
         local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
 
-        local col = (i-1) % ROSTER_COLS
-        local row = math.floor((i-1) / ROSTER_COLS)
+        local col = (visIdx-1) % ROSTER_COLS
+        local row = math.floor((visIdx-1) / ROSTER_COLS)
         local xPos = col * (ROSTER_CARD_W + ROSTER_GAP)
         local yPos = -(row * (ROSTER_CARD_H + ROSTER_GAP))
 
@@ -1838,7 +1841,7 @@ WT_UpdateRoster = function()
         end  -- else data-check
     end
 
-    local totalRows = math.ceil(#sorted / ROSTER_COLS)
+    local totalRows = math.ceil(visIdx / ROSTER_COLS)
     Tab4.scroll.content:SetHeight(totalRows*(ROSTER_CARD_H+ROSTER_GAP)+ROSTER_GAP)
     Tab4.scroll.content:SetWidth(ROSTER_COLS*(ROSTER_CARD_W+ROSTER_GAP)-ROSTER_GAP)
 end
