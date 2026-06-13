@@ -611,6 +611,8 @@ Archive.scroll:SetPoint("TOPLEFT",14,-82); Archive.scroll:SetPoint("BOTTOMRIGHT"
 Archive.content=CreateFrame("Frame",nil,Archive.scroll)
 Archive.content:SetSize(790,1); Archive.scroll:SetScrollChild(Archive.content)
 
+    WT_MakeSAScrollbar(Archive.scroll, Archive)
+
 Archive.tailorOuter=CreateFrame("Frame",nil,Archive)
 Archive.tailorOuter:SetPoint("TOPLEFT",14,-82); Archive.tailorOuter:SetPoint("BOTTOMRIGHT",-14,8)
 Archive.tailorOuter:Hide()

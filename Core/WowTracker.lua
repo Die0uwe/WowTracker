@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.3.9"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.4.0"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -880,6 +880,80 @@ local currTilePool      -- Tab6.scroll.content parent (SetParent bij acquire)
 local currScrollPool    -- Tab6.scroll.content parent
 local currArrowPool     -- Tab6.scroll.content parent
 
+-- ═══════════════════════════════════════════════════════════════════════
+-- WT_MakeSAScrollbar (v3.4.0) — centrale SA-kleur scrollbar helper
+-- Gebruik: WT_MakeSAScrollbar(scrollFrame, parentFrame)
+-- Verbergt de Blizzard-standaard scrollbar en plaatst een SA-gekleurde
+-- thumb (neon paars) + baan (donker paars) rechts van het scroll-frame.
+-- ═══════════════════════════════════════════════════════════════════════
+function WT_MakeSAScrollbar(sf, parent)
+    local SB_W = 8
+    -- Verberg Blizzard-standaard scrollbar (UIPanelScrollFrameTemplate)
+    if sf.ScrollBar then sf.ScrollBar:Hide() end
+
+    -- Baan (donker paars)
+    local track = parent:CreateTexture(nil, "BACKGROUND")
+    track:SetWidth(SB_W)
+    track:SetPoint("TOPLEFT",    sf, "TOPRIGHT",    2, 0)
+    track:SetPoint("BOTTOMLEFT", sf, "BOTTOMRIGHT", 2, 0)
+    track:SetColorTexture(0.18, 0.06, 0.30, 0.75)
+
+    -- Thumb (neon paars)
+    local thumb = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    thumb:SetWidth(SB_W)
+    thumb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",
+                       edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+    thumb:SetBackdropColor(0.48, 0.00, 0.80, 0.9)
+    thumb:SetBackdropBorderColor(0.70, 0.20, 1.00, 1)
+
+    local function UpdateThumb()
+        local child = sf:GetScrollChild()
+        local total = child and child:GetHeight() or 0
+        local vis   = sf:GetHeight()
+        if total <= vis or vis <= 0 then thumb:Hide(); return end
+        thumb:Show()
+        local trackH  = track:GetHeight()
+        local thumbH  = math.max(20, trackH * (vis / total))
+        thumb:SetHeight(thumbH)
+        local maxScroll = total - vis
+        local scrolled  = sf:GetVerticalScroll()
+        local yPos = maxScroll > 0 and -(scrolled / maxScroll) * (trackH - thumbH) or 0
+        thumb:ClearAllPoints()
+        thumb:SetPoint("TOPLEFT", track, "TOPLEFT", 0, yPos)
+    end
+    sf:HookScript("OnScrollRangeChanged", UpdateThumb)
+    sf:HookScript("OnVerticalScroll",     UpdateThumb)
+
+    -- Muis-wiel (scroll 3 rijen per tik)
+    sf:EnableMouseWheel(true)
+    sf:SetScript("OnMouseWheel", function(_, d)
+        sf:SetVerticalScroll(math.max(0,
+            math.min(sf:GetVerticalScrollRange(), sf:GetVerticalScroll() - d * 30)))
+    end)
+
+    -- Drag op thumb
+    thumb:SetScript("OnMouseDown", function(self, btn)
+        if btn ~= "LeftButton" then return end
+        local startY     = select(2, GetCursorPosition())
+        local startScroll= sf:GetVerticalScroll()
+        local child2     = sf:GetScrollChild()
+        local total2     = child2 and child2:GetHeight() or 0
+        local vis2       = sf:GetHeight()
+        local trackH2    = track:GetHeight()
+        self:SetScript("OnUpdate", function()
+            local dy = startY - select(2, GetCursorPosition())
+            local pxPerScroll = (total2 - vis2) / math.max(1, trackH2 - self:GetHeight())
+            sf:SetVerticalScroll(math.min(total2 - vis2,
+                math.max(0, startScroll + dy * pxPerScroll)))
+        end)
+    end)
+    thumb:SetScript("OnMouseUp", function(self)
+        self:SetScript("OnUpdate", nil)
+    end)
+
+    return track, thumb, UpdateThumb
+end
+
 local rosterPoolsReady  = false
 local currPoolsReady    = false
 
@@ -1209,7 +1283,6 @@ Tab1.onlineCount:SetText("")
 
 -- Scroll frame voor online leden
 -- v3.3.9: handmatige scrollbar met SA-kleuren (geen UIPanelScrollFrameTemplate)
-local SB_W = 8  -- breedte scrollbar baan
 Tab1.onlineScroll=CreateFrame("ScrollFrame",nil,Tab1)
 Tab1.onlineScroll:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-(SB_W+6),-26)
 Tab1.onlineScroll:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-(SB_W+6),76)  -- ruimte voor Kelsey
@@ -1219,61 +1292,8 @@ Tab1.onlineScroll.content:SetSize(GUILD_RIGHT_W-SB_W-24,1)
 Tab1.onlineScroll:SetScrollChild(Tab1.onlineScroll.content)
 Tab1.onlineScroll.content.rows={}
 
--- SA-kleur scrollbar: baan + thumb
-local sbTrack=Tab1:CreateTexture(nil,"BACKGROUND")
-sbTrack:SetWidth(SB_W)
-sbTrack:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-4,-26)
-sbTrack:SetPoint("BOTTOMRIGHT",Tab1,"BOTTOMRIGHT",-4,76)
-sbTrack:SetColorTexture(0.18,0.06,0.30,0.7)  -- donker paars
-
-local sbThumb=CreateFrame("Button",nil,Tab1,"BackdropTemplate")
-sbThumb:SetSize(SB_W,40)
-sbThumb:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-sbThumb:SetBackdropColor(0.48,0.00,0.80,0.9)       -- SA neon paars
-sbThumb:SetBackdropBorderColor(0.70,0.20,1.00,1)
-
--- Thumb positie updaten op scroll
-local function UpdateThumb()
-    local total  = Tab1.onlineScroll.content:GetHeight()
-    local vis    = Tab1.onlineScroll:GetHeight()
-    if total <= vis then sbThumb:Hide(); return end
-    sbThumb:Show()
-    local ratio   = vis/total
-    local trackH  = sbTrack:GetHeight()
-    local thumbH  = math.max(20, trackH*ratio)
-    sbThumb:SetHeight(thumbH)
-    local scrolled = Tab1.onlineScroll:GetVerticalScroll()
-    local maxScroll= total-vis
-    local yPos    = -(scrolled/maxScroll)*(trackH-thumbH)
-    sbThumb:ClearAllPoints()
-    sbThumb:SetPoint("TOPRIGHT",Tab1,"TOPRIGHT",-4,(-26)+yPos)
-end
-Tab1.onlineScroll:HookScript("OnScrollRangeChanged", function() UpdateThumb() end)
-Tab1.onlineScroll:HookScript("OnVerticalScroll",     function() UpdateThumb() end)
-
--- Klikken + slepen op thumb
-sbThumb:SetScript("OnMouseDown",function(self,btn)
-    if btn~="LeftButton" then return end
-    local startY = select(2,GetCursorPosition())
-    local startScroll = Tab1.onlineScroll:GetVerticalScroll()
-    local total = Tab1.onlineScroll.content:GetHeight()
-    local vis   = Tab1.onlineScroll:GetHeight()
-    local trackH= sbTrack:GetHeight()
-    self:SetScript("OnUpdate",function()
-        local dy = startY - select(2,GetCursorPosition())
-        local scrollPerPx = (total-vis)/(trackH-self:GetHeight())
-        local newScroll = math.min(total-vis, math.max(0, startScroll + dy*scrollPerPx))
-        Tab1.onlineScroll:SetVerticalScroll(newScroll)
-    end)
-end)
-sbThumb:SetScript("OnMouseUp",function(self) self:SetScript("OnUpdate",nil) end)
-
--- Mousewheel op het scroll-paneel
-Tab1.onlineScroll:EnableMouseWheel(true)
-Tab1.onlineScroll:SetScript("OnMouseWheel",function(_,d)
-    local cur = Tab1.onlineScroll:GetVerticalScroll()
-    Tab1.onlineScroll:SetVerticalScroll(math.max(0,cur-d*20))
-end)
+-- Centrale SA-scrollbar helper (v3.4.0 refactor)
+WT_MakeSAScrollbar(Tab1.onlineScroll, Tab1)
 
 -- ── TAB 2: DELVES — 2 kolommen + zoek met suggesties ─────────────────────
 local searchBox=CreateFrame("EditBox","DT_SearchBox",Tab2,"SearchBoxTemplate")
@@ -1344,13 +1364,14 @@ end)
 
 -- 1 scroller over volledige breedte, 2-koloms tegel layout
 local COL_W=math.floor((UI_W-50)/2)
-local scroll=CreateFrame("ScrollFrame","DT_Scroll",Tab2,"UIPanelScrollFrameTemplate")
+local scroll=CreateFrame("ScrollFrame","DT_Scroll",Tab2)
 scroll:SetPoint("TOPLEFT",Tab2,"TOPLEFT",1,-34)
-scroll:SetPoint("BOTTOMRIGHT",Tab2,"BOTTOMRIGHT",-22,4)
+scroll:SetPoint("BOTTOMRIGHT",Tab2,"BOTTOMRIGHT",-12,4)
 scroll.content=CreateFrame("Frame",nil,scroll)
 scroll.content:SetSize(UI_W-46,1)
 scroll:SetScrollChild(scroll.content)
 scroll.content.rows={}
+WT_MakeSAScrollbar(scroll, Tab2)
 -- DT_Scroll2 alias zodat kolom 2 code nog werkt
 local scroll2_alias = scroll  -- zelfde scroller, kolom 2 gebruikt xPos offset
 
@@ -1388,13 +1409,14 @@ Tab4.hdr:SetFont(C_2002,13,"OUTLINE")
 Tab4.hdr:SetPoint("TOPLEFT",Tab4,"TOPLEFT",12,-10)
 Tab4.hdr:SetText(SA_PURPLE..WT_T("ROSTER_HDR").."|r  "..SA_GREY..WT_T("ROSTER_HINT").."|r")
 -- Scroll voor roster
-Tab4.scroll=CreateFrame("ScrollFrame",nil,Tab4,"UIPanelScrollFrameTemplate")
+Tab4.scroll=CreateFrame("ScrollFrame",nil,Tab4)
 Tab4.scroll:SetPoint("TOPLEFT",Tab4,"TOPLEFT",1,-32)
-Tab4.scroll:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",-22,4)
+Tab4.scroll:SetPoint("BOTTOMRIGHT",Tab4,"BOTTOMRIGHT",-12,4)
 Tab4.scroll.content=CreateFrame("Frame",nil,Tab4.scroll)
 Tab4.scroll.content:SetSize(UI_W-40,1)
 Tab4.scroll:SetScrollChild(Tab4.scroll.content)
-Tab4.scroll.content.rows={}  -- initialiseer rows tabel
+Tab4.scroll.content.rows={}
+WT_MakeSAScrollbar(Tab4.scroll, Tab4)
 
 -- ── TAB 5: ARMORY/CHARMORY ────────────────────────────────────────────────
 Tab5.PluginArea=CreateFrame("Frame","DT_ArmoryArea",Tab5)
@@ -1433,13 +1455,14 @@ end)
 Tab6.searchBox:SetScript("OnEscapePressed",function(s) s:ClearFocus() end)
 
 -- Scroll
-Tab6.scroll=CreateFrame("ScrollFrame",nil,Tab6,"UIPanelScrollFrameTemplate")
+Tab6.scroll=CreateFrame("ScrollFrame",nil,Tab6)
 Tab6.scroll:SetPoint("TOPLEFT",Tab6,"TOPLEFT",1,-32)
-Tab6.scroll:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",-22,4)
+Tab6.scroll:SetPoint("BOTTOMRIGHT",Tab6,"BOTTOMRIGHT",-12,4)
 Tab6.scroll.content=CreateFrame("Frame",nil,Tab6.scroll)
 Tab6.scroll.content:SetSize(UI_W-40,1)
 Tab6.scroll:SetScrollChild(Tab6.scroll.content)
 Tab6.scroll.content.crows={}
+WT_MakeSAScrollbar(Tab6.scroll, Tab6)
 
 -- ============================================================================
 -- WT_UpdateRoster — Tab4: zelfde karakter lijst als Tab2 maar zonder zoekbalk
@@ -3174,12 +3197,13 @@ plLbl:SetFont(C_2002, 11, "OUTLINE")
 plLbl:SetPoint("TOPLEFT", 16, -296)
 plLbl:SetText(SA_BLUE..WT_T("PLUGINS").."|r  "..SA_GREY..WT_T("PLUGINS_HINT").."|r")
 
-local plugScroll = CreateFrame("ScrollFrame", nil, AP, "UIPanelScrollFrameTemplate")
+local plugScroll = CreateFrame("ScrollFrame", nil, AP)
 plugScroll:SetPoint("TOPLEFT", 16, -312)
-plugScroll:SetPoint("BOTTOMRIGHT", -34, 14)
+plugScroll:SetPoint("BOTTOMRIGHT", -22, 14)
 local plugContent = CreateFrame("Frame", nil, plugScroll)
 plugContent:SetSize(380, 10)
 plugScroll:SetScrollChild(plugContent)
+WT_MakeSAScrollbar(plugScroll, AP)
 
 local plugRows = {}
 local function RefreshPluginList()

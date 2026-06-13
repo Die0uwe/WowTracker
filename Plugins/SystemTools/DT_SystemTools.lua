@@ -41,6 +41,8 @@ if DelveTracker then
     railContent:SetSize(1300, 45) 
     rail:SetScrollChild(railContent)
 
+    WT_MakeSAScrollbar(rail, opt)
+
     -- Button Constructor
     local function CreateRailBtn(text, x, color, func)
         local b = CreateFrame("Button", nil, railContent, "BackdropTemplate")

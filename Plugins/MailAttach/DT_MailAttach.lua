@@ -155,6 +155,8 @@ local itemContent = CreateFrame("Frame",nil,itemScroll)
 itemContent:SetWidth(190)
 itemContent:SetHeight(1)
 itemScroll:SetScrollChild(itemContent)
+
+    WT_MakeSAScrollbar(itemScroll, QA)
 itemContent.rows = {}
 
 local function ShowCategoryItems(cat)

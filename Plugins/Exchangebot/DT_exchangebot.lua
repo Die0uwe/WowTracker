@@ -542,6 +542,8 @@ local content = CreateFrame("Frame", nil, scrollFrame)
 content:SetSize(760, 1)
 scrollFrame:SetScrollChild(content)
 
+    WT_MakeSAScrollbar(scrollFrame, EB)
+
 -- ============================================================
 -- 9. CURRENCY TRANSFER HELPERS
 -- ============================================================

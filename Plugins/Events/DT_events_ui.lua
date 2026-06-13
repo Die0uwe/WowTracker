@@ -65,6 +65,8 @@ Content:SetSize(1, 1)
 
 ScrollFrame:SetScrollChild(Content)
 
+WT_MakeSAScrollbar(ScrollFrame, evPanel)
+
 --------------------------------------------------
 -- DATA / ROWS
 --------------------------------------------------

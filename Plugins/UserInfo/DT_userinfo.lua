@@ -1235,6 +1235,7 @@ do
     local curContent = CreateFrame("Frame", nil, curScroll)
     curContent:SetWidth(PANELW - SCROLLBAR_W - PAD)
     curScroll:SetScrollChild(curContent)
+    WT_MakeSAScrollbar(curScroll, pCurrency)
 
     -- Pre-calculate total content height so the scroll range is correct
     local totalCurH = 0
@@ -1821,6 +1822,7 @@ do
     local wbAccContentW = wbAccW - 8 - SCROLLBAR_W
     wbAccContent:SetSize(wbAccContentW, 7 * ROW_H + 4)
     wbAccScroll:SetScrollChild(wbAccContent)
+    WT_MakeSAScrollbar(wbAccScroll, wbAcc)
     WA.wbgold  = FS(wbAccContent, startY,              wbAccContentW - PAD)
     WA.achiev  = FS(wbAccContent, startY - ROW_H,      wbAccContentW - PAD)
     WA.pets    = FS(wbAccContent, startY - ROW_H * 2,  wbAccContentW - PAD)
@@ -1851,6 +1853,7 @@ end)
 local wbRepContent = CreateFrame("Frame", nil, wbRepScroll)
 wbRepContent:SetSize(FW - 8 - wbAccW - PGAP - 8 - SCROLLBAR_W, 1)
 wbRepScroll:SetScrollChild(wbRepContent)
+    WT_MakeSAScrollbar(wbRepScroll, wbRep)
 PanelTitle(wbRep, Purple("Midnight Reputations") .. Dim(" (warband)"))
 -- [v8.1] rep lines inside scrollable content frame — 12 rows × 18px
 local repLines = {}
@@ -1894,6 +1897,7 @@ szScroll:SetPoint("BOTTOMRIGHT", SZ_OUTER, "BOTTOMRIGHT", -20, 0)
 local SZ = CreateFrame("Frame", nil, szScroll)
 SZ:SetSize(FW - 30, 940)
 szScroll:SetScrollChild(SZ)
+    WT_MakeSAScrollbar(szScroll, SZ_OUTER)
 
 SZ_OUTER:EnableMouseWheel(true)
 SZ_OUTER:SetScript("OnMouseWheel", function(self, delta)

@@ -787,6 +787,8 @@ local function BuildGrid(container)
         sc:SetWidth(SCROLL_W)
         sc:SetHeight(1)
         sf:SetScrollChild(sc)
+
+    WT_MakeSAScrollbar(sf, container)
         return sf, sc
     end
 

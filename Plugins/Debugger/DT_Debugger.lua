@@ -275,6 +275,7 @@ logScroll:SetPoint("TOPLEFT", 4, -2); logScroll:SetPoint("BOTTOMRIGHT", -26, 2)
 local logContent = CreateFrame("Frame", nil, logScroll)
 logContent:SetSize(PANEL_W - 40, 1)
 logScroll:SetScrollChild(logContent)
+WT_MakeSAScrollbar(logScroll, DBG_frame)
 
 local LOG_LINES = {}
 local LOG_LINE_H = 13

@@ -77,6 +77,8 @@ local helpFrame = CreateFrame("Frame","DT_HelpFrame",UIParent,"BackdropTemplate"
     sc:SetHeight(1)
     sf:SetScrollChild(sc)
 
+    WT_MakeSAScrollbar(sf, helpFrame)
+
     local txt = sc:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
     txt:SetPoint("TOPLEFT",5,-5)
     txt:SetWidth(430)

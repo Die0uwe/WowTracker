@@ -97,6 +97,8 @@ if DelveTracker then
     sf:SetPoint("TOPLEFT", 15, -40); sf:SetPoint("BOTTOMRIGHT", -35, 60)
     local child = CreateFrame("Frame", nil, sf); child:SetSize(640, 950); sf:SetScrollChild(child)
 
+    WT_MakeSAScrollbar(sf, f)
+
     for i = 1, 15 do
         local row = CreateFrame("Frame", nil, child, "BackdropTemplate")
         row:SetSize(620, 50); row:SetPoint("TOPLEFT", 5, -(i-1)*55)
