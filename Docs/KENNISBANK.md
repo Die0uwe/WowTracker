@@ -1342,3 +1342,21 @@ SCOPE-LES: T() guard + HookScript OnShow voor frames die op file-load
    C_AddOns.GetAddOnMemoryUsage, Settings.RegisterCanvasLayoutCategory
 Alles via pcall — crash in de diagnostiek zelf onmogelijk.
 ```
+
+## CreateFramePool uitrol — v3.3.2 (Fase 4.1, sessie 2026-06-13)
+```
+POOLS: 5 pools (Blizzard-patroon: één pool per widget-type, eenmalig
+  aangemaakt via InitPools op PLAYER_LOGIN):
+  · rosterCardPool    (Button + BackdropTemplate — roster kaartjes)
+  · currNameRowPool   (Frame — karakter-header rijen)
+  · currTilePool      (Button — currency tiles)
+  · currScrollPool    (ScrollFrame — horizontale scroll per karakter)
+  · currArrowPool     (Button — pijl-knoppen)
+ReleaseAll() i.p.v. verberg-loops + wipe + nil → geen garbage,
+  geen GC-spike, hergebruik van bestaande widget-objecten.
+PATROON: SetBackdrop 1x bewaard via card.backdrop_set flag —
+  niet elke refresh herhalen (nul overhead).
+HSCROLL: hContent als sub-frame op de ScrollFrame (1x aangemaken,
+  hergebruikt via hScroll.hContent), SetParent van tiles op hContent
+  bij elke acquire.
+```

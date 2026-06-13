@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "3.3.1"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.3.2"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -870,6 +870,32 @@ end
 
 -- Forward declare alle tab-update functies (gedefinieerd later in het bestand)
 local UpdateCharacterList
+-- ── FRAME POOLS (Fase 4.1 · v3.3.2) ──────────────────────────────────────
+-- Blizzard-patroon: één pool per type, AcquireFrame/ReleaseAll i.p.v.
+-- steeds nieuwe frames aanmaken + garbage genereren.
+local rosterCardPool    -- CreateFramePool geïnitialiseerd op PLAYER_LOGIN
+local currNameRowPool   -- karakter-header rijen
+local currTilePool      -- currency tiles
+local currScrollPool    -- horizontale ScrollFrames per karakter
+local currArrowPool     -- pijl-knoppen
+
+local function InitPools(parent)
+    if rosterCardPool then return end  -- eenmalig
+    rosterCardPool = CreateFramePool("Button", parent, "BackdropTemplate",
+        function(_, f)
+            f:ClearAllPoints(); f:Hide()
+            -- child textures/fontstrings bewust NIET destroy — hergebruiken
+        end)
+    currNameRowPool = CreateFramePool("Frame", parent, "BackdropTemplate",
+        function(_, f) f:ClearAllPoints(); f:Hide() end)
+    currTilePool = CreateFramePool("Button", parent, "BackdropTemplate",
+        function(_, f) f:ClearAllPoints(); f:Hide() end)
+    currScrollPool = CreateFramePool("ScrollFrame", parent, nil,
+        function(_, f) f:ClearAllPoints(); f:Hide() end)
+    currArrowPool = CreateFramePool("Button", parent, "BackdropTemplate",
+        function(_, f) f:ClearAllPoints(); f:Hide() end)
+end
+
 local WT_UpdateRoster
 local WT_ShowArmory
 local WT_UpdateCurrency
@@ -1490,19 +1516,9 @@ end
 WT_UpdateRoster = function()
     if not (Tab4.scroll and Tab4.scroll.content) then return end
 
-    -- Verberg oude kaartjes
-    -- LET OP: frames zijn óók Lua tables — check .Hide EERST, anders
-    -- itereert pairs() door frame-internals (functions) heen → crash
-    for _,row in pairs(Tab4.scroll.content.rows or {}) do
-        if row and type(row.Hide)=="function" then
-            row:Hide()
-        elseif type(row)=="table" then
-            for _,c in pairs(row) do
-                if type(c)=="table" and type(c.Hide)=="function" then c:Hide() end
-            end
-        end
-    end
-    Tab4.scroll.content.rows = {}
+    -- v3.3.2: CreateFramePool ReleaseAll (geen garbage, hergebruik)
+    InitPools(Tab4.scroll.content)
+    rosterCardPool:ReleaseAll()
 
     local sorted={}
     for k in pairs(DelveTrackerDB.characters or {}) do
@@ -1520,10 +1536,11 @@ WT_UpdateRoster = function()
         local xPos = col * (ROSTER_CARD_W + ROSTER_GAP)
         local yPos = -(row * (ROSTER_CARD_H + ROSTER_GAP))
 
-        local card = Tab4.scroll.content.rows[i]
-        if not card then
-            card = CreateFrame("Button",nil,Tab4.scroll.content,"BackdropTemplate")
+        -- v3.3.2: pool acquire
+        local card = rosterCardPool:Acquire()
+        if not card.backdrop_set then
             card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            card.backdrop_set = true
         end
         card:SetSize(ROSTER_CARD_W, ROSTER_CARD_H)
         card:SetPoint("TOPLEFT",xPos,yPos)
@@ -1934,18 +1951,12 @@ WT_UpdateCurrency = function()
         if t ~= "Filter karakter..." then filter = t:lower() end
     end
 
-    -- Verberg alle oude frames veilig
-    for k,v in pairs(Tab6.scroll.content.crows or {}) do
-        if type(v)=="table" then
-            for _,c in ipairs(v) do
-                if type(c)=="userdata" and c.Hide then c:Hide() end
-            end
-        elseif type(v)=="userdata" and v.Hide then
-            v:Hide()
-        end
-    end
-    Tab6.scroll.content.crows = {}
-    Tab6.scroll.content.crows = {}
+    -- v3.3.2: pool ReleaseAll — nul garbage
+    InitPools(Tab6.scroll.content)
+    currNameRowPool:ReleaseAll()
+    currTilePool:ReleaseAll()
+    currScrollPool:ReleaseAll()
+    currArrowPool:ReleaseAll()
 
     -- Currency definities — alle expansies van nieuw naar oud
     -- Filter op naam als zoekbalk gevuld
@@ -2106,11 +2117,14 @@ WT_UpdateCurrency = function()
         local shortName = key:match("([^-]+)") or key
         local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
 
-        -- Karakter naam header rij
-        local nameRow = CreateFrame("Frame",nil,Tab6.scroll.content,"BackdropTemplate")
+        -- Karakter naam header rij (v3.3.2: pool)
+        local nameRow = currNameRowPool:Acquire()
+        if not nameRow.backdrop_set then
+            nameRow:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+            nameRow.backdrop_set = true
+        end
         nameRow:SetSize(UI_W-46, ROW_H)
         nameRow:SetPoint("TOPLEFT",0,yOff)
-        nameRow:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         nameRow:SetBackdropColor(0.10,0.05,0.16,0.9)
         nameRow:SetBackdropBorderColor(0.40,0.10,0.60,0.7)
         nameRow:Show()
@@ -2127,26 +2141,33 @@ WT_UpdateCurrency = function()
         gld:SetPoint("RIGHT",-8,0)
         gld:SetText(SA_GOLD..math.floor((data.money or 0)/10000).."g|r")
 
-        Tab6.scroll.content.crows["nr_"..ci] = nameRow
+        -- (pool beheert levensduur)
         yOff = yOff - ROW_H - 2
 
-        -- Horizontale ScrollFrame voor currency tiles van dit karakter
+        -- Horizontale ScrollFrame voor currency tiles (v3.3.2: pool)
         local hScrollW = UI_W - 48
-        local hScroll = CreateFrame("ScrollFrame",nil,Tab6.scroll.content)
-        hScroll:SetSize(hScrollW, TILE_H)
-        hScroll:SetPoint("TOPLEFT",0,yOff)
+        local hScroll = currScrollPool:Acquire()
+        hScroll:SetSize(hScrollW - 36, TILE_H)
+        hScroll:SetPoint("TOPLEFT",18,yOff)
 
-        -- Scroll child: breed genoeg voor alle tiles naast elkaar
-        local hContent = CreateFrame("Frame",nil,hScroll)
+        -- Scroll child hergebruiken of aanmaken
+        if not hScroll.hContent then
+            hScroll.hContent = CreateFrame("Frame",nil,hScroll)
+        end
+        local hContent = hScroll.hContent
         local totalTileW = #CUR_DEFS*(TILE_W+TILE_G)
         hContent:SetSize(totalTileW, TILE_H)
         hScroll:SetScrollChild(hContent)
 
-        -- Linker/rechter pijl knoppen
+        -- Linker/rechter pijl knoppen (v3.3.2: pool)
         local function MakeArrow(dir)
-            local b=CreateFrame("Button",nil,Tab6.scroll.content,"BackdropTemplate")
+            local b=currArrowPool:Acquire()
+            if not b.backdrop_set then
+                b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+                b.backdrop_set = true
+            end
+            local _ = nil -- dummy om Lua-stijl consistent te houden
             b:SetSize(16,TILE_H)
-            b:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
             b:SetBackdropColor(0.08,0.04,0.12,0.9)
             b:SetBackdropBorderColor(0.30,0.08,0.50,0.8)
             local t=b:CreateFontString(nil,"OVERLAY")
@@ -2166,13 +2187,14 @@ WT_UpdateCurrency = function()
 
         -- Pijlen naast de hscroll
         local ARROW_W = 18
-        hScroll:SetSize(hScrollW - ARROW_W*2, TILE_H)
-        hScroll:SetPoint("TOPLEFT",ARROW_W,yOff)
-
         local lArrow = MakeArrow("left")
+        lArrow:SetSize(ARROW_W, TILE_H)
         lArrow:SetPoint("TOPLEFT",0,yOff)
+        lArrow:Show()
         local rArrow = MakeArrow("right")
+        rArrow:SetSize(ARROW_W, TILE_H)
         rArrow:SetPoint("TOPLEFT",hScrollW-ARROW_W,yOff)
+        rArrow:Show()
 
         -- Tiles in de horizontale scroll content
         local cards = {}
@@ -2180,10 +2202,15 @@ WT_UpdateCurrency = function()
             local val = cur[def.id] or 0
             local xPos = (j-1)*(TILE_W+TILE_G)
 
-            local card = CreateFrame("Button",nil,hContent,"BackdropTemplate")
+            -- v3.3.2: tile uit pool
+            local card = currTilePool:Acquire()
+            card:SetParent(hContent)
+            if not card.backdrop_set then
+                card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
+                card.backdrop_set = true
+            end
             card:SetSize(TILE_W,TILE_H)
             card:SetPoint("TOPLEFT",xPos,0)
-            card:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
             card:SetBackdropColor(0.07,0.03,0.12,(val>0 and 0.95 or 0.55))
             card:SetBackdropBorderColor(
                 val>0 and 0.50 or 0.15, 0.05,
@@ -3232,6 +3259,7 @@ UI:SetScript("OnEvent",function(self,event)
     end
     if event=="PLAYER_ENTERING_WORLD" or event=="WEEKLY_REWARDS_UPDATE"
     or event=="PLAYER_MONEY" or event=="PLAYER_LOGIN" then
+        InitPools(Tab4.scroll.content)
         ScanDelves()
         if WT_UpdateWarbandStats then WT_UpdateWarbandStats() end
         if WT_UpdateCharInfo then WT_UpdateCharInfo() end
