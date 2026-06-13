@@ -1326,3 +1326,19 @@ HelpGuide: header "Help Guide" + volledige body (4 sectie-headers +
 SCOPE-LES: T() guard + HookScript OnShow voor frames die op file-load
   bouwen (vóór taal-restore) — zelfde patroon als Charmory I18N_LABELS
 ```
+
+## Security tab Debugger — v3.3.1 (Fase 4.3, sessie 2026-06-13)
+```
+/dtdebug → tab "Security": 6 secties
+1. C_RestrictedActions: GetAddOnRestrictionState("WowTracker") +
+   IsAddOnRestrictionActive → groen=OK, rood=restricted
+2. Secret Value API: issecretvalue, scrubsecretvalues, issecurevariable,
+   issecurevalue → aanwezig of niet
+3. Taint Status: issecurevariable check op SlashCmdList/UIParent/
+   GameTooltip/ChatFrame1 → tainted globals direct zichtbaar
+4. Combat Lockdown: InCombatLockdown live waarde
+5. Secure Templates: SecureActionButtonTemplate, SecureHandlerStateTemplate
+6. Midnight API Check: C_RestrictedActions, MenuUtil.CreateContextMenu,
+   C_AddOns.GetAddOnMemoryUsage, Settings.RegisterCanvasLayoutCategory
+Alles via pcall — crash in de diagnostiek zelf onmogelijk.
+```

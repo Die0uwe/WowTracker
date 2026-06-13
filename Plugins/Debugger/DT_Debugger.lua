@@ -232,7 +232,7 @@ statusBar:SetJustifyH("RIGHT")
 DBG.statusBar = statusBar
 
 -- Tab buttons
-local TAB_NAMES = { "Log", "Plugins", "DB", "Memory" }
+local TAB_NAMES = { "Log", "Plugins", "DB", "Memory", "Security" }
 local TAB_FRAMES = {}
 local activeTab = 1
 
@@ -653,11 +653,124 @@ function DBG._UpdateStatusBar()
     end
 end
 
+-- ─────────────────────────────────────────────────────────────────────
+-- TAB 5: SECURITY (Fase 4.3 · v3.3.1)
+-- C_RestrictedActions diagnostiek — zichtbaar welke beperkingen actief
+-- zijn, of de addon tainted is, en of secret-guards beschikbaar zijn.
+-- ─────────────────────────────────────────────────────────────────────
+local secFrame = CreateFrame("Frame", nil, DBG_frame)
+secFrame:SetPoint("TOPLEFT", 0, -62); secFrame:SetPoint("BOTTOMRIGHT", 0, 36)
+secFrame:Hide()
+table.insert(TAB_FRAMES, secFrame)  -- positie 5
+
+local secLines = {}
+for i = 1, 22 do
+    local fs = secFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    fs:SetFont("Fonts\2002.ttf", 10, "")
+    fs:SetJustifyH("LEFT")
+    fs:SetPoint("TOPLEFT", 10, -8 - (i-1)*14)
+    fs:SetWidth(540)
+    fs:SetText("")
+    secLines[i] = fs
+end
+
+function DBG._RefreshSec()
+    local lines = {}
+    local function add(txt) table.insert(lines, txt) end
+
+    -- ── 1. Addon restriction state ──────────────────────────────────
+    add("|cff00ccffC_RestrictedActions|r")
+    if C_RestrictedActions then
+        local ok1, state = pcall(C_RestrictedActions.GetAddOnRestrictionState, "WowTracker")
+        if ok1 then
+            local col = (state == Enum.AddOnRestrictionState.NotRestricted) and "|cff44cc66" or "|cffff4444"
+            add("  GetAddOnRestrictionState: "..col..(tostring(state) or "?").."|r")
+        else
+            add("  GetAddOnRestrictionState: |cffff4444error|r")
+        end
+        local ok2, active = pcall(C_RestrictedActions.IsAddOnRestrictionActive)
+        if ok2 then
+            local col = active and "|cffff4444" or "|cff44cc66"
+            add("  IsAddOnRestrictionActive: "..col..tostring(active).."|r")
+        else
+            add("  IsAddOnRestrictionActive: |cffff4444error|r")
+        end
+    else
+        add("  |cffaaaaaa C_RestrictedActions: niet beschikbaar|r")
+    end
+
+    -- ── 2. Secret value API beschikbaarheid ──────────────────────────
+    add("")
+    add("|cff00ccffSecret Value API|r")
+    local svAPIs = { "issecretvalue", "scrubsecretvalues", "issecurevariable", "issecurevalue" }
+    for _, name in ipairs(svAPIs) do
+        local avail = (_G[name] ~= nil)
+        local col = avail and "|cff44cc66" or "|cffaaaaaa"
+        add("  "..name..": "..col..(avail and "aanwezig" or "niet beschikbaar").."|r")
+    end
+
+    -- ── 3. Taint status ──────────────────────────────────────────────
+    add("")
+    add("|cff00ccffTaint Status|r")
+    if issecurevariable then
+        local secured, tainted = {}, {}
+        local checks = { "SlashCmdList", "UIParent", "GameTooltip", "ChatFrame1" }
+        for _, var in ipairs(checks) do
+            local ok, secure = pcall(issecurevariable, var)
+            if ok then
+                if secure then table.insert(secured, var)
+                else table.insert(tainted, var) end
+            end
+        end
+        if #tainted > 0 then
+            add("  |cffff4444Tainted: "..table.concat(tainted, ", ").."|r")
+        else
+            add("  |cff44cc66Alle gecheckte globals veilig|r")
+        end
+    else
+        add("  |cffaaaaaa issecurevariable niet beschikbaar|r")
+    end
+
+    -- ── 4. Combat lockdown ───────────────────────────────────────────
+    add("")
+    add("|cff00ccffCombat Lockdown|r")
+    local inCombat = InCombatLockdown()
+    add("  InCombatLockdown: "..(inCombat and "|cffff4444true|r" or "|cff44cc66false|r"))
+
+    -- ── 5. SecureActionButton test ───────────────────────────────────
+    add("")
+    add("|cff00ccffSecure Templates|r")
+    local sabt = _G["SecureActionButtonTemplate"]
+    add("  SecureActionButtonTemplate: "..(sabt ~= nil and "|cff44cc66aanwezig|r" or "|cffaaaaaa niet gevonden|r"))
+    local ssht = _G["SecureHandlerStateTemplate"]
+    add("  SecureHandlerStateTemplate: "..(ssht ~= nil and "|cff44cc66aanwezig|r" or "|cffaaaaaa niet gevonden|r"))
+
+    -- ── 6. Midnight API markers ──────────────────────────────────────
+    add("")
+    add("|cff00ccffMidnight API Check|r")
+    local midnightAPIs = {
+        { "C_RestrictedActions", C_RestrictedActions ~= nil },
+        { "MenuUtil.CreateContextMenu", MenuUtil ~= nil and type(MenuUtil.CreateContextMenu)=="function" },
+        { "C_AddOns.GetAddOnMemoryUsage", C_AddOns ~= nil and type(C_AddOns.GetAddOnMemoryUsage)=="function" },
+        { "Settings.RegisterCanvasLayoutCategory", Settings ~= nil and type(Settings.RegisterCanvasLayoutCategory)=="function" },
+    }
+    for _, v in ipairs(midnightAPIs) do
+        local col = v[2] and "|cff44cc66" or "|cffaaaaaa"
+        add("  "..v[1]..": "..col..(v[2] and "OK" or "niet gevonden").."|r")
+    end
+
+    -- Schrijf naar regels
+    for i = 1, #secLines do
+        secLines[i]:SetText(lines[i] or "")
+    end
+end
+
 function DBG._RefreshAll()
     DBG._RefreshLog()
     DBG._RefreshPlugins()
     DBG._RefreshDB()
     DBG._RefreshMem()
+    DBG._RefreshSec()
     DBG._UpdateStatusBar()
 end
 
