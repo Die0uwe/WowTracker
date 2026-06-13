@@ -1629,10 +1629,13 @@ WT_UpdateRoster = function()
     table.sort(sorted, function(a, b)
         local da = DelveTrackerDB.characters[a]
         local db_ = DelveTrackerDB.characters[b]
-        local oa = CLASS_ORDER[da and da.class or ""] or 99
-        local ob = CLASS_ORDER[db_ and db_.class or ""] or 99
+        -- nil-safe: ontbrekende class → orde 99 (achteraan)
+        local ca = da and da.class
+        local cb = db_ and db_.class
+        local oa = (ca and CLASS_ORDER[ca]) or 99
+        local ob = (cb and CLASS_ORDER[cb]) or 99
         if oa ~= ob then return oa < ob end
-        return a < b  -- zelfde klasse: alfabetisch op naam
+        return a < b
     end)
 
     local visIdx = 0  -- v3.4.5: telt alleen zichtbare (niet-orphan) cards
@@ -1855,7 +1858,7 @@ WT_UpdateRoster = function()
             end
         end)
 
-        Tab4.scroll.content.rows[i]=card
+        Tab4.scroll.content.rows[visIdx]=card
         end  -- else data-check
     end
 
@@ -3004,6 +3007,7 @@ SlashCmdList["WTCLEAN"] = function()
         print("|cffbf00ffWowTracker|r: Geen database."); return
     end
     local removed = 0
+    -- 1) Orphaned entries (geen class/level/race/gold)
     for key, data in pairs(DelveTrackerDB.characters) do
         if not data.class and not data.level and not data.race
            and (not data.money or data.money == 0) then
@@ -3012,10 +3016,33 @@ SlashCmdList["WTCLEAN"] = function()
             print("|cffbf00ffWowTracker|r: Orphan verwijderd: |cffccaa00"..key.."|r")
         end
     end
+    -- 2) Dubbele realm-naam keys (spatie vs geen spatie, bijv. "Defias Brotherhood" vs "DefiasBrotherhood")
+    local seen = {}
+    for key, data in pairs(DelveTrackerDB.characters) do
+        local name, realm = key:match("^(.+)-(.+)$")
+        if name and realm then
+            local normKey = name.."-"..realm:gsub("%s+","")
+            if seen[normKey] then
+                -- Houd de entry met MEER data (level > 0)
+                local oldData = DelveTrackerDB.characters[seen[normKey]]
+                local keepOld = (oldData.level or 0) >= (data.level or 0)
+                if not keepOld then
+                    DelveTrackerDB.characters[seen[normKey]] = nil
+                    seen[normKey] = key
+                else
+                    DelveTrackerDB.characters[key] = nil
+                end
+                removed = removed + 1
+                print("|cffbf00ffWowTracker|r: Duplicaat verwijderd: |cffccaa00"..key.."|r")
+            else
+                seen[normKey] = key
+            end
+        end
+    end
     if removed == 0 then
-        print("|cffbf00ffWowTracker|r: Geen orphaned entries gevonden.")
+        print("|cffbf00ffWowTracker|r: Geen orphaned of dubbele entries gevonden.")
     else
-        print("|cffbf00ffWowTracker|r: "..removed.." orphan(s) verwijderd — /reload om roster te verversen.")
+        print("|cffbf00ffWowTracker|r: "..removed.." entr(y/ies) verwijderd — /reload om roster te verversen.")
     end
 end
 
