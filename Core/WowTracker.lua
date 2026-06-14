@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "4.0.2"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "4.0.3"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -388,6 +388,18 @@ end
 -- WoW laadvolgorde: Lua files → SavedVariables overschrijven → ADDON_LOADED
 -- File-load: SavedVariables bestaan nog NIET → brug werkt dan NIET.
 -- ════════════════════════════════════════════════════════════════════
+local CURRENT_DB_VERSION = 4
+local function WT_RunMigrations(db)
+    local v = db.DB_VERSION or 1
+    if v < 4 then
+        db.WeeklyReset  = db.WeeklyReset  or {}
+        db.PluginStates = db.PluginStates or {}
+        db.characters   = db.characters   or {}
+        db.tickerShow   = db.tickerShow   or {events=true,guild=true,prey=true,time=true}
+        db.DB_VERSION   = CURRENT_DB_VERSION
+    end
+end
+
 local _migrationFrame = CreateFrame("Frame")
 _migrationFrame:RegisterEvent("ADDON_LOADED")
 _migrationFrame:SetScript("OnEvent", function(self, event, addonName)
@@ -403,18 +415,6 @@ _migrationFrame:SetScript("OnEvent", function(self, event, addonName)
     WowTrackerDB = WowTrackerDB or {}
     WT_RunMigrations(WowTrackerDB)
 end)
-
-local CURRENT_DB_VERSION = 4
-local function WT_RunMigrations(db)
-    local v = db.DB_VERSION or 1
-    if v < 4 then
-        db.WeeklyReset  = db.WeeklyReset  or {}
-        db.PluginStates = db.PluginStates or {}
-        db.characters   = db.characters   or {}
-        db.tickerShow   = db.tickerShow   or {events=true,guild=true,prey=true,time=true}
-        db.DB_VERSION   = CURRENT_DB_VERSION
-    end
-end
 
 -- Layout
 local UI_W       = 760
@@ -3174,16 +3174,16 @@ local function WT_DBRestore()
     local c = WowTrackerDB_Backup._backup_chars or "?"
     local v = WowTrackerDB_Backup._backup_version or "?"
     -- Stateful bevestiging
-    if not WT_DBRestore._confirmed then
-        WT_DBRestore._confirmed = true
+    if not _restoreConfirmed then
+        _restoreConfirmed = true
         print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Bevestig restore:|r "
             ..SA_GREY.."Backup van "..t.." · "..c.." chars · v"..v.."|r")
         print("|cffff4444Huidige data wordt OVERSCHREVEN. "
             .."Typ /wt-dbrestore opnieuw om te bevestigen.|r")
-        C_Timer.After(30, function() WT_DBRestore._confirmed = nil end)
+        C_Timer.After(30, function() _restoreConfirmed = false end)
         return
     end
-    WT_DBRestore._confirmed = nil
+    _restoreConfirmed = false
     local restored = WT_DeepCopy(WowTrackerDB_Backup)
     -- Metadata-velden opruimen uit de restore-kopie
     restored._backup_time    = nil
