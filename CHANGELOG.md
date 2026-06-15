@@ -1,5 +1,38 @@
 # CHANGELOG — WowTracker (Slayer Alliance Edition)
 
+## [v3.5.5] — 2026-06-15
+
+### Feature
+- **[DT_Abundance.lua]** Nieuw plugin — Abundance tegel uitgesplitst uit DT_QuickSet
+  - Live refresh elke 60 sec via C_Timer.NewTicker
+  - Shard of Dundun count, timer, zone, map ID, POI ID
+  - Hergebruikt frame bij refresh (geen dubbele frames)
+  - Skill: wow-addon-architect
+
+### Feature
+- **[Core/DT_Theme.lua]** Theme Engine v2.0
+  - 3 nieuwe premium themes: Titan Bronze, Void Reborn, Emerald Elven
+  - B/X/Murloc icon callbacks via WTTheme.Register()
+  - BlendMode ADD → BLEND fix (murloc niet meer transparant)
+  - 45 nieuwe TGA icons (8 themes × 5 slots) correct benoemd
+  - Skill: wow-theme-artist
+
+### Feature
+- **[Core/WowTracker.lua]** Header knoppen 22px → 32px
+  - iconTex 18px → 28px
+  - Cleanup DB knop naast Combat alert in admin panel
+  - Skill: wow-addon-architect
+
+### Feature
+- **[Plugins/MinimapIcon/DT_MinimapIcon.lua]** Nieuw — LibDBIcon minimap knop
+  - Live icon update bij theme-wissel
+  - /wt minimap toggle
+
+### Open Actiepunten
+- [ ] Void (basic) theme verwijderen uit themes lijst
+- [ ] WowTracker-Themes repo updaten met nieuwe premium themes
+- [ ] i18n strings voor Abundance toevoegen
+
 ## [v3.2.0] — 2026-06-10
 ### Added
 - Sprint A-01: Gnome Dieouwe voeten op de grond (y=0 anker)
