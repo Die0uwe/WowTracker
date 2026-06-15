@@ -17,9 +17,9 @@
 local addonName, addonTable = ...
 
 -- Database
-WowTrackerDB          = WowTrackerDB or {}
-WowTrackerDB.characters   = WowTrackerDB.characters or {}
-WowTrackerDB.PluginStates = WowTrackerDB.PluginStates or {}
+DelveTrackerDB          = DelveTrackerDB or {}
+DelveTrackerDB.characters   = DelveTrackerDB.characters or {}
+DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
 
 -- Core API
 DelveTracker = { Plugins = {}, Version = "2.7.0-12.0.5.67314" }
@@ -33,7 +33,7 @@ local SA_PURPLE = "|cffa335ee"
 local SA_BLUE   = "|cff00ccff"
 local SA_GREY   = "|cff887799"
 local C_2002    = "Fonts\\2002.ttf"
-local WT_VERSION = "4.0.3"   -- v3.2.5 (Fase 4.5): centrale versie — ALLEEN hier bijwerken
+local WT_VERSION = "3.5.4"   -- v3.5.4: 3D model achter tegels + TGA header icons
 
 -- ════════════════════════════════════════════════════════════════════
 -- TAAL / LANGUAGE SYSTEEM v3.2.0 (Fase 3.1 — VOLLEDIG)
@@ -107,6 +107,44 @@ local WT_LANG = {
     HG_S8="Lockout scanner", HG_S9="Exchange Bot", HG_S10="AFK scherm",
     HG_S11="Debug console", HG_S12="Dit scherm",
     HG_S13="Geheugengebruik", HG_S14="UI herladen",
+    -- Murloc / Minimap tooltips v3.5.5
+    MURL_TOOLTIP="Links: open/sluit · Rechts: menu · Sleep: verplaats",
+    MMAP_CHARS="Karakters:", MMAP_GOLD="Warband gold:",
+    MMAP_LEFT="Links", MMAP_LEFT_ACT="Open/sluit WowTracker",
+    MMAP_RIGHT="Rechts", MMAP_RIGHT_ACT="Admin panel",
+    MMAP_LOADED="Minimap icon geladen via LibDBIcon.",
+    -- DB backup/restore tooltips
+    DB_BACKUP_TITLE="Database Backup",
+    DB_BACKUP_INFO="Kopieert de volledige DB naar WowTrackerDB_Backup.",
+    DB_BACKUP_PATH="Bestand: WTF/Account/.../SavedVariables.lua",
+    DB_BACKUP_LAST="Laatste backup: ",
+    DB_BACKUP_NONE="Nog geen backup aanwezig.",
+    DB_RESTORE_TITLE="Database Restore",
+    DB_RESTORE_INFO="Herstelt DB vanuit de laatste backup.",
+    DB_RESTORE_WARN="Overschrijft huidige data! Vereist bevestiging.",
+    DB_RESTORE_FROM="Backup van: ",
+    DB_NO_BACKUP="Geen backup beschikbaar.",
+    DB_NO_DB="Geen database.",
+    DB_NO_ORPHAN="Geen orphaned of dubbele entries gevonden.",
+    DB_WIPED="DB gewist. /reload om te herladen.",
+    -- SystemTools
+    SYS_TITLE="System & Combat Tools",
+    SYS_SCROLL="Scroll met muiswiel voor meer opties.",
+    SYS_MURLOC_RESET="Murloc positie gereset.",
+    -- PreyTracker strings
+    PT_SETTINGS="Prey Tracker Instellingen",
+    PT_OPEN_SET="Klik om instellingenpaneel te openen",
+    PT_CMD_CAL="/prey cal  — naaldoffset instellen",
+    PT_RESET_OFFSET="Reset naaldoffset naar 0°",
+    PT_RESET_DEFAULTS="Reset alles naar standaard",
+    PT_ENABLED="Prey Tracker ingeschakeld",
+    PT_POS_RESET="Positie gereset.",
+    -- SkinNRare
+    SNR_LURE_TIP="Hover = preview · Klik = plaatsingsmodus",
+    SNR_LURE_CLICK="Klik om lure plaatsingsmodus te starten.",
+    SNR_LURE_PLACE="Klik dan op de grond om te plaatsen.",
+    -- MailAttach
+    MA_NO_ITEMS="Geen items gevonden",
 },
 ["English"] = {
     TAB_GUILD="GUILD", TAB_DELVES="DELVES", TAB_BOUNTY="BOUNTY",
@@ -171,6 +209,44 @@ local WT_LANG = {
     HG_S8="Lockout scanner", HG_S9="Exchange Bot", HG_S10="AFK screen",
     HG_S11="Debug console", HG_S12="This screen",
     HG_S13="Memory usage", HG_S14="Reload UI",
+    -- Murloc / Minimap tooltips v3.5.5
+    MURL_TOOLTIP="Left: open/close · Right: menu · Drag: move",
+    MMAP_CHARS="Characters:", MMAP_GOLD="Warband gold:",
+    MMAP_LEFT="Left", MMAP_LEFT_ACT="Open/close WowTracker",
+    MMAP_RIGHT="Right", MMAP_RIGHT_ACT="Admin panel",
+    MMAP_LOADED="Minimap icon loaded via LibDBIcon.",
+    -- DB backup/restore tooltips
+    DB_BACKUP_TITLE="Database Backup",
+    DB_BACKUP_INFO="Copies the full DB to WowTrackerDB_Backup.",
+    DB_BACKUP_PATH="File: WTF/Account/.../SavedVariables.lua",
+    DB_BACKUP_LAST="Last backup: ",
+    DB_BACKUP_NONE="No backup available yet.",
+    DB_RESTORE_TITLE="Database Restore",
+    DB_RESTORE_INFO="Restores DB from the last backup.",
+    DB_RESTORE_WARN="Overwrites current data! Requires confirmation.",
+    DB_RESTORE_FROM="Backup from: ",
+    DB_NO_BACKUP="No backup available.",
+    DB_NO_DB="No database found.",
+    DB_NO_ORPHAN="No orphaned or duplicate entries found.",
+    DB_WIPED="Database wiped. /reload to apply.",
+    -- SystemTools
+    SYS_TITLE="System & Combat Tools",
+    SYS_SCROLL="Scroll with mouse wheel for more options.",
+    SYS_MURLOC_RESET="Murloc position reset.",
+    -- PreyTracker strings
+    PT_SETTINGS="Prey Tracker Settings",
+    PT_OPEN_SET="Click to open settings panel",
+    PT_CMD_CAL="/prey cal  — needle offset only",
+    PT_RESET_OFFSET="Reset needle offset to 0°",
+    PT_RESET_DEFAULTS="Reset all settings to default",
+    PT_ENABLED="Prey Tracker enabled",
+    PT_POS_RESET="Position reset.",
+    -- SkinNRare
+    SNR_LURE_TIP="Hover to preview · Click to enter placement mode",
+    SNR_LURE_CLICK="Click to enter lure placement mode.",
+    SNR_LURE_PLACE="Then click the ground to place.",
+    -- MailAttach
+    MA_NO_ITEMS="No items found",
 },
 ["Deutsch"] = {
     TAB_GUILD="GILDE", TAB_DELVES="TIEFEN", TAB_BOUNTY="KOPFGELD",
@@ -235,6 +311,25 @@ local WT_LANG = {
     HG_S8="Sperren-Scanner", HG_S9="Exchange Bot", HG_S10="AFK-Bildschirm",
     HG_S11="Debug-Konsole", HG_S12="Dieser Bildschirm",
     HG_S13="Speichernutzung", HG_S14="UI neu laden",
+    -- Murloc / Minimap tooltips v3.5.5
+    MURL_TOOLTIP="Links: öffnen/schließen · Rechts: Menü · Ziehen: verschieben",
+    MMAP_CHARS="Charaktere:", MMAP_GOLD="Kriegsmeute Gold:",
+    MMAP_LEFT="Links", MMAP_LEFT_ACT="WowTracker öffnen/schließen",
+    MMAP_RIGHT="Rechts", MMAP_RIGHT_ACT="Admin-Panel",
+    MMAP_LOADED="Minimap-Icon über LibDBIcon geladen.",
+    DB_BACKUP_TITLE="Datenbank Backup", DB_BACKUP_INFO="Kopiert die vollständige DB.",
+    DB_BACKUP_LAST="Letztes Backup: ", DB_BACKUP_NONE="Noch kein Backup vorhanden.",
+    DB_RESTORE_TITLE="Datenbank Wiederherstellen", DB_RESTORE_INFO="Stellt DB wieder her.",
+    DB_RESTORE_WARN="Überschreibt Daten! Bestätigung nötig.", DB_RESTORE_FROM="Backup vom: ",
+    DB_NO_BACKUP="Kein Backup.", DB_NO_DB="Keine Datenbank.", DB_NO_ORPHAN="Keine Duplikate.",
+    DB_WIPED="DB gelöscht. /reload.", SYS_TITLE="System- & Kampf-Tools",
+    SYS_SCROLL="Mausrad scrollen für mehr.", SYS_MURLOC_RESET="Murloc-Position zurückgesetzt.",
+    PT_SETTINGS="Prey Tracker Einstellungen", PT_OPEN_SET="Klicken um Einstellungen zu öffnen",
+    PT_CMD_CAL="/prey cal — Nadel-Offset", PT_RESET_OFFSET="Nadel-Offset zurücksetzen",
+    PT_RESET_DEFAULTS="Einstellungen zurücksetzen", PT_ENABLED="Prey Tracker aktiviert",
+    PT_POS_RESET="Position zurückgesetzt.", SNR_LURE_TIP="Hover = Vorschau · Klick = Platzierung",
+    SNR_LURE_CLICK="Lockmittel platzieren.", SNR_LURE_PLACE="Auf Boden klicken.",
+    MA_NO_ITEMS="Keine Gegenstände gefunden",
 },
 ["Français"] = {
     TAB_GUILD="GUILDE", TAB_DELVES="GOUFFRES", TAB_BOUNTY="PRIME",
@@ -378,44 +473,6 @@ function WT_SetLangTable(lang)
     return _WT_T
 end
 
--- ════════════════════════════════════════════════════════════════════
--- v4.0 MIGRATIEBRUG — DelveTrackerDB → WowTrackerDB
--- DelveTrackerDB staat nog in TOC zodat WoW hem laadt voor bestaande spelers.
--- Draait op file-load vóór enig event of plugin.
--- ════════════════════════════════════════════════════════════════════
--- ════════════════════════════════════════════════════════════════════
--- v4.0.2 MIGRATIEBRUG — in ADDON_LOADED (NIET file-load!)
--- WoW laadvolgorde: Lua files → SavedVariables overschrijven → ADDON_LOADED
--- File-load: SavedVariables bestaan nog NIET → brug werkt dan NIET.
--- ════════════════════════════════════════════════════════════════════
-local CURRENT_DB_VERSION = 4
-local function WT_RunMigrations(db)
-    local v = db.DB_VERSION or 1
-    if v < 4 then
-        db.WeeklyReset  = db.WeeklyReset  or {}
-        db.PluginStates = db.PluginStates or {}
-        db.characters   = db.characters   or {}
-        db.tickerShow   = db.tickerShow   or {events=true,guild=true,prey=true,time=true}
-        db.DB_VERSION   = CURRENT_DB_VERSION
-    end
-end
-
-local _migrationFrame = CreateFrame("Frame")
-_migrationFrame:RegisterEvent("ADDON_LOADED")
-_migrationFrame:SetScript("OnEvent", function(self, event, addonName)
-    if addonName ~= "WowTracker" then return end
-    self:UnregisterEvent("ADDON_LOADED")
-    -- Nu zijn SavedVariables geladen
-    if DelveTrackerDB and (not WowTrackerDB or not next(WowTrackerDB or {})) then
-        WowTrackerDB = DelveTrackerDB
-        local n = 0
-        for _ in pairs(WowTrackerDB.characters or {}) do n = n + 1 end
-        print("|cffbf00ff[WowTracker]|r |cffccaa00v4.0: "..n.." chars gemigreerd → WowTrackerDB â|r")
-    end
-    WowTrackerDB = WowTrackerDB or {}
-    WT_RunMigrations(WowTrackerDB)
-end)
-
 -- Layout
 local UI_W       = 760
 local UI_H       = 580
@@ -444,7 +501,7 @@ end)
 UI:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
     local pt,_,rpt,x,y = self:GetPoint()
-    WowTrackerDB.mainPos = {pt=pt,rpt=rpt,x=x,y=y}
+    DelveTrackerDB.mainPos = {pt=pt,rpt=rpt,x=x,y=y}
 end)
 
 -- Tabs
@@ -487,7 +544,7 @@ TickerClip:SetPoint("TOPRIGHT",UI,"TOPRIGHT",-78,-1)
 TickerClip:SetHeight(TICKER_H)
 TickerClip:SetClipsChildren(true)
 -- Ticker instellingen in DB
-WowTrackerDB.tickerShow = WowTrackerDB.tickerShow or {
+DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
     events=true, guild=true, prey=true, time=true,
 }
 -- Klik op ticker opent selectiemenu
@@ -496,11 +553,11 @@ TickerClip:SetScript("OnClick", function(self)
     -- v3.1.9 FIX: defaults van file-load overleven het laden van de échte
     -- SavedVariables niet (WoW vervangt de global bij ADDON_LOADED).
     -- Dus HIER nil-safe initialiseren, op het moment van gebruik.
-    WowTrackerDB = WowTrackerDB or {}
-    WowTrackerDB.tickerShow = WowTrackerDB.tickerShow or {
+    DelveTrackerDB = DelveTrackerDB or {}
+    DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
         events=true, guild=true, prey=true, time=true,
     }
-    local ts = WowTrackerDB.tickerShow
+    local ts = DelveTrackerDB.tickerShow
     MenuUtil.CreateContextMenu(self, function(_, root)
         root:CreateTitle(SA_PURPLE..WT_T("TICKER_TITLE").."|r")
         local function ToggleItem(key, label)
@@ -542,7 +599,7 @@ local function FormatHMS(s)
 end
 
 local function BuildTickerStr()
-    local ts = WowTrackerDB and WowTrackerDB.tickerShow or {}
+    local ts = DelveTrackerDB and DelveTrackerDB.tickerShow or {}
     local parts = {}
 
     -- World Events
@@ -668,6 +725,7 @@ UI.logo = UI:CreateTexture(nil,"OVERLAY")
 UI.logo:SetSize(56,56)
 UI.logo:SetPoint("TOPLEFT",UI,"TOPLEFT",10,-(TICKER_H+7))
 UI.logo:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
+UI.logo:SetBlendMode("ADD")   -- zwarte achtergrond transparant
 
 UI.title = UI:CreateFontString(nil,"OVERLAY")
 UI.title:SetFont(C_2002,16,"OUTLINE")
@@ -733,9 +791,9 @@ local function WT_FmtGold(gold)
 end
 
 function WT_UpdateWarbandStats()
-    if not (WowTrackerDB and WowTrackerDB.characters) then return end
+    if not (DelveTrackerDB and DelveTrackerDB.characters) then return end
     local chars, copper = 0, 0
-    for _,d in pairs(WowTrackerDB.characters) do
+    for _,d in pairs(DelveTrackerDB.characters) do
         if type(d)=="table" then
             chars = chars + 1
             copper = copper + (tonumber(d.money) or 0)
@@ -748,8 +806,8 @@ function WT_UpdateWarbandStats()
 end
 
 -- Header knoppen: X · Tandwiel · [Theme] [Lang] — rechtsboven op één lijn
-local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 11)
-local HDR_BTN_SZ = 22
+local HDR_BTN_Y = -(TICKER_H + math.floor(HEADER_H/2) - 16)
+local HDR_BTN_SZ = 32
 
 -- X Sluiten
 UI.close = CreateFrame("Button",nil,UI,"UIPanelCloseButton")
@@ -763,9 +821,20 @@ UI.settingsBtn:SetPoint("RIGHT",UI.close,"LEFT",-3,0)
 UI.settingsBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.settingsBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
 UI.settingsBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
-local sIco=UI.settingsBtn:CreateFontString(nil,"OVERLAY")
-sIco:SetFont(C_2002,14,"OUTLINE"); sIco:SetPoint("CENTER")
-sIco:SetText(SA_PURPLE.."⚙|r")
+-- v3.5.3: TGA icon via WTTheme.GetIcon
+UI.settingsBtn.iconTex = UI.settingsBtn:CreateTexture(nil,"ARTWORK")
+UI.settingsBtn.iconTex:SetSize(28,28); UI.settingsBtn.iconTex:SetPoint("CENTER")
+local function ApplySettingsIcon()
+    local path = WTTheme and WTTheme.GetIcon and WTTheme.GetIcon("admin")
+    if path then
+        UI.settingsBtn.iconTex:SetTexture(path)
+        UI.settingsBtn.iconTex:SetBlendMode("ADD")
+    else
+        UI.settingsBtn.iconTex:SetColorTexture(0.75,0.25,1.0,0.8)
+    end
+end
+ApplySettingsIcon()
+if WTTheme and WTTheme.Register then WTTheme.Register(ApplySettingsIcon) end
 UI.settingsBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.settingsBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
 
@@ -776,9 +845,20 @@ UI.themeBtn:SetPoint("RIGHT",UI.settingsBtn,"LEFT",-3,0)
 UI.themeBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.themeBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
 UI.themeBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
-local tIco=UI.themeBtn:CreateFontString(nil,"OVERLAY")
-tIco:SetFont(C_2002,11,"OUTLINE"); tIco:SetPoint("CENTER")
-tIco:SetText("|cff44aaff🎨|r")
+-- v3.5.3: TGA icon via WTTheme.GetIcon
+UI.themeBtn.iconTex = UI.themeBtn:CreateTexture(nil,"ARTWORK")
+UI.themeBtn.iconTex:SetSize(28,28); UI.themeBtn.iconTex:SetPoint("CENTER")
+local function ApplyThemeIcon()
+    local path = WTTheme and WTTheme.GetIcon and WTTheme.GetIcon("theme")
+    if path then
+        UI.themeBtn.iconTex:SetTexture(path)
+        UI.themeBtn.iconTex:SetBlendMode("ADD")
+    else
+        UI.themeBtn.iconTex:SetColorTexture(0.27,0.67,1.0,0.8)
+    end
+end
+ApplyThemeIcon()
+if WTTheme and WTTheme.Register then WTTheme.Register(ApplyThemeIcon) end
 UI.themeBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.themeBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
 UI.themeBtn:SetScript("OnClick",function(self)
@@ -808,7 +888,7 @@ UI.themeBtn:SetScript("OnClick",function(self)
             for _,t in ipairs(themes) do
                 local th=t
                 root:CreateButton(th.name,function()
-                    WowTrackerDB.theme={bg={th.r,th.g,th.b}, border=th.border, name=th.name}
+                    DelveTrackerDB.theme={bg={th.r,th.g,th.b}, border=th.border, name=th.name}
                     UI:SetBackdropColor(th.r,th.g,th.b,0.97)
                     UI:SetBackdropBorderColor(th.border[1],th.border[2],th.border[3],1)
                     print(SA_PURPLE.."[WowTracker] Thema: "..th.name.."|r")
@@ -825,9 +905,20 @@ UI.langBtn:SetPoint("RIGHT",UI.themeBtn,"LEFT",-3,0)
 UI.langBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
 UI.langBtn:SetBackdropColor(0.08,0.04,0.14,0.9)
 UI.langBtn:SetBackdropBorderColor(0.40,0.10,0.65,0.8)
-local lIco=UI.langBtn:CreateFontString(nil,"OVERLAY")
-lIco:SetFont(C_2002,9,"OUTLINE"); lIco:SetPoint("CENTER")
-lIco:SetText("|cff44ffaa🌐|r")
+-- v3.5.3: TGA icon via WTTheme.GetIcon
+UI.langBtn.iconTex = UI.langBtn:CreateTexture(nil,"ARTWORK")
+UI.langBtn.iconTex:SetSize(28,28); UI.langBtn.iconTex:SetPoint("CENTER")
+local function ApplyLangIcon()
+    local path = WTTheme and WTTheme.GetIcon and WTTheme.GetIcon("language")
+    if path then
+        UI.langBtn.iconTex:SetTexture(path)
+        UI.langBtn.iconTex:SetBlendMode("ADD")
+    else
+        UI.langBtn.iconTex:SetColorTexture(0.27,1.0,0.67,0.8)
+    end
+end
+ApplyLangIcon()
+if WTTheme and WTTheme.Register then WTTheme.Register(ApplyLangIcon) end
 UI.langBtn:SetScript("OnEnter",function(s) s:SetBackdropBorderColor(0.85,0.25,1.0,1) end)
 UI.langBtn:SetScript("OnLeave",function(s) s:SetBackdropBorderColor(0.40,0.10,0.65,0.8) end)
 -- Expose als global referentie voor andere plugins (Registry B knop)
@@ -867,12 +958,12 @@ UI.langBtn:SetScript("OnClick",function(self)
     local langs = {"Nederlands","English","Deutsch","Français","Español"}
     MenuUtil.CreateContextMenu(self,function(_,root)
         root:CreateTitle(SA_BLUE..WT_T("LANG_TITLE").."|r")
-        local active = (WowTrackerDB and WowTrackerDB.language) or "Nederlands"
+        local active = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
         for _,lang in ipairs(langs) do
             local l=lang
             local mark = (l == active) and "|cff44ff44✓ |r" or "  "
             root:CreateButton(mark..l,function()
-                WowTrackerDB.language=l
+                DelveTrackerDB.language=l
                 if WT_ApplyLanguage then WT_ApplyLanguage(l) end   -- DIRECT toepassen
                 print(SA_PURPLE.."[WowTracker] Taal: "..l.."|r")
             end)
@@ -1108,7 +1199,7 @@ local function ShowTab(id)
         end
         if Tab3.quickWrap._dtBuilt == nil then
             local qpF = DelveTracker.Plugins["QuickSet"]
-            if qpF and WowTrackerDB.PluginStates["QuickSet"]~=false then
+            if qpF and DelveTrackerDB.PluginStates["QuickSet"]~=false then
                 pcall(qpF,"Tab3",Tab3.quickWrap)
             end
         end
@@ -1157,7 +1248,7 @@ end
 
 -- (taalsysteem verplaatst naar boven — v3.2.0)
 function WT_ApplyLanguage(lang)
-    lang = lang or (WowTrackerDB and WowTrackerDB.language) or "Nederlands"
+    lang = lang or (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
     -- v3.2.0: tabel staat bovenaan — via setter (upvalue daar)
     WT_SetLangTable(lang)
     -- Tab labels
@@ -1357,7 +1448,7 @@ local function RefreshSuggest(filter)
     for _,b in ipairs(DT_SuggestDrop.btns) do b:Hide() end
     if not filter or filter=="" then DT_SuggestDrop:Hide(); return end
     local matches={}
-    for k in pairs(WowTrackerDB.characters or {}) do
+    for k in pairs(DelveTrackerDB.characters or {}) do
         local short=k:match("([^-]+)") or k
         if short:lower():find(filter:lower(),1,true) then
             table.insert(matches,{key=k,short=short})
@@ -1384,7 +1475,7 @@ local function RefreshSuggest(filter)
             table.insert(DT_SuggestDrop.btns,sb)
         end
         local sb=DT_SuggestDrop.btns[i]
-        local data=WowTrackerDB.characters[m.key] or {}
+        local data=DelveTrackerDB.characters[m.key] or {}
         local cc=RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
         sb.t:SetText(string.format("|cff%02x%02x%02x%s|r  "..SA_GREY.."%s|r",
             math.floor(cc.r*255),math.floor(cc.g*255),math.floor(cc.b*255),
@@ -1661,12 +1752,12 @@ WT_UpdateRoster = function()
         MONK=10,DRUID=11,DEMONHUNTER=12,EVOKER=13,
     }
     local sorted={}
-    for k in pairs(WowTrackerDB.characters or {}) do
+    for k in pairs(DelveTrackerDB.characters or {}) do
         table.insert(sorted,k)
     end
     table.sort(sorted, function(a, b)
-        local da = WowTrackerDB.characters[a]
-        local db_ = WowTrackerDB.characters[b]
+        local da = DelveTrackerDB.characters[a]
+        local db_ = DelveTrackerDB.characters[b]
         -- nil-safe: ontbrekende class → orde 99 (achteraan)
         local ca = da and da.class
         local cb = db_ and db_.class
@@ -1678,7 +1769,7 @@ WT_UpdateRoster = function()
 
     local visIdx = 0  -- v3.4.5: telt alleen zichtbare (niet-orphan) cards
     for _,key in ipairs(sorted) do
-        local data=WowTrackerDB.characters[key]
+        local data=DelveTrackerDB.characters[key]
         -- skip orphaned entries zonder bruikbare data
         if not (data.class or data.level or data.race or (data.money and data.money > 0)) then
             -- orphan: geen kaartje, geen positie
@@ -1965,7 +2056,7 @@ WT_ShowArmory = function()
 
     -- Haal verse data op voor huidig karakter
     local myKey=(UnitName("player") or "?").."-"..(GetNormalizedRealmName() or "?")
-    local data=WowTrackerDB.characters and WowTrackerDB.characters[myKey]
+    local data=DelveTrackerDB.characters and DelveTrackerDB.characters[myKey]
     if data then
         if UnitStat then
             data.stats = {
@@ -2005,8 +2096,8 @@ WT_UpdateGuildOnline = function()
             local shortName = name:match("([^-]+)") or name
             -- Warband match: staat dit lid in onze eigen DB? (race-portret!)
             local dbKey = name:find("-") and name or (shortName.."-"..myRealm)
-            local own = WowTrackerDB.characters and
-                (WowTrackerDB.characters[dbKey] or WowTrackerDB.characters[name])
+            local own = DelveTrackerDB.characters and
+                (DelveTrackerDB.characters[dbKey] or DelveTrackerDB.characters[name])
             table.insert(online, {
                 name=shortName, rank=rank, level=level,
                 class=classFile or "WARRIOR", zone=zone or "",
@@ -2271,7 +2362,7 @@ WT_UpdateCurrency = function()
     CUR_DEFS = validDefs
 
     local sorted={}
-    for k in pairs(WowTrackerDB.characters or {}) do
+    for k in pairs(DelveTrackerDB.characters or {}) do
         if filter=="" or k:lower():find(filter,1,true) then
             table.insert(sorted,k)
         end
@@ -2286,7 +2377,7 @@ WT_UpdateCurrency = function()
     local yOff   = -4
 
     for ci,key in ipairs(sorted) do
-        local data = WowTrackerDB.characters[key]
+        local data = DelveTrackerDB.characters[key]
         local cur  = data.currencies or {}
         local shortName = key:match("([^-]+)") or key
         local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
@@ -2533,15 +2624,15 @@ local function MakeScaleBtn(lbl,xOff,fn)
     return b
 end
 MakeScaleBtn("+",-36,function()
-    local c=WowTrackerDB.mainScale or 1.0
+    local c=DelveTrackerDB.mainScale or 1.0
     local n=math.min(2.0,math.floor((c+SCALE_STEP)*100+0.5)/100)
-    WowTrackerDB.mainScale=n; UI:SetScale(n)
+    DelveTrackerDB.mainScale=n; UI:SetScale(n)
     scaleValTxt:SetText(string.format("%.2f",n))
 end)
 MakeScaleBtn("-",-8,function()
-    local c=WowTrackerDB.mainScale or 1.0
+    local c=DelveTrackerDB.mainScale or 1.0
     local n=math.max(0.5,math.floor((c-SCALE_STEP)*100+0.5)/100)
-    WowTrackerDB.mainScale=n; UI:SetScale(n)
+    DelveTrackerDB.mainScale=n; UI:SetScale(n)
     scaleValTxt:SetText(string.format("%.2f",n))
 end)
 
@@ -2687,10 +2778,10 @@ local function WT_NextWeeklyReset(resetDay, resetHour)
 end
 
 local function CheckWeeklyReset()
-    WowTrackerDB.WeeklyReset = WowTrackerDB.WeeklyReset or {}
-    local wr = WowTrackerDB.WeeklyReset
+    DelveTrackerDB.WeeklyReset = DelveTrackerDB.WeeklyReset or {}
+    local wr = DelveTrackerDB.WeeklyReset
     local resetDay, resetHour = WT_GetWeeklyResetDay(), 6
-    WowTrackerDB.lastResetWeek = nil   -- oude epoch-week opruimen
+    DelveTrackerDB.lastResetWeek = nil   -- oude epoch-week opruimen
 
     if not wr.nextReset then
         wr.day, wr.hour, wr.nextReset = resetDay, resetHour, WT_NextWeeklyReset(resetDay, resetHour)
@@ -2700,8 +2791,8 @@ local function CheckWeeklyReset()
     if today < wr.nextReset then return end
     if today == wr.nextReset and tonumber(date("%H")) < (wr.hour or 6) then return end
     -- ── RESET: weekly velden wissen ──
-    if WowTrackerDB.characters then
-        for _,d in pairs(WowTrackerDB.characters) do d.delves={}; d.totalDone=0 end
+    if DelveTrackerDB.characters then
+        for _,d in pairs(DelveTrackerDB.characters) do d.delves={}; d.totalDone=0 end
     end
     wr.day, wr.hour, wr.nextReset = resetDay, resetHour, WT_NextWeeklyReset(resetDay, resetHour)
 end
@@ -2711,9 +2802,9 @@ ScanDelves = function()
     local name=UnitName("player"); local realm=GetNormalizedRealmName()
     if not name or not realm then return end
     local key=name.."-"..realm
-    WowTrackerDB.characters=WowTrackerDB.characters or {}
-    WowTrackerDB.characters[key]=WowTrackerDB.characters[key] or {}
-    local d=WowTrackerDB.characters[key]
+    DelveTrackerDB.characters=DelveTrackerDB.characters or {}
+    DelveTrackerDB.characters[key]=DelveTrackerDB.characters[key] or {}
+    local d=DelveTrackerDB.characters[key]
     local _,class=UnitClass("player")
     local si=GetSpecialization and GetSpecialization()
     d.class   = class
@@ -2803,7 +2894,7 @@ UpdateCharacterList = function()
     local filter=(DT_SearchBox and DT_SearchBox:GetText() or ""):lower()
     if filter=="🔍 zoek karakter..." then filter="" end
     local sorted={}
-    for k in pairs(WowTrackerDB.characters or {}) do
+    for k in pairs(DelveTrackerDB.characters or {}) do
         if filter=="" or k:lower():find(filter,1,true) then
             table.insert(sorted,k)
         end
@@ -2820,7 +2911,7 @@ UpdateCharacterList = function()
     local GAP   = 4
 
     for i,key in ipairs(sorted) do
-        local data = WowTrackerDB.characters[key]
+        local data = DelveTrackerDB.characters[key]
         local shortName = key:match("([^-]+)") or key
         local cc = RAID_CLASS_COLORS and RAID_CLASS_COLORS[data.class or ""] or {r=0.8,g=0.8,b=0.8}
 
@@ -2946,7 +3037,9 @@ MBtn:SetClampedToScreen(true)
 
 MBtn.tex = MBtn:CreateTexture(nil,"ARTWORK")
 MBtn.tex:SetAllPoints()
-MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon.tga")
+-- v3.5.4: minimap gebruikt 64x64 icon (MijnIcoon_minimap.tga) — scherpere weergave
+MBtn.tex:SetTexture("Interface\\AddOns\\WowTracker\\Media\\MijnIcoon_minimap.tga")
+MBtn.tex:SetBlendMode("ADD")   -- zwarte achtergrond transparant
 
 -- Context menu via MenuUtil (UIDropDownMenu verwijderd in 12.x)
 local function DT_OpenMurlocMenu(owner)
@@ -3001,7 +3094,10 @@ local function DT_OpenMurlocMenu(owner)
         root:CreateTitle(SA_GREY.."Systeem|r")
         root:CreateButton("Herpositioneer venster",        function() UI:ClearAllPoints(); UI:SetPoint("CENTER") end)
         root:CreateButton("Reset Murloc positie",          function() MBtn:ClearAllPoints(); MBtn:SetPoint("CENTER") end)
-        root:CreateButton("Reload UI",                     function() ReloadUI() end)
+        root:CreateButton("Reload UI", function()
+            if not InCombatLockdown() then ReloadUI()
+            else print("|cffbf00ff[WowTracker]|r Kan niet reloaden in combat.") end
+        end)
         root:CreateButton("Sluit venster",                 function() UI:Hide() end)
     end)
 end
@@ -3022,12 +3118,12 @@ MBtn:SetScript("OnDragStop",  function(self)
     -- v3.1.7: save in CENTER-relatieve UIParent coördinaten — restore
     -- gebruikt CENTER/UIParent, dus save MOET hetzelfde referentiekader
     -- hebben (GetPoint gaf anchor-afhankelijke x,y → versprong na reload)
-    if WowTrackerDB then
+    if DelveTrackerDB then
         local s  = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
         local cx, cy = self:GetCenter()
         local px, py = UIParent:GetCenter()
         if cx and px then
-            WowTrackerDB.murlocPos = {x = cx*s - px, y = cy*s - py}
+            DelveTrackerDB.murlocPos = {x = cx*s - px, y = cy*s - py}
         end
     end
 end)
@@ -3035,7 +3131,7 @@ end)
 MBtn:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self,"ANCHOR_TOP")
     GameTooltip:SetText(SA_PURPLE.."WowTracker|r")
-    GameTooltip:AddLine(SA_GREY.."Links: open/sluit · Rechts: menu · Sleep: verplaats|r")
+    GameTooltip:AddLine(SA_GREY..WT_T("MURL_TOOLTIP").."|r")
     GameTooltip:Show()
 end)
 MBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -3053,34 +3149,34 @@ SLASH_WTAB61="/wt6"; SLASH_WTAB62="/wt currency"; SLASH_WTAB63="/wtcurrency"
 SLASH_WTRELOAD1="/wt-reload"
 SLASH_WTCLEAN1 = "/wt-cleanup"; SLASH_WTCLEAN2 = "/wt cleanup"
 SlashCmdList["WTCLEAN"] = function()
-    if not WowTrackerDB or not WowTrackerDB.characters then
+    if not DelveTrackerDB or not DelveTrackerDB.characters then
         print("|cffbf00ffWowTracker|r: Geen database."); return
     end
     local removed = 0
     -- 1) Orphaned entries (geen class/level/race/gold)
-    for key, data in pairs(WowTrackerDB.characters) do
+    for key, data in pairs(DelveTrackerDB.characters) do
         if not data.class and not data.level and not data.race
            and (not data.money or data.money == 0) then
-            WowTrackerDB.characters[key] = nil
+            DelveTrackerDB.characters[key] = nil
             removed = removed + 1
             print("|cffbf00ffWowTracker|r: Orphan verwijderd: |cffccaa00"..key.."|r")
         end
     end
     -- 2) Dubbele realm-naam keys (spatie vs geen spatie, bijv. "Defias Brotherhood" vs "DefiasBrotherhood")
     local seen = {}
-    for key, data in pairs(WowTrackerDB.characters) do
+    for key, data in pairs(DelveTrackerDB.characters) do
         local name, realm = key:match("^(.+)-(.+)$")
         if name and realm then
             local normKey = name.."-"..realm:gsub("%s+","")
             if seen[normKey] then
                 -- Houd de entry met MEER data (level > 0)
-                local oldData = WowTrackerDB.characters[seen[normKey]]
+                local oldData = DelveTrackerDB.characters[seen[normKey]]
                 local keepOld = (oldData.level or 0) >= (data.level or 0)
                 if not keepOld then
-                    WowTrackerDB.characters[seen[normKey]] = nil
+                    DelveTrackerDB.characters[seen[normKey]] = nil
                     seen[normKey] = key
                 else
-                    WowTrackerDB.characters[key] = nil
+                    DelveTrackerDB.characters[key] = nil
                 end
                 removed = removed + 1
                 print("|cffbf00ffWowTracker|r: Duplicaat verwijderd: |cffccaa00"..key.."|r")
@@ -3115,16 +3211,19 @@ SlashCmdList["WTAB3"]=function() UI:Show(); ShowTab(3) end
 SlashCmdList["WTAB4"]=function() UI:Show(); ShowTab(4) end
 SlashCmdList["WTAB5"]=function() UI:Show(); ShowTab(5) end
 SlashCmdList["WTAB6"]=function() UI:Show(); ShowTab(6) end
-SlashCmdList["WTRELOAD"]=function() ReloadUI() end
+SlashCmdList["WTRELOAD"]=function()
+    if not InCombatLockdown() then ReloadUI()
+    else print("|cffbf00ff[WowTracker]|r Kan niet reloaden in combat.") end
+end
 SlashCmdList["WTMEM"]=function()
     if C_AddOns and C_AddOns.UpdateAddOnMemoryUsage then C_AddOns.UpdateAddOnMemoryUsage() end
     local m=(C_AddOns and C_AddOns.GetAddOnMemoryUsage and C_AddOns.GetAddOnMemoryUsage("WowTracker")) or 0
     print(string.format(SA_PURPLE.."[WowTracker]|r Geheugen: %.1f KB",m))
 end
 SlashCmdList["WTCOMBAT"]=function()
-    WowTrackerDB.enableCombatAlert=not WowTrackerDB.enableCombatAlert
+    DelveTrackerDB.enableCombatAlert=not DelveTrackerDB.enableCombatAlert
     print(SA_PURPLE.."[WowTracker]|r Combat alert: "
-        ..(WowTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))
+        ..(DelveTrackerDB.enableCombatAlert and "|cff44cc66AAN|r" or "|cffcc4444UIT|r"))
 end
 
 -- ============================================================================
@@ -3147,8 +3246,8 @@ local function WT_DeepCopy(orig, seen)
 end
 
 local function WT_DBBackup()
-    -- v3.5.1: lees van WowTrackerDB als die al actief is (v4.0+), anders WowTrackerDB
-    local source = WowTrackerDB or WowTrackerDB
+    -- v3.5.1: lees van WowTrackerDB als die al actief is (v4.0+), anders DelveTrackerDB
+    local source = WowTrackerDB or DelveTrackerDB
     if not source then
         print(SA_PURPLE.."[WowTracker]|r Geen database gevonden."); return
     end
@@ -3159,13 +3258,15 @@ local function WT_DBBackup()
         WowTrackerDB_Backup._backup_chars = WowTrackerDB_Backup._backup_chars + 1
     end
     WowTrackerDB_Backup._backup_version = WT_VERSION
-    local dbName = WowTrackerDB and "WowTrackerDB" or "WowTrackerDB"
+    local dbName = WowTrackerDB and "WowTrackerDB" or "DelveTrackerDB"
     print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Backup succesvol!|r "
         ..SA_GREY..WowTrackerDB_Backup._backup_chars.." chars · "
         ..WowTrackerDB_Backup._backup_time.."|r")
     print(SA_GREY.."Bron: "..dbName.." → WowTrackerDB_Backup (WTF-map)|r")
 end
 
+-- Aparte state variabele voor restore bevestiging (local function kan geen fields hebben in Lua)
+local WT_DBRestore_confirmed = false
 local function WT_DBRestore()
     if not WowTrackerDB_Backup then
         print(SA_PURPLE.."[WowTracker]|r ".."|cffff4444Geen backup gevonden.|r"); return
@@ -3173,30 +3274,30 @@ local function WT_DBRestore()
     local t = WowTrackerDB_Backup._backup_time or "?"
     local c = WowTrackerDB_Backup._backup_chars or "?"
     local v = WowTrackerDB_Backup._backup_version or "?"
-    -- Stateful bevestiging
-    if not _restoreConfirmed then
-        _restoreConfirmed = true
+    -- Stateful bevestiging via aparte variabele
+    if not WT_DBRestore_confirmed then
+        WT_DBRestore_confirmed = true
         print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Bevestig restore:|r "
             ..SA_GREY.."Backup van "..t.." · "..c.." chars · v"..v.."|r")
         print("|cffff4444Huidige data wordt OVERSCHREVEN. "
             .."Typ /wt-dbrestore opnieuw om te bevestigen.|r")
-        C_Timer.After(30, function() _restoreConfirmed = false end)
+        C_Timer.After(30, function() WT_DBRestore_confirmed = false end)
         return
     end
-    _restoreConfirmed = false
+    WT_DBRestore_confirmed = false
     local restored = WT_DeepCopy(WowTrackerDB_Backup)
     -- Metadata-velden opruimen uit de restore-kopie
     restored._backup_time    = nil
     restored._backup_chars   = nil
     restored._backup_version = nil
-    -- v4.0.2: schrijf uitsluitend naar WowTrackerDB; DelveTrackerDB=nil
-    -- zodat ADDON_LOADED brug hem niet overschrijft na reload
-    WowTrackerDB = restored
-    DelveTrackerDB = nil
+    -- v3.5.1: schrijf naar BEIDE DB-namen (huidige + toekomstige v4.0)
+    -- → na v4.0 rename is WowTrackerDB al gevuld; geen extra migratiestap nodig
+    DelveTrackerDB = restored
+    WowTrackerDB   = WT_DeepCopy(restored)   -- v4.0 klaar-zetten
     print(SA_PURPLE.."[WowTracker]|r "..SA_GOLD.."Restore geslaagd!|r "
         ..SA_GREY..c.." chars terug uit backup van "..t.."|r")
-    print(SA_GREY.."Geschreven naar: WowTrackerDB + WowTrackerDB (v4.0 ready)|r")
-    C_Timer.After(1.5, function() ReloadUI() end)
+    print(SA_GREY.."Geschreven naar: DelveTrackerDB + WowTrackerDB (v4.0 ready)|r")
+    C_Timer.After(1.5, function() if not InCombatLockdown() then ReloadUI() end end)
 end
 
 SLASH_WTBACKUP1  = "/wt-dbbackup"
@@ -3285,12 +3386,12 @@ end
 
 -- ── Sectie: sliders ─────────────────────────────────────────────────────
 local refreshUIScale = MakeSlider(AP, -42, WT_T("UI_SCALE"), 0.5, 2.0,
-    function() return WowTrackerDB.mainScale or 1.0 end,
-    function(v) WowTrackerDB.mainScale = v; UI:SetScale(v) end)
+    function() return DelveTrackerDB.mainScale or 1.0 end,
+    function(v) DelveTrackerDB.mainScale = v; UI:SetScale(v) end)
 
 local refreshMScale = MakeSlider(AP, -86, WT_T("MURLOC_SCALE"), 0.5, 2.0,
-    function() return WowTrackerDB.mScale or 1.0 end,
-    function(v) WowTrackerDB.mScale = v; if MBtn then MBtn:SetScale(v) end end)
+    function() return DelveTrackerDB.mScale or 1.0 end,
+    function(v) DelveTrackerDB.mScale = v; if MBtn then MBtn:SetScale(v) end end)
 
 -- ── Sectie: thema ───────────────────────────────────────────────────────
 local thLbl = AP:CreateFontString(nil, "OVERLAY")
@@ -3344,7 +3445,7 @@ taLbl:SetText(SA_BLUE..WT_T("LANG_TITLE").."|r")
 
 local apLangBtns = {}
 local function RefreshLangBtns()
-    local active = (WowTrackerDB and WowTrackerDB.language) or "Nederlands"
+    local active = (DelveTrackerDB and DelveTrackerDB.language) or "Nederlands"
     for name, b in pairs(apLangBtns) do
         if name == active then
             b:SetBackdropBorderColor(0.85, 0.70, 0.10, 1)
@@ -3368,7 +3469,7 @@ do
         t:SetFont(C_2002, 9, "OUTLINE"); t:SetPoint("CENTER")
         t:SetText("|cffffffff"..l.."|r")
         b:SetScript("OnClick", function()
-            WowTrackerDB.language = l
+            DelveTrackerDB.language = l
             if WT_ApplyLanguage then WT_ApplyLanguage(l) end
             RefreshLangBtns()
             print(SA_PURPLE.."[WowTracker] Taal: "..l.."|r")
@@ -3388,12 +3489,28 @@ caBtn:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
 local caTxt = caBtn:CreateFontString(nil, "OVERLAY")
 caTxt:SetFont(C_2002, 10, "OUTLINE"); caTxt:SetPoint("CENTER")
 local function RefreshCA()
-    caTxt:SetText(WT_T("COMBAT_ALERT")..": "..(WowTrackerDB.enableCombatAlert and "|cff44cc66"..WT_T("ON").."|r" or "|cffcc4444"..WT_T("OFF").."|r"))
+    caTxt:SetText(WT_T("COMBAT_ALERT")..": "..(DelveTrackerDB.enableCombatAlert and "|cff44cc66"..WT_T("ON").."|r" or "|cffcc4444"..WT_T("OFF").."|r"))
 end
 caBtn:SetScript("OnClick", function()
-    WowTrackerDB.enableCombatAlert = not WowTrackerDB.enableCombatAlert
+    DelveTrackerDB.enableCombatAlert = not DelveTrackerDB.enableCombatAlert
     RefreshCA()
 end)
+
+-- ── Cleanup DB knop (naast combat alert) ─────────────────────────────────
+local cleanBtn = CreateFrame("Button", nil, AP, "BackdropTemplate")
+cleanBtn:SetSize(180, 22)
+cleanBtn:SetPoint("LEFT", caBtn, "RIGHT", 8, 0)
+cleanBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1})
+cleanBtn:SetBackdropColor(0.08, 0.04, 0.14, 0.95)
+cleanBtn:SetBackdropBorderColor(0.30, 0.08, 0.50, 0.8)
+local cleanTxt = cleanBtn:CreateFontString(nil, "OVERLAY")
+cleanTxt:SetFont(C_2002, 10, "OUTLINE"); cleanTxt:SetPoint("CENTER")
+cleanTxt:SetText("|cffccaa00Cleanup DB|r")
+cleanBtn:SetScript("OnClick", function()
+    if SlashCmdList["WTCLEAN"] then SlashCmdList["WTCLEAN"]() end
+end)
+cleanBtn:SetScript("OnEnter", function(s) s:SetBackdropBorderColor(0.70,0.25,1.0,1) end)
+cleanBtn:SetScript("OnLeave", function(s) s:SetBackdropBorderColor(0.30,0.08,0.50,0.8) end)
 
 -- ── Sectie: plugins on/off ──────────────────────────────────────────────
 -- ── Backup / Restore knoppen ────────────────────────────────────────────
@@ -3421,14 +3538,14 @@ end)
 backupBtn:SetScript("OnEnter", function(self)
     self:SetBackdropBorderColor(0.10, 0.70, 0.95, 1)
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText(SA_GOLD.."Database Backup")
-    GameTooltip:AddLine(SA_GREY.."Kopieert de volledige DB naar WowTrackerDB_Backup.|r")
-    GameTooltip:AddLine(SA_GREY.."Bestand: WTF/Account/.../SavedVariables.lua|r")
+    GameTooltip:SetText(SA_GOLD..WT_T("DB_BACKUP_TITLE"))
+    GameTooltip:AddLine(SA_GREY..WT_T("DB_BACKUP_INFO").."|r")
+    GameTooltip:AddLine(SA_GREY..WT_T("DB_BACKUP_PATH").."|r")
     if WowTrackerDB_Backup then
-        GameTooltip:AddLine(SA_GOLD.."Laatste backup: "
+        GameTooltip:AddLine(SA_GOLD..WT_T("DB_BACKUP_LAST")
             ..SA_GREY..(WowTrackerDB_Backup._backup_time or "?").."|r")
     else
-        GameTooltip:AddLine("|cffff5555Nog geen backup aanwezig.|r")
+        GameTooltip:AddLine("|cffff5555"..WT_T("DB_BACKUP_NONE").."|r")
     end
     GameTooltip:Show()
 end)
@@ -3443,15 +3560,15 @@ end)
 restoreBtn:SetScript("OnEnter", function(self)
     self:SetBackdropBorderColor(0.95, 0.50, 0.10, 1)
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:SetText("|cffff8844Database Restore")
-    GameTooltip:AddLine(SA_GREY.."Herstelt DB vanuit de laatste backup.|r")
-    GameTooltip:AddLine("|cffff4444Overschrijft huidige data! Vereist bevestiging.|r")
+    GameTooltip:SetText("|cffff8844"..WT_T("DB_RESTORE_TITLE"))
+    GameTooltip:AddLine(SA_GREY..WT_T("DB_RESTORE_INFO").."|r")
+    GameTooltip:AddLine("|cffff4444"..WT_T("DB_RESTORE_WARN").."|r")
     if WowTrackerDB_Backup then
-        GameTooltip:AddLine(SA_GOLD.."Backup van: "
+        GameTooltip:AddLine(SA_GOLD..WT_T("DB_RESTORE_FROM")
             ..SA_GREY..(WowTrackerDB_Backup._backup_time or "?")
             .." · "..(WowTrackerDB_Backup._backup_chars or "?").." chars|r")
     else
-        GameTooltip:AddLine("|cffff5555Geen backup beschikbaar.|r")
+        GameTooltip:AddLine("|cffff5555"..WT_T("DB_NO_BACKUP").."|r")
     end
     GameTooltip:Show()
 end)
@@ -3494,13 +3611,13 @@ local function RefreshPluginList()
             plugRows[i] = row
         end
         row:SetPoint("TOPLEFT", 0, -(i-1)*22)
-        local enabled = WowTrackerDB.PluginStates[n] ~= false
+        local enabled = DelveTrackerDB.PluginStates[n] ~= false
         row:SetBackdropColor(0.07, 0.03, 0.12, 0.9)
         row:SetBackdropBorderColor(enabled and 0.30 or 0.15, 0.08, enabled and 0.50 or 0.20, 0.8)
         row.txt:SetText((enabled and "|cffffffff" or SA_GREY)..n.."|r")
         row.st:SetText(enabled and "|cff44cc66"..WT_T("ON").."|r" or "|cffcc4444"..WT_T("OFF").."|r")
         row:SetScript("OnClick", function()
-            WowTrackerDB.PluginStates[n] = not (WowTrackerDB.PluginStates[n] ~= false)
+            DelveTrackerDB.PluginStates[n] = not (DelveTrackerDB.PluginStates[n] ~= false)
             RefreshPluginList()
         end)
         row:Show()
@@ -3535,27 +3652,27 @@ UI:RegisterEvent("PLAYER_MONEY")
 UI:RegisterEvent("GUILD_ROSTER_UPDATE")
 
 UI:SetScript("OnEvent",function(self,event)
-    WowTrackerDB.characters    = WowTrackerDB.characters    or {}
-    WowTrackerDB.PluginStates  = WowTrackerDB.PluginStates  or {}
+    DelveTrackerDB.characters    = DelveTrackerDB.characters    or {}
+    DelveTrackerDB.PluginStates  = DelveTrackerDB.PluginStates  or {}
     if event=="PLAYER_LOGIN" then
         -- Herstel schaal
-        if WowTrackerDB.mainScale then
-            UI:SetScale(WowTrackerDB.mainScale)
-            scaleValTxt:SetText(string.format("%.2f",WowTrackerDB.mainScale))
+        if DelveTrackerDB.mainScale then
+            UI:SetScale(DelveTrackerDB.mainScale)
+            scaleValTxt:SetText(string.format("%.2f",DelveTrackerDB.mainScale))
         end
         -- Herstel murloc schaal
-        if WowTrackerDB.mScale then MBtn:SetScale(WowTrackerDB.mScale) end
+        if DelveTrackerDB.mScale then MBtn:SetScale(DelveTrackerDB.mScale) end
         -- Herstel murloc positie
         -- Murloc positie herstel
-        if WowTrackerDB.murlocPos then
-            local p=WowTrackerDB.murlocPos
+        if DelveTrackerDB.murlocPos then
+            local p=DelveTrackerDB.murlocPos
             MBtn:ClearAllPoints()
             MBtn:SetPoint("CENTER",UIParent,"CENTER",p.x or 0,p.y or 0)
         end
-        if WowTrackerDB.mScale then MBtn:SetScale(WowTrackerDB.mScale) end
+        if DelveTrackerDB.mScale then MBtn:SetScale(DelveTrackerDB.mScale) end
         -- Herstel UI positie
-        if WowTrackerDB.mainPos then
-            local p=WowTrackerDB.mainPos
+        if DelveTrackerDB.mainPos then
+            local p=DelveTrackerDB.mainPos
             UI:ClearAllPoints()
             UI:SetPoint(p.pt or "CENTER",UIParent,p.rpt or "CENTER",p.x or 0,p.y or 0)
         end
@@ -3570,31 +3687,29 @@ UI:SetScript("OnEvent",function(self,event)
             local bdr = WTTheme.border.main
             if bg  then UI:SetBackdropColor(bg.r,  bg.g,  bg.b,  bg.a  or 0.97) end
             if bdr then UI:SetBackdropBorderColor(bdr.r, bdr.g, bdr.b, bdr.a or 1) end
-        elseif WowTrackerDB.theme then
+        elseif DelveTrackerDB.theme then
             -- Fallback: oud inline systeem (voor spelers die upgraden)
-            local t=WowTrackerDB.theme
+            local t=DelveTrackerDB.theme
             if t.bg then UI:SetBackdropColor(t.bg[1],t.bg[2],t.bg[3],t.bg[4] or 0.97) end
             if t.border then UI:SetBackdropBorderColor(t.border[1],t.border[2],t.border[3],1) end
         end
         -- Nil-safe veld-init (kennisbank: nieuwe velden op PLAYER_LOGIN —
         -- file-load defaults overleven het laden van SavedVariables NIET)
-        -- v4.0: RunMigrations vóór alles
-        WT_RunMigrations(WowTrackerDB)
-        WowTrackerDB.characters   = WowTrackerDB.characters or {}
-        WowTrackerDB.PluginStates = WowTrackerDB.PluginStates or {}
-        WowTrackerDB.tickerShow = WowTrackerDB.tickerShow or {
+        DelveTrackerDB.characters   = DelveTrackerDB.characters or {}
+        DelveTrackerDB.PluginStates = DelveTrackerDB.PluginStates or {}
+        DelveTrackerDB.tickerShow = DelveTrackerDB.tickerShow or {
             events=true, guild=true, prey=true, time=true,
         }
         -- Herstel taalinstelling
-        if WowTrackerDB.language then
-            WT_ApplyLanguage(WowTrackerDB.language)
+        if DelveTrackerDB.language then
+            WT_ApplyLanguage(DelveTrackerDB.language)
         end
         -- ── DB AUTO-MIGRATIE (herbouw v3.0.7 + v3.1.9 gids-upgrade) ──
         -- Oude entries: gender als string → getal; race met spaties → zonder;
         -- localized rasnaam → clientFileString via C_CreatureInfo reverse-lookup
         -- ("Undead"→"Scourge") — repareert ALLE chars zonder her-inloggen
         WT_BuildRaceData()
-        for _,cdata in pairs(WowTrackerDB.characters or {}) do
+        for _,cdata in pairs(DelveTrackerDB.characters or {}) do
             if type(cdata)=="table" then
                 if type(cdata.gender)=="string" then
                     cdata.gender = (cdata.gender=="female" or cdata.gender=="3") and 3 or 2
@@ -3620,34 +3735,6 @@ UI:SetScript("OnEvent",function(self,event)
         end
         tickerLastT=GetTime(); tickerDirty=true
         TickerClock:SetText(string.format(SA_GOLD.."%s|r",date("%H:%M:%S")))
-        -- v4.0.1: auto-cleanup spatie-duplicaten bij login
-        C_Timer.After(5, function()
-            if not WowTrackerDB or not WowTrackerDB.characters then return end
-            local seen2, removed2 = {}, 0
-            for key2 in pairs(WowTrackerDB.characters) do
-                local nm2, rl2 = key2:match("^(.+)-(.+)$")
-                if nm2 and rl2 then
-                    local norm2 = nm2.."-"..rl2:gsub("%s+","")
-                    if seen2[norm2] then
-                        local oldD2 = WowTrackerDB.characters[seen2[norm2]]
-                        local newD2 = WowTrackerDB.characters[key2]
-                        if (oldD2 and oldD2.level or 0) >= (newD2 and newD2.level or 0) then
-                            WowTrackerDB.characters[key2] = nil
-                        else
-                            WowTrackerDB.characters[seen2[norm2]] = nil
-                            seen2[norm2] = key2
-                        end
-                        removed2 = removed2 + 1
-                    else
-                        seen2[norm2] = key2
-                    end
-                end
-            end
-            if removed2 > 0 then
-                print("|cffbf00ff[WowTracker]|r "..SA_GREY..removed2.." realm-duplicaat(en) opgeruimd.|r")
-                if WT_UpdateRoster then C_Timer.After(0.5, WT_UpdateRoster) end
-            end
-        end)
         -- Pre-fetch guild data
         if IsInGuild() then WT_RequestGuildRoster() end
     end

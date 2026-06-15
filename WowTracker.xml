@@ -1,22 +1,36 @@
 <!-- ============================================================ -->
-<!-- WowTracker — Addon Load Manifest v2.7.0                     -->
+<!-- WowTracker — Addon Load Manifest v2.8.0                     -->
 <!-- Retail 12.0.5 / Build 67314 (Midnight) / Interface: 120005  -->
-<!-- Load order: Core FIRST, Debugger LAST (always)              -->
+<!-- Load order: Libs → Theme → Core → Plugins → Debugger LAST              -->
 <!-- DelveTracker → WowTracker rename · 2026-06-07               -->
 <!-- ============================================================ -->
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 
     <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- LIBS — laden vóór alles                               -->
+    <!-- LibStub → CallbackHandler → LibDataBroker → LibDBIcon -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Libs\LibStub\LibStub.lua"/>
+    <Script file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
+    <Script file="Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua"/>
+    <Script file="Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
     <!-- THEME ENGINE — ALTIJD VÓÓR CORE                       -->
     <!-- WTTheme global beschikbaar voor alle volgende plugins  -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <Script file="Core\DT_Theme.lua"/>
+    <Script file="Plugins\Theme\DT_Theme.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- CORE ENGINE                                            -->
     <!-- Definieert DelveTracker global + plugin API           -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Core\WowTracker.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MINIMAP ICON — LibDBIcon integratie (na core + theme)-->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\MinimapIcon\DT_MinimapIcon.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- EVENTS                                                -->
@@ -43,6 +57,12 @@
     <!-- Nemesis · Bountiful · Normal tabs + Valeera header    -->
     <!-- ═══════════════════════════════════════════════════════ -->
     <Script file="Plugins\QuickSet\DT_QuickSet.lua"/>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ABUNDANCE — tegel plugin voor Bounty/Nemesis subtab    -->
+    <!-- Na QuickSet laden zodat container klaarstaat           -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <Script file="Plugins\Abundance\DT_Abundance.lua"/>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- REGISTRY (XL karakter index · /crew)                  -->
